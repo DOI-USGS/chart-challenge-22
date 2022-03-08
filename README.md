@@ -1,7 +1,7 @@
 # USGS chart challenge 2022
 The [#30DayChartChallenge is a chart-a-day challenge](https://twitter.com/30DayChartChall) to encourage creativity, exploration, and community in data visualization. For each day of the month of April, there is a prompt that participants create charts to fit within and share on twitter. Each prompt fits within 5 broader categories: comparisons, distributions, relationships, timeseries, uncertainties. This year's categories will be unveiled in stages as April 1st approaches. See this [blog post with the USGS contributions from 2021](https://waterdata.usgs.gov/blog/30daychartchallenge-2021/).
 
-[2022 30 day chart challenge prompts: part-to-whole, pictogram, historical, flora, slope, OWID, physical, mountains, statistics, experimental, circular, The Economist. More prompts coming soon.](https://pbs.twimg.com/media/FM8RLvKWQAUy5_d?format=jpg&name=4096x4096) 
+![2022 30 day chart challenge prompts: part-to-whole, pictogram, historical, flora, slope, OWID, physical, mountains, statistics, experimental, circular, The Economist. More prompts coming soon.](https://pbs.twimg.com/media/FM8RLvKWQAUy5_d?format=jpg&name=4096x4096) 
 
 ## How to use
 This repo is to house code and related files for the charts shared via the @USGS_DataSci account. Each day will have a subdirectory within this repo (e.g. `/1_part-to-whole` that can be populated with files for the theme. Submit contributions via pull requests and tag @ceenell (R), @hcorson-dosch (python), or both (javascript/other) as reviewers. Tools and languages outside of those listed in the previous sentence are welcomed, and may or may not make sense to document in this repo.
