@@ -13,6 +13,6 @@ Include an image of the final chart along with a brief description that includes
 3. Tools & libraries used 
 
 Do not include: 
-1. Data files. Ideally data sources are publicly available and can be pulled in programmatically from elsewhere, like ScienceBase, NWIS, or S3. We do not want to be distributing previously unreleased datasets. If you are concerned about this, we can use some design tricks sell the chart without giving away too much, and use it as a mechanism to conceptually highlight works in progress.
+1. Data files. Ideally data sources are publicly available and can be pulled in programmatically from elsewhere, like ScienceBase, NWIS, or S3. We do not want to be distributing previously unreleased datasets. If you are concerned about this, we can use some design tricks to sell the chart without giving away too much, and use it as a mechanism to conceptually highlight works in progress.
 
 We will review PRs from a design/conceptual/documentation perspecitve and not necessarily for the data processing and code itself. However, we are happy to engage with you and troubleshoot as you develop your chart.
