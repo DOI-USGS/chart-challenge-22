@@ -19,14 +19,14 @@ targets:
 
 
   early_data:
-    command: summarize_nc_time(year0 = 1980, year1 = 1999,
+    command: summarize_nc_time(year0 = 1980, year1 = 1989,
       mm_dd0 = I('06-01'), mm_dd1 = I('09-30'),
       'data_in/01_predicted_temp_N24-53_W98-126.nc.ind',
       'data_in/02_predicted_temp_N40-53_W67-98.nc.ind',
       'data_in/03_predicted_temp_N24-40_W67-98.nc.ind')
 
   late_data:
-    command: summarize_nc_time(year0 = 2000, year1 = 2019,
+    command: summarize_nc_time(year0 = 2011, year1 = 2020,
       mm_dd0 = I('06-01'), mm_dd1 = I('09-30'),
       'data_in/01_predicted_temp_N24-53_W98-126.nc.ind',
       'data_in/02_predicted_temp_N40-53_W67-98.nc.ind',
