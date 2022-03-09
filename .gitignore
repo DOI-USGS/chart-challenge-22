@@ -3,4 +3,5 @@
 .RData
 .Ruserdata
 *.nc
+220403_chart/*.remake
 

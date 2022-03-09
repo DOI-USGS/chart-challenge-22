@@ -1,0 +1,37 @@
+target_default: 1_viz
+
+packages:
+  - tidyverse
+  - ncdf4
+  - scipiper
+  - lubridate
+  - sf
+
+sources:
+  - src/data_utils.R
+  - src/plot_utils.R
+
+# viz/220403_historical_compare.png
+targets:
+  1_viz:
+    depends:
+      - viz/220403_historical_compare.png
+
+
+  early_data:
+    command: summarize_nc_time(year0 = 1980, year1 = 1999,
+      mm_dd0 = I('06-01'), mm_dd1 = I('09-30'),
+      'data_in/01_predicted_temp_N24-53_W98-126.nc.ind',
+      'data_in/02_predicted_temp_N40-53_W67-98.nc.ind',
+      'data_in/03_predicted_temp_N24-40_W67-98.nc.ind')
+
+  late_data:
+    command: summarize_nc_time(year0 = 2000, year1 = 2019,
+      mm_dd0 = I('06-01'), mm_dd1 = I('09-30'),
+      'data_in/01_predicted_temp_N24-53_W98-126.nc.ind',
+      'data_in/02_predicted_temp_N40-53_W67-98.nc.ind',
+      'data_in/03_predicted_temp_N24-40_W67-98.nc.ind')
+
+  viz/220403_historical_compare.png:
+    command: plot_temp_diff(target_name,
+      early_data, late_data)
