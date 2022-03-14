@@ -4,4 +4,6 @@
 .Ruserdata
 *.nc
 220403_chart/*.remake
+.Rproj
+.DS_Store
 
