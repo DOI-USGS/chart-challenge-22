@@ -3,5 +3,11 @@
 .RData
 .Ruserdata
 *.nc
+<<<<<<< HEAD
 03_historical_jread/*.remake
+=======
+220403_chart/*.remake
+.Rproj
+.DS_Store
+>>>>>>> 16c62df5f7b69f43afddd478fee6284392d35255
 
