@@ -2,5 +2,7 @@
 .Rhistory
 .RData
 .Ruserdata
+*.nc
+03_historical_jread/*.remake
 .Rproj
 .DS_Store
