@@ -99,10 +99,10 @@ Modes <- function(x) {
   return(mode)
 }
 
-ls_binned_sf <- ls %>% group_by(bin,grid_ID) %>%
+ls_binned_sf <- ls %>% group_by(grid_ID) %>%
   summarise(modal_color = mean(fui,na.rm=T),
             count = length(unique(Hylak_id))) %>%
-  mutate(count = log10(count)) %>%
+  mutate(count_log = log10(count)) %>%
   right_join(grid) %>%
   st_as_sf() %>%
   filter(!is.na(modal_color))
@@ -121,28 +121,77 @@ elev_matrix %>%
   add_water(detect_water(elev_matrix,min_area = 100,max_height = 700),color="lightblue") %>%
   plot_3d(elev_matrix, water = T,soliddepth = -10, wateralpha = 1,zscale=100, watercolor = "lightblue",windowsize=1000, triangulate=T,max_error = 0.1)
 
-rgl::rgl.close()
+#rgl::rgl.close()
 render_camera(theta=30,phi=20,zoom=0.8)
 
 ## Make our overlay
-color_overlay = generate_polygon_overlay(ls_binned_sf %>% st_transform(attr(elev_matrix,'crs')),
+color_overlay = generate_polygon_overlay(ls_binned_sf %>% st_transform(attr(elev_matrix,'crs')) %>%
+                                           arrange(modal_color),
                                          attr(elev_matrix,'extent'),
                                          elev_matrix,
                                          data_column_fill = 'modal_color',
                                          palette=fui.colors,
-                                         linecolor = 'transparent',
-                                         offset=c(-10000,10000))
+                                         linecolor = 'transparent')
 
-count_overlay <- generate_polygon_overlay(ls_binned_sf %>% st_transform(attr(elev_matrix,'crs')),
+## Troubleshooting fill issue
+# g <- rasterGrob(color_overlay, interpolate=TRUE)
+# qplot(1:10, 1:10, geom="blank") +
+#   annotation_custom(g, xmin=-Inf, xmax=Inf, ymin=-Inf, ymax=Inf) +
+#   theme_void()
+# 
+# ggplot(ls_binned_sf %>% st_transform(attr(elev_matrix,'crs'))) +
+#   geom_sf(aes(fill=modal_color)) +
+#   scale_fill_gradientn(colors = fui.colors, name='Number of\n Lakes')
+
+count_overlay <- generate_polygon_overlay(ls_binned_sf %>% st_transform(attr(elev_matrix,'crs')) %>%
+                                            arrange(desc(count_log)),
                                           attr(elev_matrix,'extent'),
                                           elev_matrix,
-                                          data_column_fill = 'count',
+                                          data_column_fill = 'count_log',
                                           palette=viridis::plasma(50),
-                                          linecolor = 'transparent',
-                                          offset=c(-10000,10000))
+                                          linecolor = 'transparent')
+### Trouble shooting fill issue
+# g <- rasterGrob(count_overlay, interpolate=TRUE)
+# qplot(1:10, 1:10, geom="blank") +
+#   annotation_custom(g, xmin=-Inf, xmax=Inf, ymin=-Inf, ymax=Inf) +
+#   theme_void()
+# ggplot(ls_binned_sf %>% st_transform(attr(elev_matrix,'crs'))) +
+#   geom_sf(aes(fill=count)) +
+#   scale_fill_gradientn(colors = viridis::plasma(50), name='Number of\n Lakes', trans='log10')
 
-render_floating_overlay(color_overlay, elev_matrix,altitude = 200, zscale =1, remove_na=F, clear_layers=T)
-render_floating_overlay(count_overlay,elev_matrix,altitude = 400, zscale =1, remove_na=F, clear_layers=T)
-render_camera(theta=30,phi=20,zoom=0.8)
+render_floating_overlay(color_overlay, elev_matrix,altitude = 200, zscale =1, remove_na=F)
+render_floating_overlay(count_overlay,elev_matrix,altitude = 400, zscale =1, remove_na=F)
+
+render_snapshot(filename='USLakeDist.png')
 
 rgl::rgl.close()
+
+
+library(png)
+library(grid)
+img <- readPNG('USLakeDist.png')
+g <- rasterGrob(img, interpolate=TRUE)
+
+p_color <- ggplot(ls_binned_sf) +
+  geom_sf(aes(fill=modal_color)) +
+  scale_fill_gradientn(colors=fui.colors, breaks=c(4,18), labels =c('Bluer','Greener'),name='Modal Lake\nColor') 
+p_color
+color_legend <- cowplot::get_legend(p_color)
+p_count <- ggplot(ls_binned_sf %>% st_transform(attr(elev_matrix,'crs'))) +
+  geom_sf(aes(fill=count)) +
+  scale_fill_gradientn(colors = viridis::plasma(50), name='Number of\n Lakes', trans='log10')
+p_count
+count_legend <- cowplot::get_legend(p_count)
+
+img_plot <- qplot(1:10, 1:10, geom="blank") +
+  annotation_custom(g, xmin=-Inf, xmax=Inf, ymin=-Inf, ymax=Inf) +
+  theme_void()
+img_plot
+
+layout.matrix <- rbind(c(2,2,2,1),
+                       c(2,2,2,3),
+                       c(2,2,2,NA))
+
+g <- gridExtra::grid.arrange(count_legend,img_plot,color_legend, layout_matrix=layout.matrix,
+                        top='Lake Stacks Babay!')
+ggsave('gg_lake_stacks.png',plot=g)
