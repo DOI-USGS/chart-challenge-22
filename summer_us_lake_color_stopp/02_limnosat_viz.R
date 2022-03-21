@@ -6,6 +6,7 @@ library(lubridate)
 library(leafgl)
 library(mapview)
 library(rayshader)
+library(elevatr)
 mapviewOptions(fgb=F)
 
 setwd('summer_us_lake_color_stopp/')
@@ -39,22 +40,20 @@ usa <- maps::map('usa', plot = F) %>%
   st_as_sf() %>%
   st_transform(5070)
 
-world <- ne_countries(scale = "medium", returnclass = "sf") %>%
-  st_transform(5070) %>%
-  st_crop(.,st_bbox(usa))
 
 mapview(usa)
-grid <- st_make_grid(usa, cellsize = c(90000,90000), square = F) %>% st_as_sf() %>% mutate(grid_ID = row_number())
+grid <- st_make_grid(usa, cellsize = c(50000,50000), square = F) %>% st_as_sf() %>% mutate(grid_ID = row_number())
+grid <- st_join(grid,usa,left=F)
 mapview(grid,zcol='grid_ID')
 
-grid_lake_walk <- grid %>% st_join(lakes) %>%
-  filter(!is.na(Hylak_id)) %>%
+grid_lake_walk <- grid %>% st_join(lakes) 
   st_set_geometry(NULL)
 
 ## Lets puts around with Elevatr
 grid_xy <- st_centroid(grid)
 library(elevatr)
 grid_elev <- get_elev_point(grid_xy, src = "aws")
+elev_rast <- get_elev_raster(grid_xy,z=3)
 
 
 ## Make a lookup table for forel-ule index colors
@@ -101,21 +100,47 @@ Modes <- function(x) {
 }
 
 ls_binned_sf <- ls %>% group_by(bin,grid_ID) %>%
-  summarise(modal_color = mean(fui,na.rm=T)) %>%
+  summarise(modal_color = mean(fui,na.rm=T),
+            count = length(unique(Hylak_id))) %>%
+  mutate(count = log10(count)) %>%
   right_join(grid) %>%
   st_as_sf() %>%
   filter(!is.na(modal_color))
 
-library(gganimate)
-library(plotly)
-p<- ls_binned_sf %>%
-  #filter(bin<5)%>%
-  ggplot(.) +
-  #geom_sf(data=usa) +
-  geom_sf(aes(fill=modal_color,frame=bin)) +
-  scale_fill_gradientn(colours=fui.colors) +
-  ggthemes::theme_map() +
-  theme(legend.position = 'None')
+elev_rast <- raster::crop(elev_rast, st_bbox(ls_binned_sf))
 
-ggplotly(p) %>%
-  animation_opts(transition = 0, frame=10, redraw = FALSE)
+elev_matrix <- raster_to_matrix(elev_rast)
+elev_matrix[elev_matrix < -100] = NA
+attr(elev_matrix,'crs') <- attr(elev_rast,'crs')
+attr(elev_matrix,'extent') <- attr(elev_rast,'extent')
+
+## Make our base layer
+elev_matrix %>%
+  sphere_shade(texture='desert') %>%
+  add_shadow(ray_shade(elev_matrix,zscale=50),0.3) %>%
+  plot_3d(elev_matrix, water = T,soliddepth = -10, wateralpha = 1,zscale=100, watercolor = "lightblue",windowsize=1000, triangulate=T,max_error = 0.1)
+rgl::rgl.close()
+render_camera(theta=30,phi=20,zoom=0.8)
+
+## Make our overlay
+color_overlay = generate_polygon_overlay(ls_binned_sf %>% st_transform(attr(elev_matrix,'crs')),
+                                         attr(elev_matrix,'extent'),
+                                         elev_matrix,
+                                         data_column_fill = 'modal_color',
+                                         palette=fui.colors,
+                                         linecolor = 'transparent',
+                                         offset=c(-10000,10000))
+
+count_overlay <- generate_polygon_overlay(ls_binned_sf %>% st_transform(attr(elev_matrix,'crs')),
+                                          attr(elev_matrix,'extent'),
+                                          elev_matrix,
+                                          data_column_fill = 'count',
+                                          palette=viridis::plasma(50),
+                                          linecolor = 'transparent',
+                                          offset=c(-10000,10000))
+
+render_floating_overlay(color_overlay, elev_matrix,altitude = 200, zscale =1, remove_na=F, clear_layers=T)
+render_floating_overlay(count_overlay,elev_matrix,altitude = 400, zscale =1, remove_na=F, clear_layers=T)
+render_camera(theta=30,phi=20,zoom=0.8)
+
+rgl::rgl.close()
