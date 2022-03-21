@@ -118,7 +118,9 @@ attr(elev_matrix,'extent') <- attr(elev_rast,'extent')
 elev_matrix %>%
   sphere_shade(texture='desert') %>%
   add_shadow(ray_shade(elev_matrix,zscale=50),0.3) %>%
+  add_water(detect_water(elev_matrix,min_area = 100,max_height = 700),color="lightblue") %>%
   plot_3d(elev_matrix, water = T,soliddepth = -10, wateralpha = 1,zscale=100, watercolor = "lightblue",windowsize=1000, triangulate=T,max_error = 0.1)
+
 rgl::rgl.close()
 render_camera(theta=30,phi=20,zoom=0.8)
 
