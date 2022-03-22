@@ -229,15 +229,15 @@ time_plot <- ggplot(ls_temporal, aes(x = modal_color, y = forcats::fct_rev(month
         axis.ticks.x = element_blank(),
         plot.margin=unit(c(0.5,-0.5,0.5,0.5), "cm"))
 
-layout.matrix <- rbind(c(2,1,1,1,1),
-                       c(2,1,1,1,1),
-                       c(2,1,1,1,1))
+layout.matrix <- rbind(c(2,2,1,1,1,1),
+                       c(2,2,1,1,1,1),
+                       c(2,2,1,1,1,1))
 
 full <- gridExtra::grid.arrange(img_plot,time_plot,layout_matrix=layout.matrix,
-                        top='Drafting up some Lake Stacks Baby!')
+                        top='Lake Stacks Draft')
 
 #full <- gridExtra::grid.arrange(time_plot,img_plot,ncol=2,widths=c(.35,.65),padding=unit(0,'line'),
 #                                top='Drafting up some Lake Stacks Baby!')
 
-ggsave('gg_lake_stacks.png',plot=full,width=10,units='in')
- 
+ggsave('gg_lake_stacks.png',plot=full,width=10,height=7,units='in')
+  
