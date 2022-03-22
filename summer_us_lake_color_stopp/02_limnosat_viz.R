@@ -7,6 +7,10 @@ library(leafgl)
 library(mapview)
 library(rayshader)
 library(elevatr)
+library(ggridges)
+library(png)
+library(grid)
+
 mapviewOptions(fgb=F)
 
 setwd('summer_us_lake_color_stopp/')
@@ -30,10 +34,9 @@ ls <- ls %>% mutate(month = month(date),
   filter(pCount_dswe3 == 0,
          pCount_dswe1 > 9,
          dWL>470,
-         dWL<584,
-         month > 4, 
-         month < 10) %>%
+         dWL<584) %>%
   mutate(bin=cut_interval(doy,20,labels=F))
+
 
 #Make a grid of the US to group lakes into
 usa <- maps::map('usa', plot = F) %>% 
@@ -99,7 +102,8 @@ Modes <- function(x) {
   return(mode)
 }
 
-ls_binned_sf <- ls %>% group_by(grid_ID) %>%
+ls_spatial <- ls %>% 
+  group_by(grid_ID) %>%
   summarise(modal_color = mean(fui,na.rm=T),
             count = length(unique(Hylak_id))) %>%
   mutate(count_log = log10(count)) %>%
@@ -107,7 +111,15 @@ ls_binned_sf <- ls %>% group_by(grid_ID) %>%
   st_as_sf() %>%
   filter(!is.na(modal_color))
 
-elev_rast <- raster::crop(elev_rast, st_bbox(ls_binned_sf))
+ls_temporal <- ls %>% group_by(month, Hylak_id) %>%
+  summarise(modal_color = mean(fui, na.rm=T)) %>%
+  filter(!is.na(modal_color)) %>%
+  mutate(month = month(month,label=T),
+         month=factor(month, levels = c('Oct','Nov','Dec','Jan','Feb','Mar','Apr','May','Jun',
+                                        'Jul','Aug','Sep'))) 
+
+
+elev_rast <- raster::crop(elev_rast, st_bbox(ls_spatial))
 
 elev_matrix <- raster_to_matrix(elev_rast)
 elev_matrix[elev_matrix < -100] = NA
@@ -125,7 +137,7 @@ elev_matrix %>%
 render_camera(theta=30,phi=20,zoom=0.8)
 
 ## Make our overlay
-color_overlay = generate_polygon_overlay(ls_binned_sf %>% st_transform(attr(elev_matrix,'crs')) %>%
+color_overlay = generate_polygon_overlay(ls_spatial %>% st_transform(attr(elev_matrix,'crs')) %>%
                                            arrange(modal_color),
                                          attr(elev_matrix,'extent'),
                                          elev_matrix,
@@ -139,11 +151,11 @@ color_overlay = generate_polygon_overlay(ls_binned_sf %>% st_transform(attr(elev
 #   annotation_custom(g, xmin=-Inf, xmax=Inf, ymin=-Inf, ymax=Inf) +
 #   theme_void()
 # 
-# ggplot(ls_binned_sf %>% st_transform(attr(elev_matrix,'crs'))) +
-#   geom_sf(aes(fill=modal_color)) +
-#   scale_fill_gradientn(colors = fui.colors, name='Number of\n Lakes')
+ggplot(ls_spatial %>% st_transform(attr(elev_matrix,'crs'))) +
+  geom_sf(aes(fill=modal_color)) +
+  scale_fill_gradientn(colors = fui.colors, name='Number of\n Lakes')
 
-count_overlay <- generate_polygon_overlay(ls_binned_sf %>% st_transform(attr(elev_matrix,'crs')) %>%
+count_overlay <- generate_polygon_overlay(ls_spatial %>% st_transform(attr(elev_matrix,'crs')) %>%
                                             arrange(desc(count_log)),
                                           attr(elev_matrix,'extent'),
                                           elev_matrix,
@@ -155,9 +167,10 @@ count_overlay <- generate_polygon_overlay(ls_binned_sf %>% st_transform(attr(ele
 # qplot(1:10, 1:10, geom="blank") +
 #   annotation_custom(g, xmin=-Inf, xmax=Inf, ymin=-Inf, ymax=Inf) +
 #   theme_void()
-# ggplot(ls_binned_sf %>% st_transform(attr(elev_matrix,'crs'))) +
-#   geom_sf(aes(fill=count)) +
-#   scale_fill_gradientn(colors = viridis::plasma(50), name='Number of\n Lakes', trans='log10')
+
+ggplot(ls_spatial %>% st_transform(attr(elev_matrix,'crs'))) +
+  geom_sf(aes(fill=count)) +
+  scale_fill_gradientn(colors = viridis::plasma(50), name='Number of\n Lakes', trans='log10')
 
 render_floating_overlay(color_overlay, elev_matrix,altitude = 200, zscale =1, remove_na=F)
 render_floating_overlay(count_overlay,elev_matrix,altitude = 400, zscale =1, remove_na=F)
@@ -167,31 +180,64 @@ render_snapshot(filename='USLakeDist.png')
 rgl::rgl.close()
 
 
-library(png)
-library(grid)
 img <- readPNG('USLakeDist.png')
 g <- rasterGrob(img, interpolate=TRUE)
 
-p_color <- ggplot(ls_binned_sf) +
+p_color <- ggplot(ls_spatial) +
   geom_sf(aes(fill=modal_color)) +
-  scale_fill_gradientn(colors=fui.colors, breaks=c(4,18), labels =c('Bluer','Greener'),name='Modal Lake\nColor') 
+  scale_fill_gradientn(colors=fui.colors, breaks=c(4,17), labels =c('Bluer','Greener'),name='Average Lake\nColor',
+                       guide = guide_colorbar(
+                         direction = "horizontal",
+                         title.position = "top",
+                         label.position = "bottom"))+
+  theme(legend.background = element_blank())
 p_color
+
 color_legend <- cowplot::get_legend(p_color)
-p_count <- ggplot(ls_binned_sf %>% st_transform(attr(elev_matrix,'crs'))) +
+
+p_count <- ggplot(ls_spatial %>% st_transform(attr(elev_matrix,'crs'))) +
   geom_sf(aes(fill=count)) +
-  scale_fill_gradientn(colors = viridis::plasma(50), name='Number of\n Lakes', trans='log10')
+  scale_fill_gradientn(colors = viridis::plasma(50), name='Number of\n Lakes', trans='log10',
+                       guide = guide_colorbar(
+                         direction = "horizontal",
+                         title.position = "top",
+                         label.position = "bottom")) +
+  theme(legend.background = element_blank())
+
 p_count
-count_legend <- cowplot::get_legend(p_count)
+
+count_legend <- cowplot::get_legend(p_count) 
 
 img_plot <- qplot(1:10, 1:10, geom="blank") +
   annotation_custom(g, xmin=-Inf, xmax=Inf, ymin=-Inf, ymax=Inf) +
-  theme_void()
+  theme_void() +
+  annotation_custom(count_legend, 8,9,8.5,9.5) +
+  annotation_custom(color_legend,8,9,6,7) +
+  theme(plot.margin=unit(c(0.5,0.5,0.5,-0.5), "cm"),
+        plot.background = element_blank())
+
 img_plot
 
-layout.matrix <- rbind(c(2,2,2,1),
-                       c(2,2,2,3),
-                       c(2,2,2,NA))
+time_plot <- ggplot(ls_temporal, aes(x = modal_color, y = forcats::fct_rev(month), fill = stat(x))) +
+  geom_density_ridges_gradient(scale = 2.5, rel_min_height = 0.01) +
+  scale_fill_gradientn(colors = fui.colors) +
+  coord_cartesian(xlim=c(1,15)) +
+  labs(x = 'Average Color Distribution',y='Month') +
+  theme_classic() +
+  theme(legend.position = "none",
+        axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        plot.margin=unit(c(0.5,-0.5,0.5,0.5), "cm"))
 
-g <- gridExtra::grid.arrange(count_legend,img_plot,color_legend, layout_matrix=layout.matrix,
-                        top='Lake Stacks Babay!')
-ggsave('gg_lake_stacks.png',plot=g)
+layout.matrix <- rbind(c(2,1,1,1,1),
+                       c(2,1,1,1,1),
+                       c(2,1,1,1,1))
+
+full <- gridExtra::grid.arrange(img_plot,time_plot,layout_matrix=layout.matrix,
+                        top='Drafting up some Lake Stacks Baby!')
+
+#full <- gridExtra::grid.arrange(time_plot,img_plot,ncol=2,widths=c(.35,.65),padding=unit(0,'line'),
+#                                top='Drafting up some Lake Stacks Baby!')
+
+ggsave('gg_lake_stacks.png',plot=full,width=10,units='in')
+ 
