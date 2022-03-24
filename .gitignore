@@ -4,5 +4,6 @@
 .Ruserdata
 *.nc
 03_historical_jread/*.remake
-.Rproj
+*.Rproj
 .DS_Store
+0x_shamshaw/data/*.csv
