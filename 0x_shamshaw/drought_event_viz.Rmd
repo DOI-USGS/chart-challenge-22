@@ -178,7 +178,7 @@ p
 ```
 
 ```{r, fig.cap="Occurrence of 2% Julian day threshold streamflow drought events at watersheds smaller than 1000 sq km since 1980"}
-events_by_region <- events_conus_jd_1950 %>% 
+events_by_region <- events_crb_jd_1980 %>% 
   left_join(rdews_gages, by = "StaID", suffix = c("",".gages")) %>% 
   filter(DRAIN_SQKM <1000) %>% 
   filter(threshold == 20) %>% 
@@ -312,7 +312,7 @@ p
 
 Show the extent(represented by the number of gages) that are in drought on a given day over time
 
-```{r, fig.cap="Extent (number of sites) experiencing a 5% Julian day threshold drought event between 1980 and 2020 in the Upper Colorado River basin}
+```{r, fig.cap="Extent (number of sites) experiencing a 5% Julian day threshold drought event between 1980 and 2020 in the Upper Colorado River basin"}
 plot_dat <- all_streamflow %>% 
   left_join(rdews_gages, by = "StaID", suffix = c("",".gages")) %>% 
   filter(DRAIN_SQKM <= 1000) %>% 
@@ -333,7 +333,7 @@ p <- plot_dat %>% ggplot() +
 p
 ```
 
-```{r, fig.cap="Extent (number of sites) experiencing a 20% Julian day threshold drought event between 1980 and 2020 in the Upper Colorado River basin}
+```{r, fig.cap="Extent (number of sites) experiencing a 20% Julian day threshold drought event between 1980 and 2020 in the Upper Colorado River basin"}
 plot_dat <- all_streamflow %>% 
   left_join(rdews_gages, by = "StaID", suffix = c("",".gages")) %>% 
   filter(DRAIN_SQKM <= 1000) %>% 
@@ -379,7 +379,7 @@ p <- plot_dat %>% ggplot() +
         panel.grid.major.y = element_blank(),
         legend.position = "top")+
   scale_fill_identity(name = "Drought Intensity", labels = c("95th %", "90th %", "80th%"), guide = "legend")+
-  labs(y="Intensity of Streamflow Drought", x = element_blank())+
+  labs(y="Streamflow percentile", x = element_blank())+
   facet_wrap(vars(StaID),ncol=1, strip.position = "right")
 p
 ```
