@@ -1,7 +1,0 @@
-library(tidyverse)
-library(lubridate)
-library(ggthemes)
-library(patchwork)
-library(sf)
-library(paletteer)
-library(ggdark)

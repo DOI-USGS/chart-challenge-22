@@ -1,0 +1,117 @@
+---
+title: "Streamflow Drought Event Visualizations"
+author: "Scott Hamshaw"
+date: "`r Sys.Date()`"
+output: 
+        distill::distill_article:
+          highlight: kate
+          code_folding: true  
+          toc: true            
+          toc_depth: 3
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE, fig.width = 12, fig.height = 8)
+Sys.setlocale("LC_TIME", "C")
+```
+
+## Streamflow Drought Event Data Visualization
+
+Exploring approaches to visualize streamflow drought events in the Colorado River Basin region
+
+### Packages and General themes
+
+```{r load_packages}
+library(tidyverse)
+library(lubridate)
+library(knitr)
+library(ggthemes)
+library(patchwork)
+library(sf)
+library(paletteer)
+library(ggdist)
+library(ggforce)
+library(ggdark)
+```
+
+```{r plot_themes}
+theme_set(theme_void(base_family = "sans"))
+
+theme_update(
+  axis.text.x = element_text(color = "black", face = "plain", size = 18, 
+                             margin = margin(t = 6)),
+  axis.text.y = element_text(color = "black", size = 20, hjust = 1, 
+                             margin = margin(r = 6), family = "sans"),
+  axis.line.x = element_line(color = "black", size = 1),
+  panel.grid.major.y = element_line(color = "grey90", size = .6),
+  plot.background = element_rect(fill = "white", color = "white"),
+  plot.margin = margin(rep(20, 4)),
+  legend.text = element_text(family = "sans", size = 16),
+  plot.title = element_text(size=22),
+  axis.title = element_text(size = 20),
+  axis.title.y = element_text(angle=90)
+)
+
+## theme for horizontal charts
+theme_flip <-
+  theme(
+    axis.text.x = element_text(face = "plain", family = "sans", size = 18),
+    axis.text.y = element_text(face = "bold", family = "sans", size = 22),
+    panel.grid.major.x = element_line(color = "grey90", size = .6),
+    panel.grid.major.y = element_blank(),
+    legend.position = "top", 
+    legend.text = element_text(family = "sans", size = 18),
+    legend.title = element_text(face = "bold", size = 18, margin = margin(b = 25)),
+    axis.title = element_text(size = 20),
+    plot.title = element_text(size=22)
+  )
+
+# color palettes
+c_pal = paletteer_d("ggsci::default_uchicago") #9 color palette
+# ghibli::MononokeMedium # -- 7 color palette
+# ggsci::springfield_simpsons # -- 20 color palette
+
+```
+
+### Load data
+
+Load drought event properties data
+
+```{r}
+# Streamflow drought events calculated using Julian day 30-day moving window method 
+# for 1980-2020 for gages in Colorado River Basin region. 
+# Data file from regional drought early warning project 
+# Data > Data from National Project > Streamflow > Drought Summaries
+events_crb_jd_1980 <- read_csv("data/weibull_jd_30d_wndw_Drought_Properties.csv") %>% 
+  mutate(uniq_drought_id = str_c(StaID,"_",drought_id))  # add a unique drought ID across all sites
+
+# Streamflow drought events calculated using long-term site method 
+# for 1980-2020 for gages in Colorado River Basin region. 
+# Data file from regional drought early warning project 
+# Data > Data from National Project > Streamflow > Drought Summaries
+events_crb_site_1980 <- read_csv("data/weibull_site_Drought_Properties.csv") %>% 
+  mutate(uniq_drought_id = str_c(StaID,"_",drought_id))  # add a unique drought ID across all sites
+
+# Streamflow drought events calculated using Julian day method 
+# on 7-day average streamflows for 1921-2020 for Gages II sites that have sufficient records. 
+# Data file from national drought characterization project 
+events_conus_jd_1921 <- read_csv("data/streamflow_percentiles_7dayaverage_1921-2020_weibull_jd_Drought_Properties.csv") %>% 
+  mutate(uniq_drought_id = str_c(StaID,"_",drought_id))  # add a unique drought ID across all sites
+
+# Streamflow drought events calculated using Julian day method 
+# on 7-day average streamflows for 1951-2020 for Gages II sites that have sufficient records. 
+# Data file from national drought characterization project 
+events_conus_jd_1951 <- read_csv("data/streamflow_percentiles_7dayaverage_1921-2020_weibull_jd_Drought_Properties.csv") %>% 
+  mutate(uniq_drought_id = str_c(StaID,"_",drought_id))  # add a unique drought ID across all sites
+ 
+```
+
+
+### Beeswarm of individual drought events
+
+Plot individual drought events over time across
+
+```{r}
+
+```
+
