@@ -1,9 +1,13 @@
 plot_temp_diff <- function(fileout, early_data, late_data){
 
   # CRS-specific scaling for vectors and cells.
-  x_scale <- 10000
-  y_scale <- 200
-  cell_size <- 50000
+  cell_size <- 100000
+  y_scale <- 300
+
+  # scale agnostic params
+  x_y_ratio <- 75
+  x_scale <- x_y_ratio * y_scale
+  lwd <- 0.4
 
   # going to resample this to a hex grid so it isn't too busy:
   site_grid <- st_make_grid(early_data, cellsize = cell_size, square = FALSE, offset = c(-125, 25)) %>%
@@ -27,11 +31,12 @@ plot_temp_diff <- function(fileout, early_data, late_data){
     summarize_all(mean) %>%
     mutate(angle = (atan2(y_dif,x_dif)*180)/pi)
 
+  US_states <- sf::st_transform(spData::us_states, st_crs(early_data))
 
   ggplot() +
-    coord_sf(crs = st_crs(early_data)) +
+    geom_sf(data = US_states, color = 'white', fill = 'grey80', size = 1) +
     geom_segment(del_data, mapping = aes(col = angle, x = x, y = y, xend = xend, yend = yend),
-                 size = 0.35) +
+                 size = lwd) +
     scale_colour_viridis_c(option = "magma", direction = -1)
 
   ggsave(filename = fileout, width = 16, height = 10)
