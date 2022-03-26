@@ -41,8 +41,9 @@ plot_temp_diff <- function(fileout, early_data, late_data){
   ggplot() +
     geom_sf(data = US_states, color = 'grey90', fill = 'white', size = 0.75) +
     geom_segment(del_data, mapping = aes(col = angle, x = x, y = y, xend = xend, yend = yend),
-                 size = lwd) +
-    scico::scale_color_scico(palette = "romaO", direction = -1, midpoint = 0)
+                 size = lwd, show.legend = FALSE) +
+    scico::scale_color_scico(palette = "romaO", direction = -1, midpoint = 0) +
+    theme_void()
 
   ggsave(filename = fileout, width = 16, height = 10)
 
