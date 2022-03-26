@@ -1,13 +1,13 @@
 plot_temp_diff <- function(fileout, early_data, late_data){
 
   # CRS-specific scaling for vectors and cells.
-  cell_size <- 100000
-  y_scale <- 300
+  cell_size <- 60000
+  y_scale <- 250
 
   # scale agnostic params
   x_y_ratio <- 75
   x_scale <- x_y_ratio * y_scale
-  lwd <- 0.4
+  lwd <- 0.3
 
   # going to resample this to a hex grid so it isn't too busy:
   site_grid <- st_make_grid(early_data, cellsize = cell_size, square = FALSE, offset = c(-125, 25)) %>%
@@ -15,6 +15,18 @@ plot_temp_diff <- function(fileout, early_data, late_data){
     select(geometry=x) %>%
     mutate(cell_id = row_number()) %>%
     st_transform(st_crs(early_data))
+
+  # make a vector that is straight up and large:
+  late_data[3000,]$GDD_mean <- late_data[3000,]$GDD_mean + 100000
+  late_data[3000,]$GDD_doy_mean <- early_data[3000,]$GDD_doy_mean
+
+  # make a vector that is to the right and large:
+  late_data[2,]$GDD_mean <- early_data[2,]$GDD_mean
+  late_data[2,]$GDD_doy_mean <- late_data[2,]$GDD_doy_mean + 500
+
+  # make a vector that is to the left and large:
+  late_data[6000,]$GDD_mean <- early_data[6000,]$GDD_mean
+  late_data[6000,]$GDD_doy_mean <- late_data[6000,]$GDD_doy_mean - 500
 
   del_data <- late_data %>% rename(late_GDD_doy = GDD_doy_mean, late_GDD_mean = GDD_mean) %>%
     st_join(early_data) %>%
@@ -34,10 +46,10 @@ plot_temp_diff <- function(fileout, early_data, late_data){
   US_states <- sf::st_transform(spData::us_states, st_crs(early_data))
 
   ggplot() +
-    geom_sf(data = US_states, color = 'white', fill = 'grey80', size = 1) +
+    geom_sf(data = US_states, color = 'grey90', fill = 'white', size = 0.75) +
     geom_segment(del_data, mapping = aes(col = angle, x = x, y = y, xend = xend, yend = yend),
                  size = lwd) +
-    scale_colour_viridis_c(option = "magma", direction = -1)
+    scico::scale_color_scico(palette = "romaO", direction = -1)
 
   ggsave(filename = fileout, width = 16, height = 10)
 
