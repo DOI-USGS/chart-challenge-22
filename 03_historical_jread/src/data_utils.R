@@ -1,6 +1,6 @@
 
 
-summarize_nc_time <- function(year0, year1, mm_dd0, mm_dd1, ...){
+summarize_nc_time <- function(year0, year1, ...){
 
   # this assumes you downloaded files from https://doi.org/10.5066/P9CEMS0M
   data_files <- as_data_file(c(...))
@@ -8,9 +8,8 @@ summarize_nc_time <- function(year0, year1, mm_dd0, mm_dd1, ...){
     stop('need to download .nc files from https://doi.org/10.5066/P9CEMS0M')
   }
 
-  use_times <- purrr::map(year0:year1, function(yy){
-    seq(as.Date(sprintf('%s-%s', yy, mm_dd0)), to = as.Date(sprintf('%s-%s', yy, mm_dd1)), by = 'days')
-  }) %>% unlist() %>% as_date()
+  use_times <- seq(as.Date(sprintf('%s-01-01', year0)),
+                   to = as.Date(sprintf('%s-12-13', year1)), by = 'days')
 
   summarized_data <- purrr::map(data_files, function(pred_fl){
     nc <- nc_open(pred_fl)
