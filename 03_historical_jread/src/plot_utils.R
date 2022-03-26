@@ -1,14 +1,16 @@
 plot_temp_diff <- function(fileout, early_data, late_data){
 
+  # CRS-specific scaling for vectors.
+  x_scale <- 10000
+  y_scale <- 200
 
-
-  del_data <- late_data %>% rename(late_GDD_time = GDD_time, late_GDD_mean = GDD_mean) %>%
+  del_data <- late_data %>% rename(late_GDD_doy = GDD_doy_mean, late_GDD_mean = GDD_mean) %>%
     st_join(early_data) %>%
-    mutate(GDD_timing_diff = late_GDD_time - GDD_time,
+    mutate(GDD_timing_diff = late_GDD_doy - GDD_doy_mean,
            GDD_mean_diff = late_GDD_mean - GDD_mean) %>%
     mutate(x = st_coordinates(.)[,1], y = st_coordinates(.)[,2],
-           x_dif = GDD_timing_diff*10000,
-           y_dif = GDD_mean_diff*200,
+           x_dif = GDD_timing_diff * x_scale,
+           y_dif = GDD_mean_diff*y_scale,
            xend = x - x_dif,
            yend = y + y_dif,
            angle = (atan2(y_dif,x_dif)*180)/pi) %>%
