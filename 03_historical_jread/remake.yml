@@ -7,6 +7,7 @@ packages:
   - lubridate
   - sf
   - data.table
+  - spData
 
 sources:
   - src/data_utils.R
