@@ -6,6 +6,7 @@ packages:
   - scipiper
   - lubridate
   - sf
+  - data.table
 
 sources:
   - src/data_utils.R
