@@ -7,7 +7,9 @@ summarize_nc_time <- function(year0, year1, ...){
   if (any(!file.exists(data_files))){
     stop('need to download .nc files from https://doi.org/10.5066/P9CEMS0M')
   }
-
+  # base temperature for GDD calc
+  GDD_base <- 5
+  GDD_boy_perc <- 0.5 # 0.5 is 50%, or the day of hitting the mid point of yearly GDD
   use_times <- seq(as.Date(sprintf('%s-01-01', year0)),
                    to = as.Date(sprintf('%s-12-13', year1)), by = 'days')
 
@@ -31,8 +33,14 @@ summarize_nc_time <- function(year0, year1, ...){
 
     DT_grouped <- nc_as_DT[, group_value := yyyy_groups]
     DT_melted <- melt(DT_grouped, id.vars = "group_value", variable.name = "lake_id", value.name = "daily_temp")[, .(
-      GDD = sum(daily_temp, na.rm = TRUE),
-      GDD_doy = which.min(abs(cumsum(daily_temp) - sum(daily_temp)*0.5))
+      GDD = {
+        dif_temp <- daily_temp - GDD_base
+        sum(dif_temp[dif_temp > 0], na.rm=TRUE)},
+      GDD_doy = {
+        dif_temp <- daily_temp - GDD_base
+        dif_temp[dif_temp < 0] <- 0
+        # calculate the day of year when GDD is closest to the percent specified of total
+        which.min(abs(cumsum(dif_temp) - sum(dif_temp) * GDD_boy_perc))}
     ), by = list(group_value, lake_id)]
 
 
