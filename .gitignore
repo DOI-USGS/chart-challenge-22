@@ -4,5 +4,8 @@
 .Ruserdata
 *.nc
 03_historical_jread/*.remake
-.Rproj
+*.Rproj
 .DS_Store
+*.ai
+*.gif
+*/_targets/
