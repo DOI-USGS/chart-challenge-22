@@ -45,7 +45,7 @@ plot_area_rank <- function(file_out, transition_df){
     geom_bar(stat='identity', 
              aes(reorder(abb, inland_perc), inland_perc, fill = inland_perc), 
              width = 0.7)+
-    theme_classic(base_size = 16)+
+    theme_classic(base_size = 12)+
     scale_fill_scico(palette = "bukavu", 
                      end = 0.49, 
                      begin = 0.1, 

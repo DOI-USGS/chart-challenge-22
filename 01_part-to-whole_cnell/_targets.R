@@ -14,7 +14,7 @@ source("src/data_utils.R")
 source("src/plot_utils.R")
 
 wss_url <- 'https://www.usgs.gov/special-topics/water-science-school/science/how-wet-your-state-water-area-each-state'
-proj <- "+proj=lcc +lat_1=30.7 +lat_2=29.3 +lat_0=28.5 +lon_0=-91.33333333333333 +x_0=999999.9999898402 +y_0=0 +ellps=GRS80 +datum=NAD83 +to_meter=0.3048006096012192 +no_defs"
+proj_aea <- '+proj=aea +lat_1=29.5 +lat_2=45.5 +lat_0=37.5 +lon_0=-96 +x_0=0 +y_0=0 +ellps=GRS80 +datum=NAD83 +units=m no_defs'
 
 list(
   tar_target(
@@ -24,7 +24,7 @@ list(
   ),
   tar_target(
     states,
-    spData::us_states %>% st_transform(proj)
+    spData::us_states %>% st_transform(proj_aea)
   ),
   tar_target(
     state_data,
@@ -44,6 +44,6 @@ list(
   ),
   tar_target(
     water_area_rank_png,
-    plot_ara_rank('out/water_rank.png', transition_df)
+    plot_area_rank('out/water_rank.png', transition_df)
   )
 )
