@@ -28,6 +28,10 @@ library(scatterpie)
 
 ### Load the necessary data
 
+# NLA 2017 Phytoplankton data 
+# https://www.epa.gov/national-aquatic-resource-surveys/data-national-aquatic-resource-surveys
+nla_2017_url <- 'https://www.epa.gov/sites/default/files/2021-04/nla_2017_phytoplankton_taxa-data.csv'
+download.file(nla_2017_url, "in/nla_2017_phytoplankton_count-data.csv")
 nla_phyto <- read.csv("in/nla_2017_phytoplankton_count-data.csv")
 
 # Download fatty acid data from article
