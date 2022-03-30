@@ -36,14 +36,16 @@ list(
   ),
   tar_target(
     transition_df,
-    transition_states(state_data, carto_data)
+    combine_states(state_data, carto_data)
   ),
   tar_target(
     water_area_gif,
-    morph_maps(file_out = 'out/water_area.gif', transition_df)
+    morph_maps(file_out = 'out/water_area.gif', transition_df),
+    format = 'file'
   ),
   tar_target(
     water_area_rank_png,
-    plot_area_rank('out/water_rank.png', transition_df)
+    plot_area_rank('out/water_rank.png', transition_df),
+    format = 'file'
   )
 )

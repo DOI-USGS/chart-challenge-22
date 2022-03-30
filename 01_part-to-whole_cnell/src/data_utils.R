@@ -39,9 +39,9 @@ prep_data <- function(states, state_file){
     mutate(inland_perc = inland_km2/total_area_km2,
            coastal_perc = coastal_km2/total_area_km2,
            percent_area_water = as.numeric(str_replace(percent_area_water, "%", ""))) %>% 
-    select(geometry, inland_perc, total_area_km2, abb)
+    select(geometry, inland_perc, total_area_km2, abb) 
 }
-transition_states <- function(state_data, carto_data){
+combine_states <- function(state_data, carto_data){
   state_data %>% 
     mutate(id = '% water') %>%
     bind_rows(carto_data %>% mutate(id = 'total area')) %>%
