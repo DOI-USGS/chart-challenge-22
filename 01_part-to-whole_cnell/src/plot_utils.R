@@ -22,16 +22,10 @@ morph_maps <- function(file_out, transition_df, font_fam = "Source Sans Pro"){
     ggtitle("Percent area water") +
     theme(legend.position = 'none',
           plot.title = element_text(face = 'bold')) +
-    #guides(fill = guide_colorbar(
-    #  direction = "horizontal",
-    #  barwidth = 6,
-    #  barheight = 0.4,
-    #  title = "% water",
-    #  title.position = "top",
-    #  title.vjust = 0.1)) +
     gganimate::transition_states(trans_state, 
-                      #transition_length = 1,
-                      #state_length = 1
+                      transition_length = 1,
+                      state_length = 1,
+                      wrap = TRUE
                       )
   
   # animate
