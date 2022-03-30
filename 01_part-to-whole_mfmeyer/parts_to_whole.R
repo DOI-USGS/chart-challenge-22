@@ -71,7 +71,9 @@ ggplot() +
         axis.title = element_text(size = 16),
         legend.text = element_text(size = 14),
         legend.title = element_text(size = 16),
-        legend.position = "right")
+        legend.position = "right") 
+
+ggsave('out/phyto_biovol.png', width = 16, height = 9)
 
 nla_phyto_agg_wide <- nla_phyto_agg %>%
   ungroup() %>%
@@ -184,6 +186,8 @@ ggplot() +
         legend.title = element_text(size = 16),
         legend.position = "right")
 
+ggsave('out/fatty_acid_pies.png', width = 16, height = 9)
+
 ## Remember - not all Polyunsaturated fatty acids are the same! We have 
 ## Omega-3s and Omega-6s, so one way to assess the nutritional content 
 ## can be to further split the types of PUFAs in each system. 
@@ -205,7 +209,6 @@ ggplot() +
    scale_fill_gradientn(colors = viridis(100)[c(30, 45, 80, 90, 99)],
                         name = "Omega-3:Omega6") +
   #ggtitle("Polyunsaturated Fatty Acids: Saturated Fatty Acids") +
-  #ggtitle("Polyunsaturated Fatty Acids: Saturated Fatty Acids") +
   xlab("Logitude") +
   ylab("Latitude") +
   theme_bw() + 
@@ -217,3 +220,4 @@ ggplot() +
         legend.title = element_text(size = 16),
         legend.position = "right")
 
+ggsave('out/omega_ratio.png', width = 16, height = 9)
