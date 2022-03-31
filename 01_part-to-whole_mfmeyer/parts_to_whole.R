@@ -40,15 +40,23 @@ pone_url <- 'https://doi.org/10.1371/journal.pone.0130053.s001'
 download.file(pone_url, destfile = 'in/pone.0130053.s001.csv')
 fatty_acids <- read.csv("in/pone.0130053.s001.csv") 
 
+# Prep USA for mapping
+proj <- "+proj=lcc +lat_1=30.7 +lat_2=29.3 +lat_0=28.5 +lon_0=-91.33333333333333 +x_0=999999.9999898402 +y_0=0 +ellps=GRS80 +datum=NAD83 +to_meter=0.3048006096012192 +no_defs"
+state_map <- spData::us_states %>% st_transform(proj)
+
 # Step 1: Aggregate biovolumes for NLA data by site -----------------------
 
 head(nla_phyto)
 
-nla_phyto_agg <- nla_phyto %>%
+nla_phyto_agg <- nla_phyto %>% 
   group_by(UID, SITE_ID, LAT_DD83, LON_DD83, ALGAL_GROUP, CLASS) %>%
   summarize(across(.cols = c(ABUNDANCE:DENSITY), .fns = median)) %>%
   ungroup() %>%
-  mutate(CLASS = tolower(CLASS))
+  mutate(CLASS = tolower(CLASS)) %>% 
+  filter(!is.na(LAT_DD83)) %>%
+  st_as_sf(coords = c('LON_DD83','LAT_DD83'), crs = '+proj=longlat +datum=NAD83 +no_defs') %>%
+  st_transform(proj)
+nla_phyto_agg
 
 ggplot() +
   geom_polygon(data = map_data("state"),
