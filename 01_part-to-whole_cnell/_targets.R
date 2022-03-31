@@ -9,6 +9,8 @@ library(scico)
 library(gganimate)
 
 options(tidyverse.quiet = TRUE)
+tar_option_set(packages = c('tidyverse', 'rvest', 'spData', 'sf', 'cartogram',
+                            'showtext', 'scico', 'gganimate'))
 
 source("src/data_utils.R")
 source("src/plot_utils.R")
