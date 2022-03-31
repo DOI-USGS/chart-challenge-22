@@ -1,14 +1,8 @@
 library(targets)
-library(tidyverse)
-library(rvest)
-library(spData)
-library(sf)
-library(cartogram)
-library(showtext)
-library(scico)
-library(gganimate)
 
 options(tidyverse.quiet = TRUE)
+tar_option_set(packages = c('tidyverse', 'rvest', 'spData', 'sf', 'cartogram',
+                            'showtext', 'scico', 'gganimate'))
 
 source("src/data_utils.R")
 source("src/plot_utils.R")
