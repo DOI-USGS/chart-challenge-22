@@ -180,7 +180,7 @@ ggplot() +
              aes(x = LONG, 
                  y = LAT,
                  group = UID, 
-                 r =  90000), # in units of crs
+                 r =  80000), # in units of crs
              alpha = 0.55, cols= "fatty_acid", long_format = TRUE) +
   # scale_color_gradientn(colors = viridis(100)[c(30, 45, 80, 90, 99)], 
   #                       name = "PUFA:SAFA") +
@@ -193,14 +193,8 @@ ggplot() +
                       "sumPUFA" = "Polyunsaturated")) +
   xlab("Logitude") +
   ylab("Latitude") +
-  theme_bw() + 
-  theme(plot.title = element_text(size = 18),
-        strip.text = element_text(size = 16), 
-        axis.text = element_text(size = 10),
-        axis.title = element_text(size = 16),
-        legend.text = element_text(size = 14),
-        legend.title = element_text(size = 16),
-        legend.position = "right")
+  theme_void(base_size = 16) + 
+  theme(legend.position = "right")
 
 ggsave('out/fatty_acid_pies.png', width = 16, height = 9)
 
@@ -222,13 +216,7 @@ ggplot() +
   #ggtitle("Polyunsaturated Fatty Acids: Saturated Fatty Acids") +
   xlab("Logitude") +
   ylab("Latitude") +
-  theme_bw() + 
-  theme(plot.title = element_text(size = 18),
-        strip.text = element_text(size = 16), 
-        axis.text = element_text(size = 10),
-        axis.title = element_text(size = 16),
-        legend.text = element_text(size = 14),
-        legend.title = element_text(size = 16),
-        legend.position = "right")
+  theme_void(base_size = 16) + 
+  theme(legend.position = "right")
 
 ggsave('out/omega_ratio.png', width = 16, height = 9)
