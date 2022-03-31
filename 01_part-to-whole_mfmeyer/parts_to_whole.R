@@ -213,7 +213,7 @@ ggplot() +
                          name = "Omega-3:Omega6") +
    scale_fill_gradientn(colors = viridis(100)[c(30, 45, 80, 90, 99)],
                         name = "Omega-3:Omega6") +
-  #ggtitle("Polyunsaturated Fatty Acids: Saturated Fatty Acids") +
+  ggtitle("Polyunsaturated Fatty Acids: Saturated Fatty Acids") +
   xlab("Logitude") +
   ylab("Latitude") +
   theme_void(base_size = 16) + 
