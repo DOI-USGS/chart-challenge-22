@@ -48,42 +48,34 @@ state_map <- spData::us_states %>% st_transform(proj)
 
 head(nla_phyto)
 
+# make spatial
+nla_phyto_sf <- nla_phyto  %>% 
+  mutate(ALGAL_GROUP = stringr::str_to_title(ALGAL_GROUP)) %>%
+  filter(!is.na(LAT_DD83)) %>%
+  st_as_sf(coords = c('LON_DD83','LAT_DD83'), crs = '+proj=longlat +datum=NAD83 +no_defs') %>%
+  st_transform(proj)
+
 nla_phyto_agg <- nla_phyto %>% 
   group_by(UID, SITE_ID, LAT_DD83, LON_DD83, ALGAL_GROUP, CLASS) %>%
   summarize(across(.cols = c(ABUNDANCE:DENSITY), .fns = median)) %>%
   ungroup() %>%
-  mutate(CLASS = tolower(CLASS)) %>% 
-  filter(!is.na(LAT_DD83)) %>%
-  st_as_sf(coords = c('LON_DD83','LAT_DD83'), crs = '+proj=longlat +datum=NAD83 +no_defs') %>%
-  st_transform(proj)
+  mutate(CLASS = tolower(CLASS))
 nla_phyto_agg
 
 ggplot() +
-  geom_polygon(data = map_data("state"),
-               aes(x=long, y=lat, group=group),
-               fill="white", color="black", size=.5, alpha = 0) +
-  geom_point(data = nla_phyto %>%
-               group_by(UID, SITE_ID, LAT_DD83, LON_DD83, ALGAL_GROUP) %>%
-               summarize(across(.cols = c(ABUNDANCE:DENSITY), .fns = mean)) %>%
-               filter(ALGAL_GROUP != "",
-                      ALGAL_GROUP != "YELLOW-GREEN ALGAE"),
-          aes(x = LON_DD83, y = LAT_DD83, 
-              fill = log10(BIOVOLUME+1), 
-              color = log10(BIOVOLUME+1)), alpha = 0.65) +
-  scale_fill_viridis(option = "mako") +
-  scale_color_viridis(option = "mako") +
+  geom_sf(data = state_map, fill = NA) +
+  geom_sf(data = nla_phyto_sf %>%
+            group_by(UID, SITE_ID, ALGAL_GROUP) %>%
+            summarize(across(.cols = c(ABUNDANCE:DENSITY), .fns = mean)) %>%
+            filter(ALGAL_GROUP != "",
+                   #ALGAL_GROUP != "YELLOW-GREEN ALGAE"
+                   ),
+          aes(color = BIOVOLUME), 
+          alpha = 0.65) +
+  scale_color_viridis(option = "mako", 'Biovolume', trans = "log10") +
   ggtitle("Biovolume of Algal Group") +
-  xlab("Logitude") +
-  ylab("Latitude") +
-  facet_wrap(~ALGAL_GROUP) +
-  theme_bw() + 
-  theme(plot.title = element_text(size = 18),
-        strip.text = element_text(size = 16), 
-        axis.text = element_text(size = 10),
-        axis.title = element_text(size = 16),
-        legend.text = element_text(size = 14),
-        legend.title = element_text(size = 16),
-        legend.position = "right") 
+  facet_wrap(~ALGAL_GROUP, nrow = 2) +
+  theme_void(base_size = 16)  # less is more!
 
 ggsave('out/phyto_biovol.png', width = 16, height = 9)
 
@@ -151,29 +143,29 @@ phyto_fa_dia_chloro <- inner_join(x = nla_phyto_agg,
 ## Plot the geom_scatterpies by fatty acid group: Saturated, Monounsaturated, 
 ## Polyunsaturated
 
+fatty_pie_sf <- phyto_fa_omega %>% 
+  filter(!is.na(LON_DD83)) %>%
+  #ungroup() %>%
+  #slice_sample(prop = 0.5) %>%
+  group_by(UID, SITE_ID) %>%
+  pivot_longer(cols = c("sumMUFA", "sumPUFA", "sumSAFA"),
+               names_to = "fatty_acid",
+               values_to = "value") %>%
+  mutate(sum_fa = sum(value, na.rm = TRUE),
+         prop = value/sum_fa,
+         LON_DD83 = as.numeric(LON_DD83),
+         LAT_DD83 = as.numeric(LAT_DD83)) %>%
+  ungroup() %>%
+  mutate(fatty_acid = factor(fatty_acid, 
+                             levels = c("sumSAFA",
+                                        "sumMUFA", 
+                                        "sumPUFA"))) %>%
+  select(-value) %>%
+  rename(value = prop)
+
 ggplot() +
-  geom_polygon(data = map_data("state"),
-               aes(x=long, y=lat, group=group),
-               fill="grey95", color="black", size=.5, alpha = 0.7) +
-  geom_scatterpie(data = phyto_fa_omega %>% 
-                    filter(!is.na(LON_DD83)) %>%
-                    #ungroup() %>%
-                    #slice_sample(prop = 0.5) %>%
-                    group_by(UID, SITE_ID, LAT_DD83, LON_DD83) %>%
-                    pivot_longer(cols = c("sumMUFA", "sumPUFA", "sumSAFA"),
-                                 names_to = "fatty_acid",
-                                 values_to = "value") %>%
-                    mutate(sum_fa = sum(value, na.rm = TRUE),
-                           prop = value/sum_fa,
-                           LON_DD83 = as.numeric(LON_DD83),
-                           LAT_DD83 = as.numeric(LAT_DD83)) %>%
-                    ungroup() %>%
-                    mutate(fatty_acid = factor(fatty_acid, 
-                                                levels = c("sumSAFA",
-                                                           "sumMUFA", 
-                                                           "sumPUFA"))) %>%
-                    select(-value) %>%
-                    rename(value = prop),
+  geom_sf(data = state_map, fill = NA) +
+  geom_scatterpie(data = fatty_pie_sf,
              aes(x = LON_DD83, 
                  y = LAT_DD83,
                  group = UID, r =  0.2),
