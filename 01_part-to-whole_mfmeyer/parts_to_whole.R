@@ -123,7 +123,10 @@ phyto_fa_omega <- inner_join(x = nla_phyto_agg,
                            fatty_acid == "sumSAFA" ~ "sumSAFA")) %>%
   group_by(UID, SITE_ID, LAT_DD83, LON_DD83, omega) %>%
   summarize(sum_biovol_fa = sum(biovolume_fa)) %>%
-  pivot_wider(names_from = omega, values_from = sum_biovol_fa)
+  pivot_wider(names_from = omega, values_from = sum_biovol_fa) %>%
+  filter(!is.na(LON_DD83)) %>%
+  st_as_sf(coords = c('LON_DD83','LAT_DD83'), crs = '+proj=longlat +datum=NAD83 +no_defs') %>%
+  st_transform(proj)
 
 phyto_fa_dia_chloro <- inner_join(x = nla_phyto_agg, 
                              y = fatty_acids_agg, 
@@ -161,14 +164,23 @@ fatty_pie_sf <- phyto_fa_omega %>%
                                         "sumMUFA", 
                                         "sumPUFA"))) %>%
   select(-value) %>%
-  rename(value = prop)
+  rename(value = prop) %>%
+  st_as_sf(coords = c('LON_DD83','LAT_DD83'), crs = '+proj=longlat +datum=NAD83 +no_defs') %>%
+  st_transform(proj)
+
+# convert sf object back to x y coordinates, with projection
+# necessary for plotting with geom_scatterpie
+fatty_coords <- fatty_pie_sf %>% st_coordinates() %>% as.data.frame()
+fatty_pie <- fatty_pie_sf %>% mutate(LAT = fatty_coords$Y, LONG = fatty_coords$X)
+fatty_pie
 
 ggplot() +
   geom_sf(data = state_map, fill = NA) +
-  geom_scatterpie(data = fatty_pie_sf,
-             aes(x = LON_DD83, 
-                 y = LAT_DD83,
-                 group = UID, r =  0.2),
+  geom_scatterpie(data = fatty_pie,
+             aes(x = LONG, 
+                 y = LAT,
+                 group = UID, 
+                 r =  90000), # in units of crs
              alpha = 0.55, cols= "fatty_acid", long_format = TRUE) +
   # scale_color_gradientn(colors = viridis(100)[c(30, 45, 80, 90, 99)], 
   #                       name = "PUFA:SAFA") +
@@ -198,14 +210,9 @@ ggsave('out/fatty_acid_pies.png', width = 16, height = 9)
 
 ## Let's look at the omega-3:omega-6 ratio!
 ggplot() +
-  geom_polygon(data = map_data("state"),
-               aes(x=long, y=lat, group=group),
-               fill="grey95", color="black", size=.5, alpha = 0.7) +
-  geom_point(data = phyto_fa_omega %>% 
-                    filter(!is.na(LON_DD83)),
-                  aes(x = LON_DD83, 
-                      y = LAT_DD83,
-                      fill = omega_3/omega_6,
+  geom_sf(data = state_map, fill = NA) +
+  geom_sf(data = phyto_fa_omega,
+                  aes(fill = omega_3/omega_6,
                       color = omega_3/omega_6),
                   alpha = 0.55, size = 3) +
    scale_color_gradientn(colors = viridis(100)[c(30, 45, 80, 90, 99)], 
