@@ -30,9 +30,10 @@ library(scatterpie)
 
 # NLA 2017 Phytoplankton data 
 # https://www.epa.gov/national-aquatic-resource-surveys/data-national-aquatic-resource-surveys
-nla_2017_url <- 'https://www.epa.gov/sites/default/files/2021-04/nla_2017_phytoplankton_taxa-data.csv'
-download.file(nla_2017_url, "in/nla_2017_phytoplankton_count-data.csv")
-nla_phyto <- read.csv("in/nla_2017_phytoplankton_count-data.csv")
+nla_2017_url <- 'https://www.epa.gov/sites/default/files/2021-04/nla_2017_phytoplankton_count-data.csv'
+phyto_file <- "in/nla_2017_phytoplankton_count-data.csv"
+download.file(nla_2017_url, phyto_file)
+nla_phyto <- read.csv(phyto_file)
 
 # Download fatty acid data from article
 # https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0130053
@@ -40,42 +41,60 @@ pone_url <- 'https://doi.org/10.1371/journal.pone.0130053.s001'
 download.file(pone_url, destfile = 'in/pone.0130053.s001.csv')
 fatty_acids <- read.csv("in/pone.0130053.s001.csv") 
 
+# Prep USA for mapping
+proj <- "+proj=lcc +lat_1=30.7 +lat_2=29.3 +lat_0=28.5 +lon_0=-91.33333333333333 +x_0=999999.9999898402 +y_0=0 +ellps=GRS80 +datum=NAD83 +to_meter=0.3048006096012192 +no_defs"
+state_map <- spData::us_states %>% st_transform(proj)
+
 # Step 1: Aggregate biovolumes for NLA data by site -----------------------
 
 head(nla_phyto)
 
-nla_phyto_agg <- nla_phyto %>%
-  group_by(UID, SITE_ID, LAT_DD83, LON_DD83, ALGAL_GROUP, CLASS) %>%
+# make spatial
+nla_phyto_sf <- nla_phyto  %>% 
+  mutate(ALGAL_GROUP = stringr::str_to_title(ALGAL_GROUP)) %>%
+  filter(!is.na(LAT_DD83)) %>%
+  st_as_sf(coords = c('LON_DD83','LAT_DD83'), crs = '+proj=longlat +datum=NAD83 +no_defs') %>%
+  st_transform(proj)
+
+nla_phyto_agg <- nla_phyto_sf %>% 
+  group_by(UID, SITE_ID, ALGAL_GROUP, CLASS) %>%
   summarize(across(.cols = c(ABUNDANCE:DENSITY), .fns = median)) %>%
   ungroup() %>%
   mutate(CLASS = tolower(CLASS))
+nla_phyto_agg
 
 ggplot() +
-  geom_polygon(data = map_data("state"),
-               aes(x=long, y=lat, group=group),
-               fill="white", color="black", size=.5, alpha = 0) +
-  geom_point(data = nla_phyto %>%
-               group_by(UID, SITE_ID, LAT_DD83, LON_DD83, ALGAL_GROUP) %>%
-               summarize(across(.cols = c(ABUNDANCE:DENSITY), .fns = mean)) %>%
-               filter(ALGAL_GROUP != "",
-                      ALGAL_GROUP != "YELLOW-GREEN ALGAE"),
-          aes(x = LON_DD83, y = LAT_DD83, 
-              fill = log10(BIOVOLUME+1), 
-              color = log10(BIOVOLUME+1)), alpha = 0.65) +
-  scale_fill_viridis(option = "mako") +
-  scale_color_viridis(option = "mako") +
-  ggtitle("Biovolume of Algal Group") +
-  xlab("Logitude") +
-  ylab("Latitude") +
-  facet_wrap(~ALGAL_GROUP) +
-  theme_bw() + 
-  theme(plot.title = element_text(size = 18),
-        strip.text = element_text(size = 16), 
-        axis.text = element_text(size = 10),
-        axis.title = element_text(size = 16),
-        legend.text = element_text(size = 14),
-        legend.title = element_text(size = 16),
-        legend.position = "right") 
+  geom_sf(data = state_map, fill = NA) +
+  geom_sf(data = nla_phyto_sf %>%
+            group_by(UID, SITE_ID, ALGAL_GROUP) %>%
+            summarize(across(.cols = c(ABUNDANCE:DENSITY), .fns = mean)) %>%
+            filter(ALGAL_GROUP != "",
+                   #ALGAL_GROUP != "YELLOW-GREEN ALGAE"
+                   ),
+          aes(color = BIOVOLUME), 
+          alpha = 0.85) +
+  scale_color_viridis(option = "mako", 
+                      'Biovolume', 
+                      trans = "log10",
+                      direction = -1,
+                      breaks = scales::breaks_log(),
+                      labels = scales::label_scientific()) +
+  ggtitle("Lake algal communities") +
+  facet_wrap(~ALGAL_GROUP, nrow = 2) +
+  theme_void(base_size = 16) + # less is more!
+  theme(strip.text = element_text(hjust = 0),
+        legend.position = 'top',
+        legend.justification = 'right',
+        strip.background = element_blank()
+        ) +
+  guides(color = guide_colorbar(
+    direction = "horizontal",
+    barwidth = 20,
+    barheight = 0.75,
+    title.vjust = 0,
+    label.position = 'top'
+
+  ))
 
 ggsave('out/phyto_biovol.png', width = 16, height = 9)
 
@@ -120,10 +139,17 @@ phyto_fa_omega <- inner_join(x = nla_phyto_agg,
                                              "c20.4w6") ~ "omega_6",
                            fatty_acid == "sumMUFA" ~ "sumMUFA",
                            fatty_acid == "sumPUFA" ~ "sumPUFA",
-                           fatty_acid == "sumSAFA" ~ "sumSAFA")) %>%
-  group_by(UID, SITE_ID, LAT_DD83, LON_DD83, omega) %>%
-  summarize(sum_biovol_fa = sum(biovolume_fa)) %>%
-  pivot_wider(names_from = omega, values_from = sum_biovol_fa)
+                           fatty_acid == "sumSAFA" ~ "sumSAFA")) %>% 
+  group_by(UID, SITE_ID, omega) %>%
+  summarize(sum_biovol_fa = sum(biovolume_fa)) #
+
+# geometry causing some issues with pivot_wider
+phyto_fa_omega_wide <- phyto_fa_omega %>%
+  st_drop_geometry() %>%
+  pivot_wider(names_from = omega, values_from = sum_biovol_fa) %>%
+  left_join(phyto_fa_omega %>% distinct(geometry, UID, SITE_ID)) %>%
+  st_as_sf()#%>% str
+phyto_fa_omega_wide
 
 phyto_fa_dia_chloro <- inner_join(x = nla_phyto_agg, 
                              y = fatty_acids_agg, 
@@ -136,44 +162,47 @@ phyto_fa_dia_chloro <- inner_join(x = nla_phyto_agg,
   mutate(source = case_when(fatty_acid %in% c("c18.3w3", "c18.4w3") ~ "green",
                            fatty_acid %in% c("c20.5w3") ~ "diatom")) %>%
   filter(!is.na(source)) %>%
-  group_by(UID, SITE_ID, LAT_DD83, LON_DD83, source) %>%
+  group_by(UID, SITE_ID, source) %>%
   summarize(sum_biovol_fa = sum(biovolume_fa)) %>%
   pivot_wider(names_from = source, values_from = sum_biovol_fa)
 
 ## Plot the geom_scatterpies by fatty acid group: Saturated, Monounsaturated, 
 ## Polyunsaturated
 
+fatty_pie_sf <- phyto_fa_omega_wide %>% 
+  group_by(UID, SITE_ID) %>%
+  pivot_longer(cols = c("sumMUFA", "sumPUFA", "sumSAFA"),
+               names_to = "fatty_acid",
+               values_to = "value") %>%
+  mutate(sum_fa = sum(value, na.rm = TRUE),
+         prop = value/sum_fa) %>%
+  ungroup() %>%
+  mutate(fatty_acid = factor(fatty_acid, 
+                             levels = c("sumSAFA",
+                                        "sumMUFA", 
+                                        "sumPUFA"))) %>%
+  select(-value) %>%
+  rename(value = prop) %>%
+  st_as_sf()
+
+# convert sf object back to x y coordinates, with projection
+# necessary for plotting with geom_scatterpie
+fatty_coords <- fatty_pie_sf %>% st_coordinates() %>% as.data.frame()
+fatty_pie <- fatty_pie_sf %>% mutate(LAT = fatty_coords$Y, LONG = fatty_coords$X)
+fatty_pie
+
 ggplot() +
-  geom_polygon(data = map_data("state"),
-               aes(x=long, y=lat, group=group),
-               fill="grey95", color="black", size=.5, alpha = 0.7) +
-  geom_scatterpie(data = phyto_fa_omega %>% 
-                    filter(!is.na(LON_DD83)) %>%
-                    #ungroup() %>%
-                    #slice_sample(prop = 0.5) %>%
-                    group_by(UID, SITE_ID, LAT_DD83, LON_DD83) %>%
-                    pivot_longer(cols = c("sumMUFA", "sumPUFA", "sumSAFA"),
-                                 names_to = "fatty_acid",
-                                 values_to = "value") %>%
-                    mutate(sum_fa = sum(value, na.rm = TRUE),
-                           prop = value/sum_fa,
-                           LON_DD83 = as.numeric(LON_DD83),
-                           LAT_DD83 = as.numeric(LAT_DD83)) %>%
-                    ungroup() %>%
-                    mutate(fatty_acid = factor(fatty_acid, 
-                                                levels = c("sumSAFA",
-                                                           "sumMUFA", 
-                                                           "sumPUFA"))) %>%
-                    select(-value) %>%
-                    rename(value = prop),
-             aes(x = LON_DD83, 
-                 y = LAT_DD83,
-                 group = UID, r =  0.2),
-             alpha = 0.55, cols= "fatty_acid", long_format = TRUE) +
-  # scale_color_gradientn(colors = viridis(100)[c(30, 45, 80, 90, 99)], 
-  #                       name = "PUFA:SAFA") +
-  # scale_fill_gradientn(colors = viridis(100)[c(30, 45, 80, 90, 99)],
-  #                      name = "PUFA:SAFA") +
+  geom_sf(data = state_map, fill = NA) +
+  geom_scatterpie(data = fatty_pie,
+             aes(x = LONG, 
+                 y = LAT,
+                 group = UID, 
+                 r =  70000), # in units of crs
+             alpha = 0.65, 
+             cols = "fatty_acid", 
+             long_format = TRUE,
+             color = "black",
+             size = 0.2) +
   scale_fill_manual(values = plasma(30)[c(3, 15, 28)], 
                     name = "Fatty Acid Group", 
                     labels = c("sumSAFA" = "Saturated",
@@ -181,14 +210,8 @@ ggplot() +
                       "sumPUFA" = "Polyunsaturated")) +
   xlab("Logitude") +
   ylab("Latitude") +
-  theme_bw() + 
-  theme(plot.title = element_text(size = 18),
-        strip.text = element_text(size = 16), 
-        axis.text = element_text(size = 10),
-        axis.title = element_text(size = 16),
-        legend.text = element_text(size = 14),
-        legend.title = element_text(size = 16),
-        legend.position = "right")
+  theme_void(base_size = 16) + 
+  theme(legend.position = "right")
 
 ggsave('out/fatty_acid_pies.png', width = 16, height = 9)
 
@@ -198,30 +221,17 @@ ggsave('out/fatty_acid_pies.png', width = 16, height = 9)
 
 ## Let's look at the omega-3:omega-6 ratio!
 ggplot() +
-  geom_polygon(data = map_data("state"),
-               aes(x=long, y=lat, group=group),
-               fill="grey95", color="black", size=.5, alpha = 0.7) +
-  geom_point(data = phyto_fa_omega %>% 
-                    filter(!is.na(LON_DD83)),
-                  aes(x = LON_DD83, 
-                      y = LAT_DD83,
-                      fill = omega_3/omega_6,
+  geom_sf(data = state_map, fill = NA) +
+  geom_sf(data = phyto_fa_omega_wide,
+                  aes(fill = omega_3/omega_6,
                       color = omega_3/omega_6),
-                  alpha = 0.55, size = 3) +
+                  alpha = 0.75, size = 3) +
    scale_color_gradientn(colors = viridis(100)[c(30, 45, 80, 90, 99)], 
                          name = "Omega-3:Omega6") +
    scale_fill_gradientn(colors = viridis(100)[c(30, 45, 80, 90, 99)],
                         name = "Omega-3:Omega6") +
-  #ggtitle("Polyunsaturated Fatty Acids: Saturated Fatty Acids") +
-  xlab("Logitude") +
-  ylab("Latitude") +
-  theme_bw() + 
-  theme(plot.title = element_text(size = 18),
-        strip.text = element_text(size = 16), 
-        axis.text = element_text(size = 10),
-        axis.title = element_text(size = 16),
-        legend.text = element_text(size = 14),
-        legend.title = element_text(size = 16),
-        legend.position = "right")
+  ggtitle("Polyunsaturated Fatty Acids: Saturated Fatty Acids") +
+  theme_void(base_size = 16) + 
+  theme(legend.position = "right")
 
 ggsave('out/omega_ratio.png', width = 16, height = 9)
