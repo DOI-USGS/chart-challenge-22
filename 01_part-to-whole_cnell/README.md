@@ -1,5 +1,5 @@
 # Part-to-whole transforming state map
-This subdirectory creates a gif animation of CONUS warping from a chloropleth map to an area weighted cartogram. In both views, states are filled to reflect the percent of land area that is water. In the area weighted cartogram, states are warped to reflect the proportion of land area to water. This is based on data scraped from the [USGS Water Science School](https://www.usgs.gov/special-topics/water-science-school/science/how-wet-your-state-water-area-each-state).
+This subdirectory creates a gif animation of CONUS warping from a choropleth map to an area weighted cartogram. In both views, states are filled to reflect the percent of land area that is water. In the area weighted cartogram, states are warped to reflect the proportion of land area to water. This is based on data scraped from the [USGS Water Science School](https://www.usgs.gov/special-topics/water-science-school/science/how-wet-your-state-water-area-each-state).
 
 ![water area gif](out/state_by_inland_water.gif)
 
