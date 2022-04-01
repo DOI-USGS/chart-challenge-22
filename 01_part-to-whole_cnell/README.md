@@ -1,7 +1,8 @@
 # Part-to-whole transforming state map
 This subdirectory creates a gif animation of CONUS warping from a choropleth map to an area weighted cartogram. In both views, states are filled to reflect the percent of land area that is water. In the area weighted cartogram, states are warped to reflect the proportion of land area to water. This is based on data scraped from the [USGS Water Science School](https://www.usgs.gov/special-topics/water-science-school/science/how-wet-your-state-water-area-each-state).
 
-![water area gif](out/state_by_inland_water.gif)
+![state_by_inland_water](https://user-images.githubusercontent.com/17803537/161303019-dbfe433f-0806-479f-b190-368f8c07af09.gif)
+
 
 ## Build the gif
 This gif is created using a pipeline with the `targets` library for R. It takes approximately 5 minutes to build the gif. The pipeline also outputs a bar chart that ranks each state by their % inland water. These graphics were combined outside of R to create the final gif.
