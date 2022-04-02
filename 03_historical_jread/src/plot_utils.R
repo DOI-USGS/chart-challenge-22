@@ -42,8 +42,10 @@ plot_temp_diff <- function(fileout, early_data, late_data){
     geom_sf(data = US_states, color = 'grey90', fill = 'white', size = 0.75) +
     geom_segment(del_data, mapping = aes(col = angle, x = x, y = y, xend = xend, yend = yend),
                  size = lwd, show.legend = FALSE) +
-    scico::scale_color_scico(palette = "romaO", direction = -1, 
+    scico::scale_color_scico(palette = "romaO", direction = -1,
                              begin = 0.05, end = 0.95) +
+    labs(title = "Changes in temperature and timing for lakes in the contiguous U.S.",
+         subtitle = "As quantified by comparing timing and magnitude of growing degree days, 1981-1990 vs 2011-2020; data from: doi.org/10.5066/P9CEMS0M") +
     theme_void()
 
   ggsave(filename = fileout, width = 16, height = 10)
@@ -54,40 +56,23 @@ make_legend <- function(fileout, pie_slices){
 
   legend_df <- tibble(val = seq(-180, 180-(360/(pie_slices)), by = 360/(pie_slices)),
                   label = as.factor(seq(1, pie_slices, by = 1)))
-  
 
-  font_fam = "Source Sans Pro"
-  font_add_google(font_fam, regular.wt = 300, bold.wt = 700) # Monda, Almarai
-  showtext_auto()
-  
+
   legend_df %>%
     ggplot() +
     # make pie color ramp
-    geom_tile(aes(x = 1, 
+    geom_tile(aes(x = 1,
                   y = val+(360/(pie_slices)/2), # geom_tile positions from center of tile
-                  height = 360/(pie_slices), 
-                  fill = val)) + 
-    # black outline on donut
-    geom_tile(aes(x = 1,y = 0, height = 360), 
-              color = "black", fill = NA) +
+                  height = 360/(pie_slices),
+                  fill = val), show.legend = FALSE) +
     coord_polar(theta="y", start = 90*(pi/180), direction = -1, clip = 'off') +
     # cap ends of color scale so purple is equally weighted
-    scico::scale_fill_scico(palette = "romaO", 
-                            direction = -1, 
+    scico::scale_fill_scico(palette = "romaO",
+                            direction = -1,
                             begin = 0.05, end = 0.95)+
     # use scale expansion to create donut appearance
-    scale_x_discrete(expand = expansion(mult = c(2.5, 0.75), add = 0)) +
-    theme_void(base_size = 20)+
-    # draw arrows
-    geom_segment(data = tibble(lines = c(-180, -90, 0, 90)),
-                 aes(x = -Inf, xend = 2.5, y = lines, yend = lines), 
-                 color = "black",
-                 arrow = grid::arrow(length = unit(0.2, "cm"), 
-                                     ends = "last", type = "closed"))+
-    scale_y_continuous(breaks = c(-180, -90, 0, 90),
-                       labels = c("earlier", "colder", "later", "warmer")) +
-    theme(axis.text = element_text(color = "black"),
-          legend.position = "none")
-  
+    scale_x_discrete(expand = expansion(mult = c(5.5, 0.75), add = 0)) +
+    theme_void()
+
   ggsave(filename = fileout, width = 3, height = 3, dpi = 300)
 }
