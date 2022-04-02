@@ -8,6 +8,7 @@ packages:
   - sf
   - data.table
   - spData
+  - showtext
 
 sources:
   - src/data_utils.R
@@ -35,3 +36,7 @@ targets:
   viz/220403_historical_compare.png:
     command: plot_temp_diff(target_name,
       early_data, late_data)
+      
+  viz/legend_radial.png:
+    command: make_legend(target_name,
+      pie_slices = 12)
