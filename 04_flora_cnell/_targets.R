@@ -52,17 +52,23 @@ list(
  ),
  tar_target(
    # current date anomaly from 30-yr record
+   # prep raster data - round to integers, calculate raster area, convert to df
+   # don't worry about the error messages!
     spring_timing, 
     munge_npn_data(daily_timing, proj_aea)
  ),
  tar_target(
    # 30-yr historic average
+   # prep raster data - round to integers, calculate raster area, convert to df
+   # don't worry about the error messages!
    hist_timing, 
    munge_npn_data(hist_data, proj_aea)
  ),
  tar_target(
    # current date anomaly
-   spring_anomaly, 
+    # prep raster data - round to integers, calculate raster area, convert to df
+    # don't worry about the error messages!
+    spring_anomaly, 
    munge_npn_data(daily_anomaly, proj_aea)
  ),
  tar_target(
