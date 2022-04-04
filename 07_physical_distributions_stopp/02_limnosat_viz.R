@@ -280,15 +280,17 @@ doy_plot <- ggplot(daily_elev_color, aes(x=doy, y = elev_bin)) +
 
 doy_plot
 
+sign_off <- textGrob("Simon Topp, USGS\nData: doi.org/10.1029/2020WR029123",just='left',x=.1,y=0.5,gp=gpar(fontsize=7))
+
 layout.matrix <- rbind(c(4,4,4,4,4,4,4),
                        c(4,4,4,4,4,4,4),
                        c(3,3,1,1,1,1,1),
                        c(2,2,1,1,1,1,1),
-                       c(NA,NA,1,1,1,1,1))
+                       c(5,5,1,1,1,1,1))
 
-full <- gridExtra::grid.arrange(g, color_legend,count_legend,doy_plot, layout_matrix=layout.matrix)
+full <- gridExtra::grid.arrange(g, color_legend,count_legend,doy_plot, sign_off,layout_matrix=layout.matrix)
 
-ggsave('gg_lake_stacks_xkcd.png',plot=full,width=5,height=7,units='in')
+ggsave('gg_lake_stacks_xkcd.png',plot=full,width=5,height=6,units='in')
 
 
 #### Alternate with monthly distributions
