@@ -19,7 +19,7 @@ get_npn_layer <- function(layer_name, npn_layers, layer_date){
   return(file_out)
   
 }
-prep_plot_df <- function(current_timing, proj){
+munge_npn_data <- function(current_timing, proj){
   anomaly_rast <- rast(current_timing) %>%
     project(y = proj)
   

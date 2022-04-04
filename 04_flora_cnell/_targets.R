@@ -53,17 +53,17 @@ list(
  tar_target(
    # current date anomaly from 30-yr record
     spring_timing, 
-    prep_plot_df(daily_timing, proj_aea)
+    munge_npn_data(daily_timing, proj_aea)
  ),
  tar_target(
    # 30-yr historic average
    hist_timing, 
-   prep_plot_df(hist_data, proj_aea)
+   munge_npn_data(hist_data, proj_aea)
  ),
  tar_target(
    # current date anomaly
    spring_anomaly, 
-   prep_plot_df(daily_anomaly, proj_aea)
+   munge_npn_data(daily_anomaly, proj_aea)
  ),
  tar_target(
    spring_index_png,
