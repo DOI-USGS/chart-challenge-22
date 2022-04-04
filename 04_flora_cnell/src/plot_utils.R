@@ -124,3 +124,58 @@ plot_spring_steps <- function(spring_timing, hist_timing, proj, file_out){
   ggsave(file_out, width = 16, height = 4)
   return(file_out)
 }
+plot_spring_anomaly <- function(period, spring_anomaly, proj, file_out, color_breaks, n_breaks, color_pal, color_limits){
+  # access Contiguous U.S. state map:
+  state_map <- spData::us_states %>% st_transform(proj)
+  
+  anomaly_df <- spring_anomaly %>%
+    mutate(anom = timing, 
+           direction = ifelse(anom > 0, 'late', ifelse(anom < 0, 'early', 'on time'))) %>%
+    filter(!is.na(direction)) %>% 
+    # add week variable for color scale, even though resolution will be in days
+    mutate(week = ifelse(abs(anom) < 7 & anom != 0, 1, 
+                         ifelse(abs(anom) >= 7 & abs(anom) < 14, 2,
+                                ifelse(abs(anom) >= 14 & abs(anom) < 21, 3,
+                                       ifelse(abs(anom) >= 21 & abs(anom) < 28, 4,
+                                              ifelse(abs(anom) >= 28, 5, 0))))),
+           week = ifelse(anom < 0, week*-1, week)) %>%
+    filter(direction %in%  c(period,'on time' )) %>%
+    ggplot() +
+    geom_sf(data = state_map, fill = NA, color = "grey", alpha = 0.5) +
+    geom_tile(aes(x =x, y = y, fill = week, color = week),
+              alpha = 0.95)+
+    geom_sf(data = state_map%>%st_union(), fill = NA, color = "grey") +
+    theme_void()+
+    theme(
+      plot.background = element_rect(fill = NA, color = NA),
+      panel.background = element_rect(fill = NA, color = NA),
+      plot.title = element_text(color = "white", size = 30, face = "bold"),
+      plot.subtitle = element_text(color = "white"),
+      strip.background = element_blank(),
+      legend.position = 'top')+
+    coord_sf()+
+    scale_fill_stepsn(
+      na.value = NA,
+      colors = color_pal,
+      limits = color_limits,
+      show.limits = TRUE,
+      n.breaks = n_breaks,
+      breaks = color_breaks
+    )+
+    scale_color_stepsn(      
+      na.value = NA,
+      colors = color_pal,
+      limits = color_limits,
+      show.limits = TRUE,
+      n.breaks = n_breaks,
+      breaks = color_breaks
+    )+
+    guides(fill = guide_colorsteps(
+      direction = "horizontal",
+      title.position = "top",
+      title.theme = element_text(color = "white"),
+      barwidth = 15
+    )) 
+  ggsave(file_out, width = 8, height = 4.5)
+  return(file_out)
+}

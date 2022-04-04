@@ -31,9 +31,8 @@ prep_plot_df <- function(current_timing, proj){
   anom_stack<- stack(c(anomaly_rast, anom_area))
   
   # convert to df
-  anom_df <- anom_stack %>%  as.data.frame(xy=TRUE) %>% 
+  anom_df <- anom_stack %>%  
+    as.data.frame(xy = TRUE) %>% 
     rename(timing = 3) %>%
-    mutate(timing_day = round(timing, 0),
-           spring_days = lubridate::yday(Sys.Date())-timing_day,
-           cell_area = values(anom_area))
+    mutate(timing_day = round(timing, 0))
 }
