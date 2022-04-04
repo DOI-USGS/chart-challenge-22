@@ -11,3 +11,5 @@
 */_targets/
 */scratch.R
 04_flora_cnell/*.tiff
+05_slope_mmorriss/figures/*.eps
+05_slope_mmorriss/figures/*.svg

@@ -179,3 +179,55 @@ plot_spring_anomaly <- function(period, spring_anomaly, proj, file_out, color_br
   ggsave(file_out, width = 8, height = 4.5)
   return(file_out)
 }
+plot_anomaly_steps <- function(spring_anomaly, proj, file_out){
+  pal_colors <- c("white", "yellow","gold2", "darkgoldenrod4", "mediumpurple4","mediumorchid","thistle","white")
+  
+  anomaly_df <- spring_anomaly %>% 
+    mutate(anom = timing_day) %>%
+    mutate(week = ifelse(abs(anom) < 7 & abs(anom) >= 1, 1, 
+                         ifelse(abs(anom) >= 7 & abs(anom) < 14, 2,
+                                ifelse(abs(anom) >= 14 & abs(anom) < 21, 3,
+                                       ifelse(abs(anom) >= 21 & abs(anom) < 28, 4,
+                                              ifelse(abs(anom) >= 28, 5, 0))))),
+           week = ifelse(anom < 0, week*-1, week)) %>%
+    group_by(anom, week) %>%
+    summarize(area = sum(area)) %>% # str
+    ggplot() +
+    geom_bar(stat='identity', aes(x = anom, y = area, fill = week), alpha = 0.2)+
+    geom_step(aes(x = anom, y = area, color = week), 
+              direction = 'mid',
+              size = 1
+    )+
+    geom_tile(aes(x=anom, y = -7000, height = 14000,fill = week))+
+    theme(
+      plot.background = element_rect(fill = NA, color = NA),
+      panel.background = element_rect(fill = NA, color = NA),
+      axis.text = element_text(color = "white", size = 10),
+      panel.grid = element_blank(),
+      plot.title = element_text(color = "white", size = 30, face = "bold"),
+      plot.subtitle = element_text(color = "white"),
+      axis.line = element_blank(),
+      legend.position = 'none',
+      legend.background = element_blank(),
+      legend.text = element_blank(),
+      legend.title = element_blank(),
+      axis.ticks = element_line(color="white"),
+      axis.ticks.y=element_blank(),
+      axis.text.y=element_blank())+
+    scale_color_stepsn(colors = pal_colors,
+                       na.value = NA,
+                       show.limits = TRUE,
+                       limits = c(-5, 4),
+                       n.breaks = 10) +
+    scale_fill_stepsn(colors = pal_colors,
+                      na.value = NA,
+                      limits = c(-5, 4),
+                      show.limits = TRUE,
+                      n.breaks = 10) +
+    scale_y_continuous(expand=c(0,0))+
+    scale_x_continuous(breaks = c(-28, -21, -14, -7, 0, 7, 14, 21),
+                       labels = c(-4, -3, -2, -1, 0, 1, 2, 3))+
+    labs(x='', y='')          
+  ggsave(file_out, width = 6, height = 2.5)
+  return(file_out)
+}

@@ -102,12 +102,12 @@ list(
                        color_pal = rev(c("white","thistle","mediumorchid","mediumpurple4")),
                        color_limits = c(0,3)),
    format = 'file'
- #),
- #tar_target(
- #  spring_steps_png,
- #  plot_spring_steps(spring_timing, hist_timing,
- #                    proj = proj_aea,
- #                    file_out = sprintf('out/spring_steps_%s.png', today)),
- #  format = 'file'
+ ),
+ tar_target(
+   anomaly_steps_png,
+   plot_anomaly_steps(spring_anomaly,
+                     proj = proj_aea,
+                     file_out = sprintf('out/anomaly_steps_%s.png', today)),
+   format = 'file'
  )
 )
