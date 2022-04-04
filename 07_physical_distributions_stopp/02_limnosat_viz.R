@@ -184,7 +184,7 @@ p_color <- ggplot(ls_spatial) +
                          title.position = "top",
                          label.position = "bottom"))+
   theme(legend.background = element_blank(),
-        text=element_text(family="xkcd"))
+        text=element_text(family="Arial"))
 
 ## Double check the overlay matches ggplot 
 p_color
@@ -201,7 +201,7 @@ p_count <- ggplot(ls_spatial %>% st_transform(attr(elev_matrix,'crs'))) +
                          title.position = "top",
                          label.position = "bottom")) +
   theme(legend.background = element_blank(),
-        text=element_text(family="xkcd"))
+        text=element_text(family="Arial"))
 
 p_count
 
@@ -270,25 +270,30 @@ doy_plot <- ggplot(daily_elev_color, aes(x=doy, y = elev_bin)) +
   annotate('text',x=70,y=3500,label='Winter Ice Cover',family = 'xkcd') +
   #annotate('text',x=340,y=16,label='Winter Ice Cover',family = 'xkcd',angle=-45) +
   annotate('text',x=100,y=1200,label='Spring Algae\nBlooms',family = 'xkcd') +
-  labs(y='Elevation in meters',title ='How do Mountains Influence\nLake Color?')+
+  labs(y='Elevation in meters',title ='How do Mountains Influence Lake Color?',
+       subtitle='The distribution of lakes and their color\nin relation to topography of the US')+
   #coord_equal()+
   theme_classic() +
-  theme(text=element_text(size=14,family="xkcd"),
+  theme(#text=element_text(size=14,family="xkcd"),
         axis.text.x = element_text(angle=45,vjust=.5),
         axis.title.x = element_blank(),
-        plot.title=element_text(hjust=.5,family="Arial",face = 'bold')) 
+        plot.title=element_text(hjust=.5,face = 'bold'),
+        plot.subtitle = element_text(hjust=.5)) 
 
 doy_plot
 
-sign_off <- textGrob("Simon Topp, USGS\nData: doi.org/10.1029/2020WR029123",just='left',x=.1,y=0.5,gp=gpar(fontsize=7))
+sign_off <- textGrob("Simon Topp, USGS\nData: doi.org/10.1029/2020WR029123",just='left',x=.1,y=0.5,gp=gpar(fontsize=10))
 
 layout.matrix <- rbind(c(4,4,4,4,4,4,4),
+                       c(4,4,4,4,4,4,4),
                        c(4,4,4,4,4,4,4),
                        c(3,3,1,1,1,1,1),
                        c(2,2,1,1,1,1,1),
                        c(5,5,1,1,1,1,1))
 
-full <- gridExtra::grid.arrange(g, color_legend,count_legend,doy_plot, sign_off,layout_matrix=layout.matrix)
+full <- gridExtra::grid.arrange(g, color_legend,
+                                count_legend,
+                                doy_plot, sign_off,layout_matrix=layout.matrix)
 
 ggsave('gg_lake_stacks_xkcd.png',plot=full,width=5,height=6,units='in')
 
