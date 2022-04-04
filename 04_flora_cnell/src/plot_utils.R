@@ -1,22 +1,3 @@
-plot_daily_anomaly <- function(daily_anomaly, proj, file_out){
-  
-  anomaly_rast <- rast(daily_anomaly) %>%
-    project(y = proj)
-  
-  anomaly_df <- as.data.frame(anomaly_rast, xy=TRUE) %>% 
-    rename(timing = 3) 
-  
-  anomaly_df %>%
-    ggplot() +
-    geom_tile(aes(x =x, y = y, fill = timing))+
-    theme_void() +
-    coord_fixed()+
-    scale_fill_viridis_c(option = 'magma')
-  
-  ggsave(file_out)
-  
-  return(file_out)
-}
 
 plot_spring_index <- function(spring_timing, proj, file_out){
   
