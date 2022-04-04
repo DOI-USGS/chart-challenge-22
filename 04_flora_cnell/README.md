@@ -1,6 +1,9 @@
 # Comparison - flora
 This subdirectory creates a series of maps and historgrams using Spring leaf out data from the [USA National Phenology Network](https://www.usanpn.org/data/spring_indices), accessed in R via the [`rnpn` package](https://github.com/usa-npn/rnpn). The maps and histograms were compiled into a single visual using a vector design program. 
 
+![spring sprung-01](https://user-images.githubusercontent.com/17803537/161629658-dab12622-2956-43ea-84ec-ab8f370ca287.png)
+
+
 # Recreating the visuals
 This subdirectory uses a pipeline with the [`targets` library](https://github.com/ropensci/targets) for R. It takes approximately 10 minutes to run the entire pipeline.
 
