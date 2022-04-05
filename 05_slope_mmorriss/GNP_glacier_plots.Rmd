@@ -206,18 +206,17 @@ big_glacier_df %>%
              #color = Glacier.Name
              ))+
   # add white backing to stand out where intersect
-  # doesn't seem to be working? I think would need to be added to each line
-  # # in separate layers, otherwise the top is always color...? IDK
+  # the order of the layers matters! sandwiching the white points between color line and point
   geom_line(color = 'white',
             size = 3)+
+  geom_path(data = glacier_interp, 
+            size = 1.0, aes(x = Year.interp,
+                            y = Loss.interp,
+                            group = Glacier.Name,
+                            color = ..y..))+
   geom_point(color = "white", 
              size = 3)+
   geom_point(size = 2, aes(color = ..y..))+
-  geom_path(data = glacier_interp, 
-            size = 1.0, aes(x = Year.interp,
-                            y = Perc.interp,
-                            group = Glacier.Name
-                            color = ..y..))+
   geom_text_repel(data = big_glacier_df %>% 
                     filter(Year == 2015), 
             aes(label = paste0('-', Area.loss.perc, "%", " - ",Glacier.Name)) ,
@@ -243,12 +242,13 @@ big_glacier_df %>%
   MySpecial +
   #  Labelling as desired
   labs(
-    title = "10 Largest Glaciers in Glacier National Park",
-    subtitle = "Cumulative Percent Loss of Area",
+    title = "Decline of the 10 Largest Glaciers in Glacier National Park",
+    subtitle = "Percent Area Loss since 1966",
     caption = "Data: Fagre et al., 2017"
-  )
+  ) +
+  scico::scale_color_scico(palette = "devon", direction = -1, end = 0.9)
 
-ggsave(filename = here("figures","Perc_Slope_plot.pdf"))
+ggsave(filename = here("figures","Perc_Slope_plot.png"))
 
 ```
 
