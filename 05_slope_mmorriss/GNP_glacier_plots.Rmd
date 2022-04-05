@@ -15,16 +15,17 @@ library(stringr)
 library(here)
 library(CGPfunctions)
 library(ggrepel)
-# rm(list = ls())
+library(sbtools)
 ```
 
 ## load data
 
 ```{r}
-# g_df_2015 <- read.csv("D:\\OneDrive - DOI\\Rock_Glaciers\\Proposals\\NPS_proposal_2021\\tables\\GNP_glaciers_2015.csv")
-# g_df_2005 <- read.csv("D:\\OneDrive - DOI\\Rock_Glaciers\\Proposals\\NPS_proposal_2021\\tables\\GNP_glaciers_2005.csv")
-# g_df_1998 <- read.csv("D:\\OneDrive - DOI\\Rock_Glaciers\\Proposals\\NPS_proposal_2021\\tables\\GNP_Glaciers_1998.csv")
-# g_df_1966 <- read.csv("D:\\OneDrive - DOI\\Rock_Glaciers\\Proposals\\NPS_proposal_2021\\tables\\GNP_glaciers_1966.csv")
+# Data are downloaded from: https://www.sciencebase.gov/catalog/item/58af7022e4b01ccd54f9f542
+# g_df_2015 <- read.csv("GNP_glaciers_2015.csv")
+# g_df_2005 <- read.csv("GNP_glaciers_2005.csv")
+# g_df_1998 <- read.csv("GNP_Glaciers_1998.csv")
+# g_df_1966 <- read.csv("GNP_glaciers_1966.csv")
 # 
 # g_df <- left_join(g_df_2015, g_df_2005, by  = "GLACNAME") %>%
 #   left_join(.,g_df_1998, by = "GLACNAME")%>%
@@ -49,28 +50,26 @@ library(ggrepel)
 
 ## Plotting GNP glaciers
 ```{r pressure, echo=FALSE}
+# number of glaciers to use
 n_glac <- 15
 
-g_df <- read.csv(here("Data","Data GNP_gdata.csv"))
-g_df <- g_df %>%
+# read in data and convert to sq km
+g_df <- read.csv(here("Data","Data GNP_gdata.csv")) %>%
   mutate(Area.sq.km = round(Area.m.2/1000/1000, digits = 2))
 
-
-
-big_g <- g_df %>%
+# fing biggest glaciers
+big_glaciers <- g_df %>%
   filter(., Year == 1966) %>%
   top_n(n_glac, Area.sq.km) %>%
-  # sample_n(.,10) %>%
   select(Glacier.Name)
 
-g_df <- g_df %>%
-  filter(., Glacier.Name %in% big_g$Glacier.Name)
+# filter to subset of glaciers
+big_df <- g_df %>%
+  filter(Glacier.Name %in% big_glaciers$Glacier.Name) %>%
+  transform(Year = as.factor(Year))
 
-g_df$Year <- as.factor(g_df$Year)
-
-
-
-newggslopegraph(g_df,
+# plut slope chart of glacier area through time
+newggslopegraph(big_df,
                 Year,
                 Area.sq.km,
                 Glacier.Name,
@@ -87,42 +86,25 @@ newggslopegraph(g_df,
 What if I instead wanted to look at a normalized plot of percent change through time, bringing these glaciers to a single point at the beginning of the time series domain.
 
 ```{r}
-g_df <- read.csv(here("Data","Data GNP_gdata.csv"))
-g_df <- g_df %>%
-  mutate(Area.sq.km = round(Area.m.2/1000/1000, digits = 2))
-
-
-big_g <- g_df %>%
-  filter(., Year == 1966) %>%
-  top_n(10, Area.sq.km) %>%
-  # sample_n(.,15) %>%
-  select(Glacier.Name)
-
-# small_g <- g_df %>%
-#   filter(., Year == 1966) %>%
-#   top_n(-5, Area.sq.km) %>%
-#   select(Glacier.Name)
-# 
-# big_g <- rbind(big_g, small_g)
-
-g_df <- g_df %>%
-  filter(., Glacier.Name %in% big_g$Glacier.Name) %>%
+# use percent change through time instead of absolute area
+#big_g <- g_df %>%
+#  filter(Year == 1966) %>%
+#  top_n(10, Area.sq.km) %>%
+#  select(Glacier.Name)
+#
+perc_df <- big_df %>%
   group_by(Glacier.Name) %>%
   arrange(Year) %>%
   mutate(lag = lag(Area.sq.km)) %>%
   mutate(pct.change = (100*(Area.sq.km - lag)/lag))%>%
-  mutate(cum_sum_pct_chg = round(cumsum(if_else(is.na(pct.change),0,pct.change))+ pct.change*0), digits = 2)
+  mutate(cum_sum_pct_chg = round(cumsum(if_else(is.na(pct.change),0,pct.change))+ pct.change*0), digits = 2) %>%
+  transform(Year = as.factor(Year))
 
-
-
-g_df[is.na(g_df)] <- 0
+# set NA's to 0
+perc_df[is.na(perc_df)] <- 0
   
-
-g_df$Year <- as.factor(g_df$Year)
-
-
-
-newggslopegraph(g_df,
+# plot percent decline
+newggslopegraph(perc_df,
                 Year,
                 cum_sum_pct_chg,
                 Glacier.Name,
@@ -132,7 +114,6 @@ newggslopegraph(g_df,
                 DataTextSize = 2.5,
                 DataLabelPadding = 0.05,
                 WiderLabels = TRUE)
-
 
 ```
 
