@@ -88,12 +88,6 @@ What if I instead wanted to look at a normalized plot of percent change through 
 
 ```{r}
 # use percent change through time instead of absolute area
-#big_g <- g_df %>%
-#  filter(Year == 1966) %>%
-#  top_n(10, Area.sq.km) %>%
-#  select(Glacier.Name)
-#
-
 perc_df <- big_df %>%
   group_by(Glacier.Name) %>%
   arrange(Year) %>%
@@ -165,15 +159,13 @@ glacier_interp
 
 ```
 
-Plot below with lines colored by glacier
+Plot glacier size with line color mapped to total percent loss
 ```{r}
 # plotting theme
 MySpecial <- list(
-  
   scale_x_continuous(position = "top",
                    breaks = c(1966, 1998, 2005, 2015),
-                   # expand = expansion(mult = c(0.01, 0.285)),
-                   limits =  c(1966, 2030)),
+                   limits = c(1966, 2030)),
   theme_bw(),
   # Format tweaks
   # Remove the legend
@@ -187,14 +179,14 @@ MySpecial <- list(
   theme(panel.grid.minor.y = element_blank()),
   # Remove a few things from the x axis and increase font size
   theme(axis.title.x     = element_blank()),
-  theme(panel.grid.major.x = element_blank()),
+  theme(panel.grid.major.x = element_line(color = "lightgrey", linetype ="dotted", size = 0.5)),
   theme(panel.grid.minor.x = element_blank()),
-  theme(axis.text.x.top      = element_text(size=12)),
+  theme(axis.text.x.top      = element_text(size = 12)),
   # Remove x & y tick marks
   theme(axis.ticks       = element_blank()),
   # Format title & subtitle
-  theme(plot.title       = element_text(size=14, face = "bold", hjust = 0.5)),
-  theme(plot.subtitle    = element_text(hjust = 0.5))
+  theme(plot.title       = element_text(size = 20, face = "bold", hjust = 0.5)),
+  theme(plot.subtitle    = element_text(size = 16, hjust = 0.5))
 )
 
 # build the slope chart
@@ -216,17 +208,18 @@ big_glacier_df %>%
                             group = Glacier.Name,
                             color = ..y..))+
   geom_point(color = "white", 
-             size = 3) +
-  geom_point(size = 2, aes(color = ..y..))+
+             size = 3.5) +
+  geom_point(size = 2.5, aes(color = ..y..))+
   geom_text_repel(data = big_glacier_df %>% 
                     filter(Year == 2015), 
-            aes(label = paste0('-', Area.loss.perc, "%", " - ",Glacier.Name)) ,
-            hjust = 'right',
-            size = 3.25,
-            xlim = c(2025,2029),
+            aes(label = paste0('     -', Area.loss.perc, "%", " - ",Glacier.Name)),
+            # solution to get labels to left align - from https://github.com/slowkow/ggrepel/issues/137
+            hjust = 0,
+            size = 4,
+            #force_pull = 0, 
+            #force = 1,
             direction = "y",
             color = 'black',
-            segment.size =0.1,
             segment.color = 'gray'
             ) +
   # flip y axis to represent loss
@@ -235,9 +228,10 @@ big_glacier_df %>%
   geom_text_repel(data = big_glacier_df %>%
                     filter(Year == 1966 & Glacier.Name == "Agassiz Glacier"), 
               aes(label = paste0("100%")) ,
-              hjust = 'left',
-              size = 3.25,
-              nudge_x = -2,
+              #hjust = 2,
+              size = 4,
+              nudge_x = -1,
+              nudge_y = -1,
               color = 'black',
               ) +
   MySpecial +
@@ -249,6 +243,6 @@ big_glacier_df %>%
   ) +
   scico::scale_color_scico(palette = "devon", direction = -1, end = 0.9)
 
-ggsave(filename = here("figures","Perc_Slope_plot.png"))
+ggsave(filename = here("figures","Perc_Slope_plot.svg"), height = 6, width = 9)
 
 ```
