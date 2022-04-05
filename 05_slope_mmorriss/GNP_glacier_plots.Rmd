@@ -92,6 +92,7 @@ What if I instead wanted to look at a normalized plot of percent change through 
 #  top_n(10, Area.sq.km) %>%
 #  select(Glacier.Name)
 #
+
 perc_df <- big_df %>%
   group_by(Glacier.Name) %>%
   arrange(Year) %>%
@@ -115,33 +116,40 @@ newggslopegraph(perc_df,
                 DataLabelPadding = 0.05,
                 WiderLabels = TRUE)
 
+
 ```
 
-Next up is trying to make the slope plot in GGplot 
+Calculate percent loss since 1966
 ```{r, echo=FALSE}
 g_df <- read.csv(here("Data","Data GNP_gdata.csv")) %>%
-  mutate(Area.sq.km = round(Area.m.2/1000/1000, digits = 2))
+  mutate(Area.sq.km = round(Area.m.2/1000/1000, digits = 2)) %>%
+  select(-X)
 
-big_g <- g_df %>%
-  filter(., Year == 1966) %>%
+# what WERE the largest glaciers in 1966?
+big_glaciers <- g_df %>%
+  filter(Year == 1966) %>%
   top_n(10, Area.sq.km) %>%
-  select(Glacier.Name)
+  select(Glacier.Name, Area.start = Area.sq.km) # starting size for each glacier
 
-g_df <- g_df %>%
-  filter(., Glacier.Name %in% big_g$Glacier.Name) %>%
+# time series data for 10 biggest glaciers at 4 timesteps
+big_glacier_df <- g_df %>%
+  filter(Glacier.Name %in% big_glaciers$Glacier.Name) %>%
   group_by(Glacier.Name) %>%
-  arrange(Year) %>%
-  mutate(lag = lag(Area.sq.km)) %>%
-  mutate(pct.change = (100*(Area.sq.km - lag)/lag))%>%
-  mutate(cum_sum_pct_chg = round(cumsum(if_else(is.na(pct.change),0,pct.change))+ pct.change*0), digits = 2)
+  arrange(Year)  %>%
+  left_join(big_glaciers) %>%
+  # decline as the percent loss from 1966 area
+  mutate(Area.loss = (Area.start - Area.sq.km),
+         Area.loss.perc = round(100*(Area.loss/Area.start),0))
 
-g_df[is.na(g_df)] <- 0
+# replace NAs with 0
+big_glacier_df[is.na(big_glacier_df)] <- 0
+
 ```
 
 Plot below with lines colored by glacier
 !!!! This is the plot used in the final post !!!!!
 ```{r}
-######
+# plotting theme
 MySpecial <- list(
   
   scale_x_continuous(position = "top",
@@ -173,10 +181,10 @@ MySpecial <- list(
   # theme(plot.margin = unit(c(0.1, 5, 0.1, 0.1), "cm"))
 )
 
-g_df %>%
+big_glacier_df %>% 
   transform(Year = as.numeric(Year)) %>%
   ggplot(aes(x = Year,
-             y = cum_sum_pct_chg,
+             y = Area.loss.perc,
              group = Glacier.Name,
              color = Glacier.Name))+
   geom_line(color = 'white',
@@ -184,9 +192,9 @@ g_df %>%
   geom_point()+
   geom_line(size = 1.0)+
     # xlim(1966,2045)+
-  geom_text_repel(data = g_df %>% filter(Year == 2015 &
-                                     Glacier.Name %in% big_glaciers$Glacier.Name), 
-            aes(label = paste0(cum_sum_pct_chg, "%", " - ",Glacier.Name)) ,
+  geom_text_repel(data = big_glacier_df %>% 
+                    filter(Year == 2015), 
+            aes(label = paste0(Area.loss.perc, "%", " - ",Glacier.Name)) ,
             hjust = 'right',
             # hjust = 'right',
             size = 3.25,
@@ -199,8 +207,9 @@ g_df %>%
             # box.padding = 0.25
             
             ) +
+  scale_y_continuous(trans = "reverse")+
 
-  geom_text_repel(data = g_df %>%
+  geom_text_repel(data = big_glacier_df %>%
                     transform(Year = as.numeric(Year))%>% 
                     filter(Year == 1966 & Glacier.Name == "Agassiz Glacier"), 
               aes(label = paste0("100%")) ,
@@ -228,7 +237,7 @@ g_df %>%
     caption = "Data: Fagre et al., 2017"
   )
 
-ggsave(filename = here("figures","Draft_Slope_plot.pdf"))
+ggsave(filename = here("figures","Perc_Slope_plot.pdf"))
 
 ```
 
@@ -273,8 +282,8 @@ g_df %>%
              group = Glacier.Name,
              color = ..y..))+
   geom_line(color = 'white',
-            size = 2)+
-  geom_smooth(size = 1.0)+
+            size = 8)+
+  geom_line(size = 2.0)+
   geom_text_repel(data = g_df %>% filter(Year == 2015 &
                                      Glacier.Name %in% big_glaciers$Glacier.Name), 
             aes(label = paste0(cum_sum_pct_chg, "%", " - ",Glacier.Name)) ,
