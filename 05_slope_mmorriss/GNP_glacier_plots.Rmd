@@ -144,6 +144,25 @@ big_glacier_df <- g_df %>%
 # replace NAs with 0
 big_glacier_df[is.na(big_glacier_df)] <- 0
 
+# interpolate steps for gradient color
+# function that interpolates a new datapoint for each year to assign color mapping to
+interpolate_pts <- function(glacier){
+  glacier_df <- big_glacier_df %>%
+    filter(Glacier.Name == glacier) %>%
+    select(Glacier.Name, Year, Area.loss.perc) %>%
+      arrange(Year)
+  interp_df <- approx(glacier_df$Year, glacier_df$Area.loss.perc, xout = seq(1966, 2015, by = 1))
+  tibble(Glacier.Name = glacier, 
+         Year.interp = interp_df$x,
+         Loss.interp = interp_df$y)
+}
+
+# apply that function to each glacier
+glaciers <-unique(big_glacier_df$Glacier.Name)
+glacier_interp <- purrr::map(glaciers, interpolate_pts) %>%
+  bind_rows()
+glacier_interp
+
 ```
 
 Plot below with lines colored by glacier
@@ -184,14 +203,24 @@ big_glacier_df %>%
   ggplot(aes(x = Year,
              y = Area.loss.perc,
              group = Glacier.Name,
-             color = Glacier.Name))+
+             #color = Glacier.Name
+             ))+
+  # add white backing to stand out where intersect
+  # doesn't seem to be working? I think would need to be added to each line
+  # # in separate layers, otherwise the top is always color...? IDK
   geom_line(color = 'white',
-            size = 2)+
-  geom_point()+
-  geom_line(size = 1.0)+
+            size = 3)+
+  geom_point(color = "white", 
+             size = 3)+
+  geom_point(size = 2, aes(color = ..y..))+
+  geom_path(data = glacier_interp, 
+            size = 1.0, aes(x = Year.interp,
+                            y = Perc.interp,
+                            group = Glacier.Name
+                            color = ..y..))+
   geom_text_repel(data = big_glacier_df %>% 
                     filter(Year == 2015), 
-            aes(label = paste0(Area.loss.perc, "%", " - ",Glacier.Name)) ,
+            aes(label = paste0('-', Area.loss.perc, "%", " - ",Glacier.Name)) ,
             hjust = 'right',
             size = 3.25,
             xlim = c(2025,2029),
@@ -199,10 +228,10 @@ big_glacier_df %>%
             color = 'black',
             segment.size =0.1,
             segment.color = 'gray'
-            
             ) +
+  # flip y axis to represent loss
   scale_y_continuous(trans = "reverse")+
-
+  ## add initial 100% label
   geom_text_repel(data = big_glacier_df %>%
                     filter(Year == 1966 & Glacier.Name == "Agassiz Glacier"), 
               aes(label = paste0("100%")) ,
@@ -211,9 +240,7 @@ big_glacier_df %>%
               nudge_x = -2,
               color = 'black',
               ) +
-  
   MySpecial +
-
   #  Labelling as desired
   labs(
     title = "10 Largest Glaciers in Glacier National Park",
