@@ -334,6 +334,6 @@ layout.matrix <- rbind(c(2,2,1,1,1,1),
                        c(2,2,1,1,1,1),
                        c(2,2,1,1,1,1))
 
-full <- gridExtra::grid.arrange(img_plot,p_temp,layout_matrix=layout.matrix)
+full <- gridExtra::grid.arrange(img_plot,time_plot,layout_matrix=layout.matrix)
 
 ggsave('gg_lake_stacks.png',plot=full,width=10,height=7,units='in')
