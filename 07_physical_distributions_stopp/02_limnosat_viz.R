@@ -5,7 +5,7 @@ library(feather)
 library(lubridate)
 library(leafgl)
 library(mapview)
-library(rayshader)
+library(rayshader) # Need at least 0.27.4
 library(elevatr)
 library(ggridges)
 library(png)
