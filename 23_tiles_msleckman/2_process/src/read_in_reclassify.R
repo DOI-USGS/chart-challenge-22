@@ -1,4 +1,5 @@
-read_in_reclassify <- function(lc_tif_path, reclassify_legend, value_cols = c('FORESCE_value','Reclassify_match'), legend_file_sep = ',', 
+read_in_reclassify <- function(lc_tif_path, reclassify_legend, value_cols = c('FORESCE_value','Reclassify_match'),
+                               legend_file_sep = ',', 
                                out_folder = '2_process/out/'){
   
   #' @param lc_tif_path path to land cover tif file e.g. 'drb_backcasting_2010.tif'
@@ -7,7 +8,12 @@ read_in_reclassify <- function(lc_tif_path, reclassify_legend, value_cols = c('F
   #' 
   #' @example read_in_reclassify(lc_tif_file = '1_fetch/out/DRB_Historical_Reconstruction_1680-2010/drb_backcasting_2010.tif', reclassify_legend = legend_reclassify)
   
+  #lc_tif_path <- p1_FORESCE_lc_tif_download[1] # to remove
   raster <- raster(lc_tif_path)
+  #mapview(raster) # to remove
+  
+  #reclassify_legend <- reclassify_df # to remove
+  #value_cols = c('FORESCE_value','Reclassify_match') # to rm
   
   ## read in legend file
   if(is.data.frame(reclassify_legend)){
@@ -18,20 +24,11 @@ read_in_reclassify <- function(lc_tif_path, reclassify_legend, value_cols = c('F
     print('legend_reclassify_file must already be a dataframe or matrix, or a path to delimited table file')
   }
   
-  ## reclassify
-  reclassified_raster <- raster::reclassify(raster, reclassify_matrix)
   name <- paste0('reclassified_', basename(lc_tif_path))
-  print(name)
   
-  if(require(rgdal)){
-    # have to write raster otherwise, it goes to temp folder and this causes problems 
-    writeRaster(reclassified_raster, filename = file.path(out_folder,name),format="GTiff", overwrite=TRUE)
+  ## reclassify + save
+  reclassified_raster <- raster::reclassify(raster, reclassify_matrix, filename = file.path(out_folder,name),format="GTiff", overwrite=TRUE)
   
-  } 
+  return(paste0(out_folder,name))
   
-  # ## CHange 0 raster values to NA
-  # reclassified_raster[reclassified_raster == 0] <- NA
-
-  
-  return(out_folder)
-}
+  }

@@ -1,5 +1,6 @@
 produce_lc_img <- function(raster_list, legend_df, out_folder = "3_visualize/out/"){
   
+  
   #stack to be able to produce level_plot 
   raster_list <- raster::stack(raster_list)
   

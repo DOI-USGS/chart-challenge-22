@@ -2,6 +2,7 @@ source('2_process/src/read_in_reclassify.R')
 
 p2_targets_list<- list(
   
+  ## returns a list
   tar_target(
     p2_write_reclassified_rasters, 
     {purrr::map(.x = p1_FORESCE_lc_tif_download[1:2], # using just the first three images for now 
@@ -10,15 +11,12 @@ p2_targets_list<- list(
                                   value_cols = c('FORESCE_value','Reclassify_match'),
                                   legend_file_sep = ','))
     },
-    format = 'file'
   ), 
-  
+
   tar_target(
     p2_reclassified_raster_list,
     {lapply(
-      list.files('2_process/out/',
-                 pattern = '*.tif$',
-                 full.names = TRUE),
+      p2_write_reclassified_rasters,
       raster)
       }
   )
