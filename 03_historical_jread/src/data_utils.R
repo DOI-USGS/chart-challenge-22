@@ -1,9 +1,6 @@
 
+summarize_nc_time <- function(year0, year1, data_files){
 
-summarize_nc_time <- function(year0, year1, ...){
-
-  # this assumes you downloaded files from https://doi.org/10.5066/P9CEMS0M
-  data_files <- as_data_file(c(...))
   if (any(!file.exists(data_files))){
     stop('need to download .nc files from https://doi.org/10.5066/P9CEMS0M')
   }

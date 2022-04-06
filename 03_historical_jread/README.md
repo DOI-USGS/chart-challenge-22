@@ -6,22 +6,7 @@ This subdirectory creates pieces of a map visualization that compares historical
 <img width="1695" alt="220403_historical_compare" src="https://user-images.githubusercontent.com/17803537/161432727-c355bb0d-9764-4f96-9f57-a4ff276e636e.png">
 
 
-This visualization used an older workflow tool that isn't supported. But it can 
-be installed via github using the `remotes` package:
-
-`scipiper` depends on `remake`, so install `remake` and its dependencies first:
-
-```r
-install.packages(c("R6", "yaml", "digest", "crayon", "optparse", "storr", "remotes"))
-remotes::install_github('richfitz/remake')
-```
-
-Next, install `scipiper`
-```r
-remotes::install_github('USGS-R/scipiper')
-```
-
-Once you've made this installs, there are a few more needed to build the images:
+This visualization uses the `targets` R package as a workflow tool. Install it with `install.packages('targets')`. Once you've made that install, there are a few more needed to build the images:
 
 ```r
 install.packages(c('tidyverse','ncdf4','lubridate','sf','data.table','spData'))
@@ -30,7 +15,5 @@ install.packages(c('tidyverse','ncdf4','lubridate','sf','data.table','spData'))
 Then you can build the images with one command by setting your directory to this file's location (e.g., `setwd('03_historical_jread')`):
 
 ```r
-scipiper::scmake()
+targets::tar_make()
 ```
-
-
