@@ -55,7 +55,7 @@ grid <- st_join(grid,usa,left=F)
 
 mapview(grid,zcol='grid_ID')
 
-grid_lake_walk <- grid %>% st_join(lakes)
+grid_lake_walk <- grid %>% st_join(lakes) %>%
   st_set_geometry(NULL)
 
 ## Lets putz around with Elevatr
