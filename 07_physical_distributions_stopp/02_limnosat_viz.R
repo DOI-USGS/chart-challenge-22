@@ -21,9 +21,11 @@ if(basename(getwd()) != viz_subfolder) {
 }
 
 
-## To download the data, this may time out.  If it does, data can be accessed at
+## If you haven't already downloaded the data, run the following. Otherwise, skip this.
+# source('01_limnosat_download.R')
+## If it times out, data can be accessed manually at
 ## https://doi.org/10.5281/zenodo.4139694
-#source('01_limnosat_download.R')
+
 
 ## Read in the data
 # Lakes
