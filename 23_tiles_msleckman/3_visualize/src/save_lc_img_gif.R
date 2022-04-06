@@ -35,4 +35,4 @@ save_lc_img_gif<- function(raster_list, legend_df){
   
 }
 
-save_lc_img_gif(p2_lc_rasters_reclassified[2:3], legend_df = legend_df)
+# save_lc_img_gif(p2_lc_rasters_reclassified[2:3], legend_df = legend_df)
