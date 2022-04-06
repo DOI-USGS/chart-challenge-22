@@ -41,4 +41,4 @@ curl_download(meta.url, paste0(folder,basename(meta.url)), mode = 'wb')
 ls.url <- grep('srCorrected_us_hydrolakes_dp_20200628.csv', urls, value = T)
 curl_download(ls.url, paste0(folder, 'LimnoSat_20200628.csv'), mode = 'wb')
 
-rm(ls.url, ls.urls, meta.url, urls, files)
+rm(ls.url, ls.urls, meta.url, urls, files, folder)
