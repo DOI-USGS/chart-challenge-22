@@ -112,12 +112,13 @@ p_1 <- ggplot(data = df_jd, aes(x=jd, y = mean_flow)) +
   annotate(geom="text", x=90, y=5500000, label="April, 6\nOn Average \nWettest Day \n of the Year", color="black") +
   annotate(geom="text", x=239, y=3000000, label="August, 27\nOn Average \nDriest Day \n of the Year", color="black") +
   annotate(geom="text", x=275, y=3500000, label="Nov 3, 1952\n Driest Single Day \n of the Period", color="black") +
-  annotate(geom="text", x=128, y=5700000, label="June 24, 1972 was the \nwettest single day of the \nperiod but at  10,975,834 cfs \ndoesn't fit on the plot", color="black") +
+  annotate(geom="text", x=129, y=5700000, label="June 24, 1972 was the \nwettest single day of the \nperiod but at  10,975,834 cfs \ndoesn't fit on the plot", color="black") +
   geom_segment(data=df_jd, aes(x = month_start + 2, y = -100000, xend = month_end - 2, yend = -100000), colour = "black", alpha=0.8, size=1)  +
   geom_text(data=df_jd, aes(x = month_median, y = -500000, label=month_ab))
 
-fig_text <- "The total flow rate in million cfs passed the 1,865 USGS NWIS gages that meet our data completeness criteria.
-Note that this measurement omitts water in ungaged rivers and in some cases counts rivers with \nmultiple gages more than once."
+fig_text <- "The total flow rate in million cfs passed the 1,865 USGS NWIS gages that meet our data completeness 
+criteria. Note that this measurement omitts water in ungaged rivers and in some cases counts rivers with 
+multiple gages more than once."
 
 library(grid)
 rect <- rectGrob(
@@ -130,7 +131,7 @@ rect <- rectGrob(
 )
 
 p_2 <- ggdraw() +
-  draw_plot(p_1 , x=-0.1, y = -0.1, width = 1.2, height = 1.2 ) + 
+  draw_plot(p_1 , x=-0.11, y = -0.1, width = 1.2, height = 1.2 ) + 
   draw_grob(rect) +
   draw_label("When Are Our Rivers Wet or Dry?", x = 0.5, y = 0.9) +
   draw_text(fig_text, x = 0.5, y = 0.1, size = 12)
