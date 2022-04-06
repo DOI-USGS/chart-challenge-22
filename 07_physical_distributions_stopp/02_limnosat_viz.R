@@ -220,7 +220,7 @@ dp <- st_read('data_in/HydroLakes_DP.shp') %>%
 
 dp_elev <- get_elev_point(dp, src = "aws")
 
-ls_elev <- ls %>% select(-x) %>%
+ls_elev <- ls %>%
   inner_join(dp_elev %>% st_set_geometry(NULL) %>%
                select(Hylak_id, elevation)) %>%
   filter(!is.na(elevation))
