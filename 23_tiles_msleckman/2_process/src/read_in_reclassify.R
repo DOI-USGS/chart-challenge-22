@@ -1,4 +1,5 @@
-read_in_reclassify <- function(lc_tif_path, reclassify_legend, value_cols = c('FORESCE_value','Reclassify_match'), legend_file_sep = ','){
+read_in_reclassify <- function(lc_tif_path, reclassify_legend, value_cols = c('FORESCE_value','Reclassify_match'), legend_file_sep = ',', 
+                               out_folder = '2_process/out/'){
   
   #' @param lc_tif_path path to land cover tif file e.g. 'drb_backcasting_2010.tif'
   #' @param reclassify_legend 2 or 3 col dataframe/matrix or path to csv reclassification map. See raster::reclassify() documentation for param 'rcl'
@@ -19,10 +20,18 @@ read_in_reclassify <- function(lc_tif_path, reclassify_legend, value_cols = c('F
   
   ## reclassify
   reclassified_raster <- raster::reclassify(raster, reclassify_matrix)
+  name <- paste0('reclassified_', basename(lc_tif_path))
+  print(name)
+  
+  if(require(rgdal)){
+    # have to write raster otherwise, it goes to temp folder and this causes problems 
+    writeRaster(reclassified_raster, filename = file.path(out_folder,name),format="GTiff", overwrite=TRUE)
+  
+  } 
   
   # ## CHange 0 raster values to NA
   # reclassified_raster[reclassified_raster == 0] <- NA
 
   
-  return(reclassified_raster)
+  return(out_folder)
 }

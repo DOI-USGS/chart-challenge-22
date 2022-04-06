@@ -32,8 +32,11 @@ produce_lc_img <- function(raster_list, legend_df, out_folder = "3_visualize/out
         
         print(a)
         dev.off()
-      }
-  return(out_folder)
+    }
+  
+  list_pngs <- list.files(paste0(out_folder,'Plot_reclassified'))
+                          
+  return(list_pngs)
   
 }
 

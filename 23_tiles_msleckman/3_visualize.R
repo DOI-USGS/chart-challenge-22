@@ -4,7 +4,7 @@ p3_targets_list<- list(
 
   tar_target(
     p3_save_map_frames,
-    produce_lc_img(p2_lc_rasters_reclassified,
+    produce_lc_img(p2_reclassified_raster_list,
                    legend_df = legend_df,
                    out_folder = "3_visualize/out/"),
     format = 'file'

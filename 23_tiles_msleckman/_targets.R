@@ -9,7 +9,7 @@ tar_option_set(packages = c("tidyverse", "dplyr", "lubridate",
                             "knitr","leaflet","sf",
                             "purrr", "sbtools", "terra",
                             'nhdplusTools','raster','sp',
-                            'FedData', 'RColorBrewer','lattice')
+                            'FedData', 'RColorBrewer','lattice', 'rgdal')
                )
 
 source("1_fetch.R")
