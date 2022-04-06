@@ -14,7 +14,6 @@ ls.urls <- httr::GET("https://zenodo.org/api/records/4139694")
 ls.urls <- jsonlite::fromJSON(httr::content(ls.urls, as = "text"))
 files <- ls.urls$files
 urls <- files$links$download
-https://zenodo.org/record/4139695/files/srCorrected_us_hydrolakes_dp_20200628.feather?download=1
 ## Identify/Create the folder you want to store the data in
 folder <- 'data_in'
 if (file.exists(folder)){
