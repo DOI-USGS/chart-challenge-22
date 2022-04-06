@@ -1,9 +1,8 @@
 source('1_fetch/src/download_tifs_fun.R')
 
-
 p1_targets_list <- list(
   
-  ## download all FORESCE Data 1640 - 2010
+  ## Download all FORESCE Data 1640 - 2010
   tar_target(
     p1_FORESCE_lc_tif_download,
     download_tifs(sb_id = '605c987fd34ec5fa65eb6a74',
@@ -17,5 +16,3 @@ p1_targets_list <- list(
     format = 'file')
 
 )
-
-#sbtools::item_file_download(sb_id = '5d4c6a1de4b01d82ce8dfd2f', dest_dir = '1_fetch/out/')

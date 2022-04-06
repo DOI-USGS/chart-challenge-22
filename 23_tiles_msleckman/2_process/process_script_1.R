@@ -18,14 +18,16 @@ library(sf)
 
 ## Read raster file and stack  
 drb_1940 <- raster('1_fetch/out/DRB_Historical_Reconstruction_1680-2010/drb_backcasting_1940.tif')
-plot(drb_1990)
+plot(drb_1940)
 
 files <- list.files(path = '1_fetch/out/DRB_Historical_Reconstruction_1680-2010/', pattern = ".tif")
 rasters <- lapply(paste0('1_fetch/out/DRB_Historical_Reconstruction_1680-2010/', files), raster)
-all_rasters <- raster::stack(rasters)
+# all_rasters <- raster::stack(rasters)
+
+rasters
 
 ## this plot is off
-plot(all_rasters)
+# plot(all_rasters)
 
 ## Read shapefile of area
 
@@ -44,9 +46,9 @@ legend <- read.csv('legend_color_map.csv', sep = ',')
 
 ## remove 0 values in all_rasters layer elements. 
 ## Not sure how to get length of all_rasters layers so using length of rasters list that is the input for this raster stack object all_rasters 
-for(i in 1:nlayers(all_rasters)){
+for(i in 1:length(rasters[1:3])){
   print(i)
-  all_rasters[[i]][all_rasters[[i]] == 0] <- NA
+  rasters[[i]][all_rasters[[i]] == 0] <- NA
 }
 
 df <- legend %>% filter(FORESCE_value %in% as.character(unique(all_rasters[[1]])))
