@@ -14,9 +14,14 @@ library(xkcd)
 
 mapviewOptions(fgb=F)
 
-setwd('07_physical_distributions_stopp/')
+# If you aren't already in the correct sub-folder, get there
+viz_subfolder <- '07_physical_distributions_stopp'
+if(basename(getwd()) != viz_subfolder) {
+  setwd(viz_subfolder)
+}
 
-## To download the data, this may time out.  If it does, data can be accessed at 
+
+## To download the data, this may time out.  If it does, data can be accessed at
 ## https://doi.org/10.5281/zenodo.4139694
 #source('01_limnosat_download.R')
 
@@ -39,7 +44,7 @@ ls <- ls %>% mutate(month = month(date),
          dWL<584)
 
 #Make a grid of the US to group lakes into
-usa <- maps::map('usa', plot = F) %>% 
+usa <- maps::map('usa', plot = F) %>%
   st_as_sf() %>%
   st_transform(5070)
 
@@ -50,7 +55,7 @@ grid <- st_join(grid,usa,left=F)
 
 mapview(grid,zcol='grid_ID')
 
-grid_lake_walk <- grid %>% st_join(lakes) 
+grid_lake_walk <- grid %>% st_join(lakes)
   st_set_geometry(NULL)
 
 ## Lets putz around with Elevatr
@@ -108,8 +113,8 @@ fui.lookup$fui[fui.lookup$dWL <= 475 & fui.lookup$dWL >470] = 1
 
 # Actual Forel-Ule Colors
 fui.colors <- c(
-  "#2158bc", "#316dc5", "#327cbb", "#4b80a0", "#568f96", "#6d9298", "#698c86", 
-  "#759e72", "#7ba654", "#7dae38", "#94b660","#94b660", "#a5bc76", "#aab86d", 
+  "#2158bc", "#316dc5", "#327cbb", "#4b80a0", "#568f96", "#6d9298", "#698c86",
+  "#759e72", "#7ba654", "#7dae38", "#94b660","#94b660", "#a5bc76", "#aab86d",
   "#adb55f", "#a8a965", "#ae9f5c", "#b3a053", "#af8a44", "#a46905", "#9f4d04")
 
 
@@ -117,7 +122,7 @@ fui.colors <- c(
 ls <- ls %>% left_join(fui.lookup) %>%
   left_join(grid_lake_walk)
 
-ls_spatial <- ls %>% 
+ls_spatial <- ls %>%
   group_by(grid_ID) %>%
   summarise(average_color = median(fui,na.rm=T),
             count = length(unique(Hylak_id))) %>%
@@ -125,7 +130,7 @@ ls_spatial <- ls %>%
   right_join(grid) %>%
   st_as_sf() %>%
   filter(!is.na(average_color))
- 
+
 ## Make our overlay
 color_overlay = generate_polygon_overlay(ls_spatial %>% st_transform(attr(elev_matrix,'crs')) %>%
                                            arrange(average_color),
@@ -140,7 +145,7 @@ color_overlay = generate_polygon_overlay(ls_spatial %>% st_transform(attr(elev_m
 # qplot(1:10, 1:10, geom="blank") +
 #   annotation_custom(g, xmin=-Inf, xmax=Inf, ymin=-Inf, ymax=Inf) +
 #   theme_void()
-# 
+#
 # ggplot(ls_spatial %>% st_transform(attr(elev_matrix,'crs'))) +
 #   geom_sf(aes(fill=average_color)) +
 #   scale_fill_gradientn(colors = fui.colors, name='Number of\n Lakes')
@@ -157,7 +162,7 @@ count_overlay <- generate_polygon_overlay(ls_spatial %>% st_transform(attr(elev_
 # qplot(1:10, 1:10, geom="blank") +
 #   annotation_custom(g, xmin=-Inf, xmax=Inf, ymin=-Inf, ymax=Inf) +
 #   theme_void()
-# 
+#
 # ggplot(ls_spatial %>% st_transform(attr(elev_matrix,'crs'))) +
 #   geom_sf(aes(fill=count)) +
 #   scale_fill_gradientn(colors = viridis::plasma(50), name='Number of\n Lakes', trans='log10')
@@ -186,7 +191,7 @@ p_color <- ggplot(ls_spatial) +
   theme(legend.background = element_blank(),
         text=element_text(family="Arial"))
 
-## Double check the overlay matches ggplot 
+## Double check the overlay matches ggplot
 p_color
 
 ## Pull the Legend
@@ -205,7 +210,7 @@ p_count <- ggplot(ls_spatial %>% st_transform(attr(elev_matrix,'crs'))) +
 
 p_count
 
-count_legend <- cowplot::get_legend(p_count) 
+count_legend <- cowplot::get_legend(p_count)
 
 ## Make our auxiliary color by day of year and elevation plot
 ## We'll pull elevations using the deepest point shapefile from LimnoSat
@@ -218,7 +223,7 @@ dp_elev <- get_elev_point(dp, src = "aws")
 ls_elev <- ls %>% select(-x) %>%
   inner_join(dp_elev %>% st_set_geometry(NULL) %>%
                select(Hylak_id, elevation)) %>%
-  filter(!is.na(elevation)) 
+  filter(!is.na(elevation))
 
 fui_color_walk <- tibble(fui=c(1:21),color = fui.colors)
 
@@ -261,7 +266,7 @@ dataman <- data.frame( x=10, y=3100,
 doy_plot <- ggplot(daily_elev_color, aes(x=doy, y = elev_bin)) +
   geom_raster(aes(fill=color))+
   scale_fill_identity() +
-  scale_x_continuous(breaks = seq(5,365,31), 
+  scale_x_continuous(breaks = seq(5,365,31),
                      labels = c('Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'))+
   xkcdman(mapping, dataman,mask=F) +
   xkcdline(aes(x=xbegin,y=ybegin,xend=xend,yend=yend),
@@ -278,7 +283,7 @@ doy_plot <- ggplot(daily_elev_color, aes(x=doy, y = elev_bin)) +
         axis.text.x = element_text(angle=45,vjust=.5),
         axis.title.x = element_blank(),
         plot.title=element_text(hjust=.5,face = 'bold'),
-        plot.subtitle = element_text(hjust=.5)) 
+        plot.subtitle = element_text(hjust=.5))
 
 doy_plot
 
