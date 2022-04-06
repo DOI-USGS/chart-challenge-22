@@ -67,7 +67,6 @@ elev_rast <- get_elev_raster(grid_xy,z=3)
 
 elev_rast <- raster::crop(elev_rast, st_bbox(usa))
 elev_rast <- raster::mask(elev_rast,st_buffer(usa,1e5))
-#raster::plot(elev_rast)
 elev_matrix <- raster_to_matrix(elev_rast)
 elev_matrix[elev_matrix < -500] = NA
 attr(elev_matrix,'crs') <- attr(elev_rast,'crs')
@@ -80,7 +79,6 @@ elev_matrix %>%
   add_water(detect_water(elev_matrix,min_area = 100,max_height = 700),color="lightblue") %>%
   plot_3d(elev_matrix, water = T,soliddepth = -10, wateralpha = 1,zscale=100, watercolor = "lightblue",windowsize=1000, triangulate=T,max_error = 0.1)
 
-#rgl::rgl.close()
 render_camera(theta=30,phi=20,zoom=0.8)
 
 
@@ -142,16 +140,6 @@ color_overlay = generate_polygon_overlay(ls_spatial %>% st_transform(attr(elev_m
                                          palette=fui.colors,
                                          linecolor = 'transparent')
 
-## Troubleshooting fill issue
-# g <- rasterGrob(color_overlay, interpolate=TRUE)
-# qplot(1:10, 1:10, geom="blank") +
-#   annotation_custom(g, xmin=-Inf, xmax=Inf, ymin=-Inf, ymax=Inf) +
-#   theme_void()
-#
-# ggplot(ls_spatial %>% st_transform(attr(elev_matrix,'crs'))) +
-#   geom_sf(aes(fill=average_color)) +
-#   scale_fill_gradientn(colors = fui.colors, name='Number of\n Lakes')
-
 count_overlay <- generate_polygon_overlay(ls_spatial %>% st_transform(attr(elev_matrix,'crs')) %>%
                                             arrange(desc(count_log)),
                                           attr(elev_matrix,'extent'),
@@ -159,15 +147,6 @@ count_overlay <- generate_polygon_overlay(ls_spatial %>% st_transform(attr(elev_
                                           data_column_fill = 'count_log',
                                           palette=viridis::plasma(50),
                                           linecolor = 'transparent')
-### Trouble shooting fill issue
-# g <- rasterGrob(count_overlay, interpolate=TRUE)
-# qplot(1:10, 1:10, geom="blank") +
-#   annotation_custom(g, xmin=-Inf, xmax=Inf, ymin=-Inf, ymax=Inf) +
-#   theme_void()
-#
-# ggplot(ls_spatial %>% st_transform(attr(elev_matrix,'crs'))) +
-#   geom_sf(aes(fill=count)) +
-#   scale_fill_gradientn(colors = viridis::plasma(50), name='Number of\n Lakes', trans='log10')
 
 render_floating_overlay(color_overlay, elev_matrix,altitude = 220, zscale =1, remove_na=F)
 render_floating_overlay(count_overlay,elev_matrix,altitude = 440, zscale =1, remove_na=F)
@@ -273,16 +252,12 @@ doy_plot <- ggplot(daily_elev_color, aes(x=doy, y = elev_bin)) +
   xkcdman(mapping, dataman,mask=F) +
   xkcdline(aes(x=xbegin,y=ybegin,xend=xend,yend=yend),
            datalines, xjitteramount = 30,yjitteramount=150,mask=F)+
-  #scale_y_discrete(labels = seq(0,4000,20)) +
   annotate('text',x=70,y=3500,label='Winter Ice Cover',family = 'xkcd') +
-  #annotate('text',x=340,y=16,label='Winter Ice Cover',family = 'xkcd',angle=-45) +
   annotate('text',x=100,y=1200,label='Spring Algae\nBlooms',family = 'xkcd') +
   labs(y='Elevation in meters',title ='How do Mountains Influence Lake Color?',
        subtitle='The distribution of lakes and their color\nin relation to topography of the US')+
-  #coord_equal()+
   theme_classic() +
-  theme(#text=element_text(size=14,family="xkcd"),
-        axis.text.x = element_text(angle=45,vjust=.5),
+  theme(axis.text.x = element_text(angle=45,vjust=.5),
         axis.title.x = element_blank(),
         plot.title=element_text(hjust=.5,face = 'bold'),
         plot.subtitle = element_text(hjust=.5))
