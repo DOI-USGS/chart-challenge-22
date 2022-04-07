@@ -179,7 +179,7 @@ p_2 <- ggplot(data = df_lcrb, aes(x=jd, y = mean_mm_flow)) +
   annotate(geom="text", x=46, y=1.1, label="Feb 15\n Wettest Day \n of the Year", color="black") +
   annotate(geom="text", x=255, y=.75, label="Oct 15\n Driest Day \n of the Year", color="black")
 
-fig_text <- "Average flow rate normalized per basin area for USGS NWIS gages in the upper (left) and lower (right) 
+fig_text <- "Average flow rate normalized by basin area for USGS NWIS gages in the upper (left) and lower (right) 
 Colorado River Basins. The flow is in mm per day across the entire basin area contributing to each gage."
 
 ggdraw() +

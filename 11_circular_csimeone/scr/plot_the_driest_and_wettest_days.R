@@ -116,7 +116,7 @@ p_1 <- ggplot(data = df_jd, aes(x=jd, y = mean_flow)) +
   geom_segment(data=df_jd, aes(x = month_start + 2, y = -100000, xend = month_end - 2, yend = -100000), colour = "black", alpha=0.8, size=1)  +
   geom_text(data=df_jd, aes(x = month_median, y = -500000, label=month_ab))
 
-fig_text <- "The total flow rate in million cfs passed the 1,865 USGS NWIS gages that meet our data completeness 
+fig_text <- "The total flow rate in million cfs for the 1,865 USGS NWIS gages that meet our data completeness 
 criteria. Note that this measurement omitts water in ungaged rivers and in some cases counts rivers with 
 multiple gages more than once."
 
