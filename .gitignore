@@ -3,7 +3,7 @@
 .RData
 .Ruserdata
 *.nc
-03_historical_jread/*.remake
+03_historical_jread/_targets/*
 *.Rproj
 .DS_Store
 *.ai

@@ -1,12 +1,24 @@
+find_sb_files <- function(sb_id, pattern) {
+  sbtools::item_list_files(sb_id) %>%
+    filter(grepl(pattern, fname)) %>%
+    pull(fname)
+}
 
+# Wrapper function for `sbtools::item_file_download()` because `targets`
+# needs file targets fxns to return the filepath
+download_sb_files <- function(sb_id, sb_filenames, out_dir, overwrite = TRUE) {
+  files_out <- file.path(out_dir, sb_filenames)
+  sbtools::item_file_download(
+    sb_id = sb_id,
+    names = sb_filenames,
+    destinations = files_out,
+    overwrite_file = overwrite
+  )
+  return(files_out)
+}
 
-summarize_nc_time <- function(year0, year1, ...){
+summarize_nc_time <- function(year0, year1, data_files){
 
-  # this assumes you downloaded files from https://doi.org/10.5066/P9CEMS0M
-  data_files <- as_data_file(c(...))
-  if (any(!file.exists(data_files))){
-    stop('need to download .nc files from https://doi.org/10.5066/P9CEMS0M')
-  }
   # base temperature for GDD calc
   GDD_base <- 5
   GDD_boy_perc <- 0.5 # 0.5 is 50%, or the day of hitting the mid point of yearly GDD
