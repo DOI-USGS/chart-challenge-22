@@ -91,7 +91,7 @@ p_1 <- ggplot(data = df_jd, aes(x=jd, y = mean_flow)) +
   geom_segment(aes(x = 280, y = 2500000, xend = 305, yend = 540000), arrow = arrow(length = unit(0.5, "cm"))) +
   ylim(-4000000, 7000000) + 
   xlim(0, 376) +
-  annotate("text", x = rep(372,4), y = c(150000,1000000, 2000000, 3000000), label = c("0-", "1m-", "2m-", "3m-") , color="grey", size=3 , angle=0, fontface="bold") +
+  annotate("text", x = rep(372,4), y = c(150000,1000000, 2000000, 3000000), label = c("0-", "1m-", "2m-", "3m cfs-") , color="grey", size=3 , angle=0, fontface="bold") +
   theme_minimal() +
   theme(
     axis.text = element_blank(),
@@ -105,10 +105,8 @@ p_1 <- ggplot(data = df_jd, aes(x=jd, y = mean_flow)) +
                        labels = c(2, 3, 4),
                        oob = scales::squish) +
   labs(fill = "Total Daily Flow Rate \nmillion CFS") +
-  geom_segment(x = 96, y = 0, xend = 96, yend = 4277993, 
-               color = "grey", size = 2) +
-  geom_segment(x = 239, y = 0, xend = 239, yend = 1152951, 
-               color = "grey", size = 2) +
+  geom_rect(xmin = 95, ymin = 0, xmax = 97, ymax = 4277993, fill = NA, color = 'grey', size = 1) +
+  geom_rect(xmin = 238, ymin = 0, xmax = 240, ymax = 1152951, color = "grey", size = 1, fill = NA) +
   annotate(geom="text", x=90, y=5500000, label="April, 6\nOn Average \nWettest Day \n of the Year", color="black") +
   annotate(geom="text", x=239, y=3000000, label="August, 27\nOn Average \nDriest Day \n of the Year", color="black") +
   annotate(geom="text", x=275, y=3500000, label="Nov 3, 1952\n Driest Single Day \n of the Period", color="black") +
@@ -116,16 +114,18 @@ p_1 <- ggplot(data = df_jd, aes(x=jd, y = mean_flow)) +
   geom_segment(data=df_jd, aes(x = month_start + 2, y = -100000, xend = month_end - 2, yend = -100000), colour = "black", alpha=0.8, size=1)  +
   geom_text(data=df_jd, aes(x = month_median, y = -500000, label=month_ab))
 
-fig_text <- "The total flow rate in million cfs for the 1,865 USGS NWIS gages that meet our data completeness 
-criteria. Note that this measurement omitts water in ungaged rivers and in some cases counts rivers with 
-multiple gages more than once."
+p_1
+
+fig_text <- "The total flow rate in million cubic feet per second (cfs) for the 1,865 USGS NWIS gages that meet our 
+data completeness criteria for 1951 - 2020. Note that this measurement omitts water in ungaged rivers 
+and in some cases counts rivers with multiple gages more than once."
 
 library(grid)
 rect <- rectGrob(
   x = 0.68,
-  y = 0.14,
+  y = 0.13,
   width = unit(1, "in"),
-  height = unit(0.4, "in"),
+  height = unit(0.6, "in"),
   hjust = 0, vjust = 1,
   gp = gpar(fill = "white", alpha = 1, col = 'white')
 )

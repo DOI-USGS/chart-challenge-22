@@ -111,8 +111,8 @@ p_1 <- ggplot(data = df_ucrb, aes(x=jd, y = mean_mm_flow)) +
   labs(fill = "Upper Site Average CFS") + 
   geom_segment(data=df_ucrb, aes(x = month_start + 2, y = -.1, xend = month_end - 2, yend = -.1), colour = "black", alpha=0.8, size=1)  +
   geom_text(data=df_ucrb, aes(x = month_median, y = -.3, label=month_ab)) +
-  geom_segment(x = 35, y = 0, xend = 35, yend = 0.1572965, color = "grey", size = 2) +
-  geom_segment(x = 159, y = 0, xend = 159, yend = 2.6224430, color = "grey", size = 2) +
+  geom_rect(xmin = 34, ymin = 0, xmax = 36, ymax = 0.1572965, color = "grey", fill = NA, size = 1) +
+  geom_rect(xmin = 158, ymin = 0, xmax = 160, ymax = 2.6224430, color = "grey", fill = NA, size = 1) +
   geom_segment(aes(x = 10, y = 0.6, xend = 33, yend = 0.18), arrow = arrow(length = unit(0.5, "cm"))) +
   geom_segment(aes(x = 145, y = 2.5, xend = 155, yend = 2.6), arrow = arrow(length = unit(0.5, "cm"))) +
   annotate(geom="text", x=130, y=2.5, label="June 8\n Wettest Day \n of the Year", color="black") +
@@ -172,8 +172,8 @@ p_2 <- ggplot(data = df_lcrb, aes(x=jd, y = mean_mm_flow)) +
   labs(fill = "mm/d flow") + 
   geom_segment(data=df_lcrb, aes(x = month_start + 2, y = -.1, xend = month_end - 2, yend = -.1), colour = "black", alpha=0.8, size=1)  +
   geom_text(data=df_lcrb, aes(x = month_median, y = -.3, label=month_ab)) + 
-  geom_segment(x = 46, y = 0, xend = 46, yend = 0.45302850, color = "grey", size = 2) +
-  geom_segment(x = 288, y = 0, xend = 288, yend = 0.04657738, color = "grey", size = 2) +
+  geom_rect(xmin = 45, ymin = 0, xmax = 47, ymax = 0.45302850, color = "grey", fill = NA, size = 1) +
+  geom_rect(xmin = 287, ymin = 0, xmax = 289, ymax = 0.04657738, color = "grey", fill = NA, size = 1) +
   # geom_segment(aes(x = 10, y = 0.6, xend = 35, yend = 0.18), arrow = arrow(length = unit(0.5, "cm"))) +
   geom_segment(aes(x = 270, y = .6, xend = 285, yend = .1), arrow = arrow(length = unit(0.5, "cm"))) +
   annotate(geom="text", x=46, y=1.1, label="Feb 15\n Wettest Day \n of the Year", color="black") +
@@ -185,6 +185,8 @@ Colorado River Basins. The flow is in mm per day across the entire basin area co
 ggdraw() +
   draw_plot(p_1 + theme(legend.position = "none"), x= -.45, y = 0, width = 1.4, height = 1 ) +
   draw_plot(p_2 + theme(legend.title = element_text(size=12)), x= .0, y = 0, width = 1.4, height = 1 ) +
-  draw_label("A Tale of Two Basins", x = 0.5, y = 0.85) +
-  draw_text(fig_text, x = 0.5, y = 0.1, size = 12)
+  draw_label("A Tale of Two Basins", x = 0.5, y = 0.875) +
+  draw_text(fig_text, x = 0.5, y = 0.1, size = 12) +
+  draw_text("Upper Colorado", x = 0.24, y = 0.8, size = 14) +
+  draw_text("Lower Colorado", x = 0.72, y = 0.8, size = 14)
 ggsave("11_circular_csimeone/viz/Wettest_Day_of_the_Year_CRB.png", width = 8, height = 8)
