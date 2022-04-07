@@ -1,0 +1,248 @@
+---
+title: "GNP_figures"
+author: "Matthew Morriss"
+date: "1/3/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(ggpubr)
+library(reshape2)
+library(stringr)
+library(here)
+library(CGPfunctions)
+library(ggrepel)
+library(sbtools)
+```
+
+## Load data
+
+```{r}
+# Data are downloaded from: https://www.sciencebase.gov/catalog/item/58af7022e4b01ccd54f9f542
+# g_df_2015 <- read.csv("GNP_glaciers_2015.csv")
+# g_df_2005 <- read.csv("GNP_glaciers_2005.csv")
+# g_df_1998 <- read.csv("GNP_Glaciers_1998.csv")
+# g_df_1966 <- read.csv("GNP_glaciers_1966.csv")
+# 
+# g_df <- left_join(g_df_2015, g_df_2005, by  = "GLACNAME") %>%
+#   left_join(.,g_df_1998, by = "GLACNAME")%>%
+#   left_join(.,g_df_1966, by = "GLACNAME")
+# 
+# g_df <- g_df %>%
+#   select(GLACNAME, Area2015, Area2005, Area1998, Area1966)
+# 
+# g_df <- g_df %>%
+#   melt()
+# 
+# colnames(g_df) <- c("Glacier Name",
+#                     "Year",
+#                     "Area m^2")
+# 
+# regexp <- "[[:digit:]]+"
+# g_df$Year <- str_extract(g_df$Year, regexp)
+# 
+# 
+# write.csv(g_df,paste(here("Data"),"GNP_gdata.csv"))
+```
+
+#Initial data exploration
+## Plotting GNP glaciers
+```{r pressure, echo=FALSE}
+# number of glaciers to use
+n_glac <- 15
+
+# read in data and convert to sq km
+g_df <- read.csv(here("Data","Data GNP_gdata.csv")) %>%
+  mutate(Area.sq.km = round(Area.m.2/1000/1000, digits = 2))
+
+# fing biggest glaciers
+big_glaciers <- g_df %>%
+  filter(., Year == 1966) %>%
+  top_n(n_glac, Area.sq.km) %>%
+  select(Glacier.Name)
+
+# filter to subset of glaciers
+big_df <- g_df %>%
+  filter(Glacier.Name %in% big_glaciers$Glacier.Name) %>%
+  transform(Year = as.factor(Year))
+
+# plut slope chart of glacier area through time
+newggslopegraph(big_df,
+                Year,
+                Area.sq.km,
+                Glacier.Name,
+                Title = "10 Largest Glaciers in Glacier National Park",
+                SubTitle = bquote("Area in" ~km^2),
+                Caption = NULL,
+                DataTextSize = 2.5,
+                DataLabelPadding = 0.05,
+                WiderLabels = TRUE)
+  
+
+```
+
+What if I instead wanted to look at a normalized plot of percent change through time, bringing these glaciers to a single point at the beginning of the time series domain.
+
+```{r}
+# use percent change through time instead of absolute area
+perc_df <- big_df %>%
+  group_by(Glacier.Name) %>%
+  arrange(Year) %>%
+  mutate(lag = lag(Area.sq.km)) %>%
+  mutate(pct.change = (100*(Area.sq.km - lag)/lag))%>%
+  mutate(cum_sum_pct_chg = round(cumsum(if_else(is.na(pct.change),0,pct.change))+ pct.change*0), digits = 2) %>%
+  transform(Year = as.factor(Year))
+
+# set NA's to 0
+perc_df[is.na(perc_df)] <- 0
+  
+# plot percent decline
+newggslopegraph(perc_df,
+                Year,
+                cum_sum_pct_chg,
+                Glacier.Name,
+                Title = "10 Largest Glaciers in Glacier National Park",
+                SubTitle = "Cumulative Percent Loss of Area",
+                Caption = "Data: Fagre et al., 2017",
+                DataTextSize = 2.5,
+                DataLabelPadding = 0.05,
+                WiderLabels = TRUE)
+
+
+```
+
+# Building the final plot
+## Calculate percent loss since 1966
+```{r, echo=FALSE}
+
+# what WERE the largest glaciers in 1966?
+big_glaciers <- g_df %>%
+  filter(Year == 1966) %>%
+  top_n(10, Area.sq.km) %>%
+  select(Glacier.Name, Area.start = Area.sq.km) # starting size for each glacier
+# these also happen to be the biggest still, despite ice loss
+
+# time series data for 10 biggest glaciers at 4 timesteps
+big_glacier_df <- g_df %>%
+  filter(Glacier.Name %in% big_glaciers$Glacier.Name) %>%
+  group_by(Glacier.Name) %>%
+  arrange(Year)  %>%
+  left_join(big_glaciers) %>%
+  # decline as the percent loss from 1966 area
+  mutate(Area.loss = (Area.start - Area.sq.km),
+         Area.loss.perc = round(100*(Area.loss/Area.start),0))
+
+# replace NAs with 0
+big_glacier_df[is.na(big_glacier_df)] <- 0
+
+# interpolate steps for gradient color
+# function that interpolates a new datapoint for each year to assign color mapping to
+interpolate_pts <- function(glacier){
+  glacier_df <- big_glacier_df %>%
+    filter(Glacier.Name == glacier) %>%
+    select(Glacier.Name, Year, Area.loss.perc) %>%
+      arrange(Year)
+  interp_df <- approx(glacier_df$Year, glacier_df$Area.loss.perc, xout = seq(1966, 2015, by = 1))
+  tibble(Glacier.Name = glacier, 
+         Year.interp = interp_df$x,
+         Loss.interp = interp_df$y)
+}
+
+# apply that function to each glacier
+glaciers <-unique(big_glacier_df$Glacier.Name)
+glacier_interp <- purrr::map(glaciers, interpolate_pts) %>%
+  bind_rows()
+glacier_interp
+
+```
+
+Plot glacier size with line color mapped to total percent loss
+```{r}
+# plotting theme
+MySpecial <- list(
+  scale_x_continuous(position = "top",
+                   breaks = c(1966, 1998, 2005, 2015),
+                   limits = c(1966, 2030)),
+  theme_bw(),
+  # Format tweaks
+  # Remove the legend
+  theme(legend.position = "none"),
+  # Remove the panel border
+  theme(panel.border     = element_blank()),
+  # Remove just about everything from the y axis
+  theme(axis.title.y     = element_blank()),
+  theme(axis.text.y      = element_blank()),
+  theme(panel.grid.major.y = element_blank()),
+  theme(panel.grid.minor.y = element_blank()),
+  # Remove a few things from the x axis and increase font size
+  theme(axis.title.x     = element_blank()),
+  theme(panel.grid.major.x = element_line(color = "lightgrey", linetype ="dotted", size = 0.5)),
+  theme(panel.grid.minor.x = element_blank()),
+  theme(axis.text.x.top      = element_text(size = 12)),
+  # Remove x & y tick marks
+  theme(axis.ticks       = element_blank()),
+  # Format title & subtitle
+  theme(plot.title       = element_text(size = 20, face = "bold", hjust = 0.5)),
+  theme(plot.subtitle    = element_text(size = 16, hjust = 0.5))
+)
+
+# build the slope chart
+big_glacier_df %>% 
+  transform(Year = as.numeric(Year)) %>%
+  ggplot(aes(x = Year,
+             y = Area.loss.perc,
+             group = Glacier.Name,
+             #color = Glacier.Name
+             ))+
+  # add white backing to stand out where intersect
+  # the order of the layers matters! sandwiching the white points between color line and point
+  geom_line(color = 'white',
+            size = 3)+
+  # using the interpolated data points to draw the path - this allows the color gradient
+  geom_path(data = glacier_interp, 
+            size = 1.0, aes(x = Year.interp,
+                            y = Loss.interp,
+                            group = Glacier.Name,
+                            color = ..y..))+
+  geom_point(color = "white", 
+             size = 3.5) +
+  geom_point(size = 2.5, aes(color = ..y..))+
+  geom_text_repel(data = big_glacier_df %>% 
+                    filter(Year == 2015), 
+            aes(label = paste0('     -', Area.loss.perc, "%", " - ",Glacier.Name)),
+            # solution to get labels to left align - from https://github.com/slowkow/ggrepel/issues/137
+            hjust = 0,
+            size = 4,
+            #force_pull = 0, 
+            #force = 1,
+            direction = "y",
+            color = 'black',
+            segment.color = 'gray'
+            ) +
+  # flip y axis to represent loss
+  scale_y_continuous(trans = "reverse")+
+  ## add initial 100% label
+  geom_text_repel(data = big_glacier_df %>%
+                    filter(Year == 1966 & Glacier.Name == "Agassiz Glacier"), 
+              aes(label = paste0("100%")) ,
+              #hjust = 2,
+              size = 4,
+              nudge_x = -1,
+              nudge_y = -1,
+              color = 'black',
+              ) +
+  MySpecial +
+  #  Labelling as desired
+  labs(
+    title = "Decline of the 10 Largest Glaciers in Glacier National Park",
+    subtitle = "Percent Area Loss since 1966",
+    caption = "Data: Fagre et al., 2017"
+  ) +
+  scico::scale_color_scico(palette = "devon", direction = -1, end = 0.9)
+
+ggsave(filename = here("figures","Perc_Slope_plot.svg"), height = 6, width = 9)
+
+```
