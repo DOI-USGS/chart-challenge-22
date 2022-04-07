@@ -178,13 +178,13 @@ g <- rasterGrob(img, interpolate=TRUE)
 
 p_color <- ggplot(ls_spatial) +
   geom_sf(aes(fill=average_color)) +
-  scale_fill_gradientn(colors=fui.colors, breaks=c(4,17), labels =c('Bluer','Greener'),name='Average Lake\nColor',
+  scale_fill_gradientn(colors=fui.colors, breaks=c(4,17), labels =c('Bluer','Greener'),name='Median lake color\nover 36 years',
                        guide = guide_colorbar(
                          direction = "horizontal",
                          title.position = "top",
                          label.position = "bottom"))+
   theme(legend.background = element_blank(),
-        text=element_text(family="Arial"))
+        legend.title = element_text(size=10))
 
 ## Double check the overlay matches ggplot 
 p_color
@@ -195,13 +195,13 @@ color_legend <- cowplot::get_legend(p_color)
 ## Same with counts plot
 p_count <- ggplot(ls_spatial %>% st_transform(attr(elev_matrix,'crs'))) +
   geom_sf(aes(fill=count)) +
-  scale_fill_gradientn(colors = viridis::plasma(50), name='Number of\n Lakes', trans='log10',
+  scale_fill_gradientn(colors = viridis::plasma(50), name='Number of\nlakes', trans='log10',
                        guide = guide_colorbar(
                          direction = "horizontal",
                          title.position = "top",
                          label.position = "bottom")) +
   theme(legend.background = element_blank(),
-        text=element_text(family="Arial"))
+        legend.title = element_text(size=10))
 
 p_count
 
@@ -257,8 +257,11 @@ dataman <- data.frame( x=10, y=3100,
                       anglerightleg = 3*pi/2  - pi / 12,
                       angleofneck = runif(1, 3*pi/2-pi/10, 3*pi/2+pi/10))
 
+ice_fill = expand_grid(x= unique(daily_elev_color$doy),
+                  y=unique(daily_elev_color$elev_bin))
 
 doy_plot <- ggplot(daily_elev_color, aes(x=doy, y = elev_bin)) +
+  geom_raster(data=ice_fill, aes(x,y), fill='grey90')+
   geom_raster(aes(fill=color))+
   scale_fill_identity() +
   scale_x_continuous(breaks = seq(5,365,31), 
@@ -266,36 +269,35 @@ doy_plot <- ggplot(daily_elev_color, aes(x=doy, y = elev_bin)) +
   xkcdman(mapping, dataman,mask=F) +
   xkcdline(aes(x=xbegin,y=ybegin,xend=xend,yend=yend),
            datalines, xjitteramount = 30,yjitteramount=150,mask=F)+
-  #scale_y_discrete(labels = seq(0,4000,20)) +
   annotate('text',x=70,y=3500,label='Winter Ice Cover',family = 'xkcd') +
-  #annotate('text',x=340,y=16,label='Winter Ice Cover',family = 'xkcd',angle=-45) +
   annotate('text',x=100,y=1200,label='Spring Algae\nBlooms',family = 'xkcd') +
-  labs(y='Elevation in meters',title ='How do Mountains Influence Lake Color?',
-       subtitle='The distribution of lakes and their color\nin relation to topography of the US')+
-  #coord_equal()+
+  labs(y='',title ='How do Mountains Influence Lake Color?',
+       subtitle='Distribution of over 42k lakes and their color\nin relation to topography of the US')+
   theme_classic() +
   theme(#text=element_text(size=14,family="xkcd"),
         axis.text.x = element_text(angle=45,vjust=.5),
         axis.title.x = element_blank(),
         plot.title=element_text(hjust=.5,face = 'bold'),
-        plot.subtitle = element_text(hjust=.5)) 
+        plot.subtitle = element_text(hjust=.5),
+        ) 
+doy_plot 
 
-doy_plot
-
-sign_off <- textGrob("Simon Topp, USGS\nData: doi.org/10.1029/2020WR029123",just='left',x=.1,y=0.5,gp=gpar(fontsize=10))
+sign_off <- textGrob("Simon Topp, USGS\nData from:\ndoi.org/10.1029/2020WR029123\ndoi.org/10.5281/zenodo.4139694",just='left',x=.1,y=0.4,gp=gpar(fontsize=7))
 
 layout.matrix <- rbind(c(4,4,4,4,4,4,4),
                        c(4,4,4,4,4,4,4),
                        c(4,4,4,4,4,4,4),
-                       c(3,3,1,1,1,1,1),
-                       c(2,2,1,1,1,1,1),
+                       c(NA,3,1,1,1,1,1),
+                       c(NA,2,1,1,1,1,1),
                        c(5,5,1,1,1,1,1))
 
-full <- gridExtra::grid.arrange(g, color_legend,
-                                count_legend,
-                                doy_plot, sign_off,layout_matrix=layout.matrix)
+png("gg_lake_stacks_xkcd.png", width = 5, height = 5,units='in',res=300)
+gridExtra::grid.arrange(g, color_legend,
+                        count_legend,
+                        doy_plot, sign_off,layout_matrix=layout.matrix)
+grid.text("Elevation (m)",x=.085,y = unit(0.90,"npc"),gp=gpar(fontsize=8))
+dev.off() 
 
-ggsave('gg_lake_stacks_xkcd.png',plot=full,width=5,height=6,units='in')
 
 
 #### Alternate with monthly distributions
