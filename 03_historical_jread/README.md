@@ -18,4 +18,4 @@ Then you can build the images with one command by setting your directory to this
 targets::tar_make()
 ```
 
-The pipeline will automatically download the data needed. In total, the pipeline should take about XX minutes to download the data, process it, and build the visuals.
+The pipeline will automatically download the data needed. In total, the pipeline should take about 8 minutes to download the data, process it, and build the visuals.
