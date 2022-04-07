@@ -238,7 +238,7 @@ yrange <- range(daily_elev_color$elev_bin)
 ratioxy <-  diff(xrange) / diff(yrange)
 
 datalines <- data.frame(xbegin=c(30,30),ybegin=c(3100,3100),
-                        xend=c(50,100), yend=c(3200,1700))
+                        xend=c(50,100), yend=c(3200,1800))
 
 mapping <- aes(x, y, scale, ratioxy, angleofspine,
                anglerighthumerus, anglelefthumerus,
