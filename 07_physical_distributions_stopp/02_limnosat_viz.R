@@ -5,7 +5,7 @@ library(feather)
 library(lubridate)
 library(leafgl)
 library(mapview)
-library(rayshader)
+library(rayshader) # Need at least 0.27.4
 library(elevatr)
 library(ggridges)
 library(png)
@@ -14,11 +14,18 @@ library(xkcd)
 
 mapviewOptions(fgb=F)
 
-setwd('07_physical_distributions_stopp/')
+# If you aren't already in the correct sub-folder, get there
+viz_subfolder <- '07_physical_distributions_stopp'
+if(basename(getwd()) != viz_subfolder) {
+  setwd(viz_subfolder)
+}
 
-## To download the data, this may time out.  If it does, data can be accessed at 
+
+## If you haven't already downloaded the data, run the following. Otherwise, skip this.
+# source('01_limnosat_download.R')
+## If it times out, data can be accessed manually at
 ## https://doi.org/10.5281/zenodo.4139694
-#source('01_limnosat_download.R')
+
 
 ## Read in the data
 # Lakes
@@ -39,7 +46,7 @@ ls <- ls %>% mutate(month = month(date),
          dWL<584)
 
 #Make a grid of the US to group lakes into
-usa <- maps::map('usa', plot = F) %>% 
+usa <- maps::map('usa', plot = F) %>%
   st_as_sf() %>%
   st_transform(5070)
 
@@ -50,7 +57,7 @@ grid <- st_join(grid,usa,left=F)
 
 mapview(grid,zcol='grid_ID')
 
-grid_lake_walk <- grid %>% st_join(lakes) 
+grid_lake_walk <- grid %>% st_join(lakes) %>%
   st_set_geometry(NULL)
 
 ## Lets putz around with Elevatr
@@ -60,7 +67,6 @@ elev_rast <- get_elev_raster(grid_xy,z=3)
 
 elev_rast <- raster::crop(elev_rast, st_bbox(usa))
 elev_rast <- raster::mask(elev_rast,st_buffer(usa,1e5))
-#raster::plot(elev_rast)
 elev_matrix <- raster_to_matrix(elev_rast)
 elev_matrix[elev_matrix < -500] = NA
 attr(elev_matrix,'crs') <- attr(elev_rast,'crs')
@@ -73,7 +79,6 @@ elev_matrix %>%
   add_water(detect_water(elev_matrix,min_area = 100,max_height = 700),color="lightblue") %>%
   plot_3d(elev_matrix, water = T,soliddepth = -10, wateralpha = 1,zscale=100, watercolor = "lightblue",windowsize=1000, triangulate=T,max_error = 0.1)
 
-#rgl::rgl.close()
 render_camera(theta=30,phi=20,zoom=0.8)
 
 
@@ -108,8 +113,8 @@ fui.lookup$fui[fui.lookup$dWL <= 475 & fui.lookup$dWL >470] = 1
 
 # Actual Forel-Ule Colors
 fui.colors <- c(
-  "#2158bc", "#316dc5", "#327cbb", "#4b80a0", "#568f96", "#6d9298", "#698c86", 
-  "#759e72", "#7ba654", "#7dae38", "#94b660","#94b660", "#a5bc76", "#aab86d", 
+  "#2158bc", "#316dc5", "#327cbb", "#4b80a0", "#568f96", "#6d9298", "#698c86",
+  "#759e72", "#7ba654", "#7dae38", "#94b660","#94b660", "#a5bc76", "#aab86d",
   "#adb55f", "#a8a965", "#ae9f5c", "#b3a053", "#af8a44", "#a46905", "#9f4d04")
 
 
@@ -117,7 +122,7 @@ fui.colors <- c(
 ls <- ls %>% left_join(fui.lookup) %>%
   left_join(grid_lake_walk)
 
-ls_spatial <- ls %>% 
+ls_spatial <- ls %>%
   group_by(grid_ID) %>%
   summarise(average_color = median(fui,na.rm=T),
             count = length(unique(Hylak_id))) %>%
@@ -125,7 +130,7 @@ ls_spatial <- ls %>%
   right_join(grid) %>%
   st_as_sf() %>%
   filter(!is.na(average_color))
- 
+
 ## Make our overlay
 color_overlay = generate_polygon_overlay(ls_spatial %>% st_transform(attr(elev_matrix,'crs')) %>%
                                            arrange(average_color),
@@ -135,16 +140,6 @@ color_overlay = generate_polygon_overlay(ls_spatial %>% st_transform(attr(elev_m
                                          palette=fui.colors,
                                          linecolor = 'transparent')
 
-## Troubleshooting fill issue
-# g <- rasterGrob(color_overlay, interpolate=TRUE)
-# qplot(1:10, 1:10, geom="blank") +
-#   annotation_custom(g, xmin=-Inf, xmax=Inf, ymin=-Inf, ymax=Inf) +
-#   theme_void()
-# 
-# ggplot(ls_spatial %>% st_transform(attr(elev_matrix,'crs'))) +
-#   geom_sf(aes(fill=average_color)) +
-#   scale_fill_gradientn(colors = fui.colors, name='Number of\n Lakes')
-
 count_overlay <- generate_polygon_overlay(ls_spatial %>% st_transform(attr(elev_matrix,'crs')) %>%
                                             arrange(desc(count_log)),
                                           attr(elev_matrix,'extent'),
@@ -152,15 +147,6 @@ count_overlay <- generate_polygon_overlay(ls_spatial %>% st_transform(attr(elev_
                                           data_column_fill = 'count_log',
                                           palette=viridis::plasma(50),
                                           linecolor = 'transparent')
-### Trouble shooting fill issue
-# g <- rasterGrob(count_overlay, interpolate=TRUE)
-# qplot(1:10, 1:10, geom="blank") +
-#   annotation_custom(g, xmin=-Inf, xmax=Inf, ymin=-Inf, ymax=Inf) +
-#   theme_void()
-# 
-# ggplot(ls_spatial %>% st_transform(attr(elev_matrix,'crs'))) +
-#   geom_sf(aes(fill=count)) +
-#   scale_fill_gradientn(colors = viridis::plasma(50), name='Number of\n Lakes', trans='log10')
 
 render_floating_overlay(color_overlay, elev_matrix,altitude = 220, zscale =1, remove_na=F)
 render_floating_overlay(count_overlay,elev_matrix,altitude = 440, zscale =1, remove_na=F)
@@ -186,7 +172,7 @@ p_color <- ggplot(ls_spatial) +
   theme(legend.background = element_blank(),
         legend.title = element_text(size=10))
 
-## Double check the overlay matches ggplot 
+## Double check the overlay matches ggplot
 p_color
 
 ## Pull the Legend
@@ -205,7 +191,7 @@ p_count <- ggplot(ls_spatial %>% st_transform(attr(elev_matrix,'crs'))) +
 
 p_count
 
-count_legend <- cowplot::get_legend(p_count) 
+count_legend <- cowplot::get_legend(p_count)
 
 ## Make our auxiliary color by day of year and elevation plot
 ## We'll pull elevations using the deepest point shapefile from LimnoSat
@@ -215,10 +201,10 @@ dp <- st_read('data_in/HydroLakes_DP.shp') %>%
 
 dp_elev <- get_elev_point(dp, src = "aws")
 
-ls_elev <- ls %>% select(-x) %>%
+ls_elev <- ls %>%
   inner_join(dp_elev %>% st_set_geometry(NULL) %>%
                select(Hylak_id, elevation)) %>%
-  filter(!is.na(elevation)) 
+  filter(!is.na(elevation))
 
 fui_color_walk <- tibble(fui=c(1:21),color = fui.colors)
 
@@ -264,7 +250,7 @@ doy_plot <- ggplot(daily_elev_color, aes(x=doy, y = elev_bin)) +
   geom_raster(data=ice_fill, aes(x,y), fill='grey90')+
   geom_raster(aes(fill=color))+
   scale_fill_identity() +
-  scale_x_continuous(breaks = seq(5,365,31), 
+  scale_x_continuous(breaks = seq(5,365,31),
                      labels = c('Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'))+
   xkcdman(mapping, dataman,mask=F) +
   xkcdline(aes(x=xbegin,y=ybegin,xend=xend,yend=yend),
@@ -274,8 +260,7 @@ doy_plot <- ggplot(daily_elev_color, aes(x=doy, y = elev_bin)) +
   labs(y='',title ='How do Mountains Influence Lake Color?',
        subtitle='Distribution of over 42k lakes and their color\nin relation to topography of the US')+
   theme_classic() +
-  theme(#text=element_text(size=14,family="xkcd"),
-        axis.text.x = element_text(angle=45,vjust=.5),
+  theme(axis.text.x = element_text(angle=45,vjust=.5),
         axis.title.x = element_blank(),
         plot.title=element_text(hjust=.5,face = 'bold'),
         plot.subtitle = element_text(hjust=.5),
@@ -331,6 +316,6 @@ layout.matrix <- rbind(c(2,2,1,1,1,1),
                        c(2,2,1,1,1,1),
                        c(2,2,1,1,1,1))
 
-full <- gridExtra::grid.arrange(img_plot,p_temp,layout_matrix=layout.matrix)
+full <- gridExtra::grid.arrange(img_plot,time_plot,layout_matrix=layout.matrix)
 
 ggsave('gg_lake_stacks.png',plot=full,width=10,height=7,units='in')
