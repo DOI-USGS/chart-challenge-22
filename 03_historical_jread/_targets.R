@@ -3,11 +3,11 @@ library(targets)
 tar_option_set(packages = c(
   "tidyverse",
   "ncdf4",
-  "scipiper",
   "lubridate",
   "sf",
   "data.table",
-  "spData"
+  "spData",
+  "sbtools"
 ))
 
 source("src/data_utils.R")
@@ -15,8 +15,19 @@ source("src/plot_utils.R")
 
 list(
 
-  # Define input files
-  tar_target(predicted_temp_ncs, list.files("data_in", pattern = "_predicted_temp_(.+).nc", full.names = T), format="file"),
+  ## Download files from ScienceBase (SB)
+  tar_target(data_sb_id, '60341c3ed34eb12031172aa6'),
+  tar_target(predicted_temp_filenames,
+             find_sb_files(
+               sb_id = data_sb_id,
+               pattern = "_predicted_temp_(.+).nc")
+  ),
+  tar_target(predicted_temp_ncs,
+             download_sb_files(
+               sb_id = data_sb_id,
+               sb_filenames = predicted_temp_filenames,
+               out_dir = 'data_in'),
+             format="file"),
 
   ## Prep data
   tar_target(early_data, summarize_nc_time(year0 = 1981, year1 = 1990, predicted_temp_ncs)),

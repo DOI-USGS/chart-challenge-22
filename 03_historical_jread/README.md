@@ -9,7 +9,7 @@ This subdirectory creates pieces of a map visualization that compares historical
 This visualization uses the `targets` R package as a workflow tool. Install it with `install.packages('targets')`. Once you've made that install, there are a few more needed to build the images:
 
 ```r
-install.packages(c('tidyverse','ncdf4','lubridate','sf','data.table','spData'))
+install.packages(c('tidyverse','ncdf4','lubridate','sf','data.table','spData', 'sbtools'))
 ```
 
 Then you can build the images with one command by setting your directory to this file's location (e.g., `setwd('03_historical_jread')`):
@@ -17,3 +17,5 @@ Then you can build the images with one command by setting your directory to this
 ```r
 targets::tar_make()
 ```
+
+The pipeline will automatically download the data needed. In total, the pipeline should take about XX minutes to download the data, process it, and build the visuals.
