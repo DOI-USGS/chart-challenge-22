@@ -1,7 +1,7 @@
 library(targets)
 
 options(tidyverse.quiet = TRUE)
-tar_option_set(packages = c('tidyverse', 'rnpn', 'terra', 'raster', 'sf','colorspace'))
+tar_option_set(packages = c('tidyverse', 'rnpn', 'terra', 'raster', 'sf', 'colorspace'))
 
 source("src/data_utils.R")
 source("src/plot_utils.R")
