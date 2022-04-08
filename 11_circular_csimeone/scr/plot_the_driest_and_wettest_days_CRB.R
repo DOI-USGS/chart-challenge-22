@@ -9,7 +9,7 @@ library(stringr)
 library(ggplot2)
 library(circular)
 library(cowplot)
-
+library("dataRetrieval")
 
 cfs_to_mm <- 28320000 * 86400 / (1000000 * 1000000)
 
@@ -28,7 +28,7 @@ load("11_circular_csimeone/data_in/site_list_CRB.RData")
 
 
 pCd <- "00060" #Discharge, cubic feet per second, see readNWISdv help file for more options
-start_date <- as.Date("1950-04-01")
+start_date <- as.Date("1980-04-01")
 end_date <- as.Date("2021-12-31")
 
 # for (i in 1:length(site_list)){
@@ -40,7 +40,7 @@ end_date <- as.Date("2021-12-31")
 #     renameNWISColumns() %>%
 #     as_tibble()
 # 
-#   write_csv(df, paste0("../NWIS_Download/CRB/", station, ".csv"))
+#   write_csv(df, paste0("11_circular_csimeone/data_in/NWIS_data/CRB/", station, ".csv"))
 # }
 
 # Read in all individual percentile files. 
@@ -75,6 +75,7 @@ df_ucrb <- bind_rows(df_list) %>%
   group_by(jd) %>%
   summarize(mean_ann_flow = sum(value, na.rm = TRUE)/70,
             mean_mm_flow = mean((!!cfs_to_mm *(value/DRAIN_SQKM)), na.rm= TRUE),
+            median_mm_flow = median((!!cfs_to_mm *(value/DRAIN_SQKM)), na.rm= TRUE),
             mean_site_flow = mean(value, na.rm = TRUE),
             month = first(month)) %>%
   mutate(month_ab = month.abb[month],
@@ -111,8 +112,8 @@ p_1 <- ggplot(data = df_ucrb, aes(x=jd, y = mean_mm_flow)) +
   labs(fill = "Upper Site Average CFS") + 
   geom_segment(data=df_ucrb, aes(x = month_start + 2, y = -.1, xend = month_end - 2, yend = -.1), colour = "black", alpha=0.8, size=1)  +
   geom_text(data=df_ucrb, aes(x = month_median, y = -.3, label=month_ab)) +
-  geom_rect(xmin = 34, ymin = 0, xmax = 36, ymax = 0.1572965, color = "grey", fill = NA, size = 1) +
-  geom_rect(xmin = 158, ymin = 0, xmax = 160, ymax = 2.6224430, color = "grey", fill = NA, size = 1) +
+  geom_rect(xmin = 34, ymin = 0, xmax = 36, ymax = 0.1586426, color = "grey", fill = NA, size = 1) +
+  geom_rect(xmin = 158, ymin = 0, xmax = 160, ymax = 2.6636679, color = "grey", fill = NA, size = 1) +
   geom_segment(aes(x = 10, y = 0.6, xend = 33, yend = 0.18), arrow = arrow(length = unit(0.5, "cm"))) +
   geom_segment(aes(x = 145, y = 2.5, xend = 155, yend = 2.6), arrow = arrow(length = unit(0.5, "cm"))) +
   annotate(geom="text", x=130, y=2.5, label="June 8\n Wettest Day \n of the Year", color="black") +
@@ -136,6 +137,7 @@ df_lcrb <- bind_rows(df_list) %>%
 group_by(jd) %>%
   summarize(mean_ann_flow = sum(value, na.rm = TRUE)/70,
             mean_mm_flow = mean((!!cfs_to_mm *(value/DRAIN_SQKM)), na.rm= TRUE),
+            median_mm_flow = median((!!cfs_to_mm *(value/DRAIN_SQKM)), na.rm= TRUE),
             mean_site_flow = mean(value, na.rm = TRUE),
             month = first(month)) %>%
   mutate(month_ab = month.abb[month],
@@ -172,15 +174,18 @@ p_2 <- ggplot(data = df_lcrb, aes(x=jd, y = mean_mm_flow)) +
   labs(fill = "mm/d flow") + 
   geom_segment(data=df_lcrb, aes(x = month_start + 2, y = -.1, xend = month_end - 2, yend = -.1), colour = "black", alpha=0.8, size=1)  +
   geom_text(data=df_lcrb, aes(x = month_median, y = -.3, label=month_ab)) + 
-  geom_rect(xmin = 45, ymin = 0, xmax = 47, ymax = 0.45302850, color = "grey", fill = NA, size = 1) +
-  geom_rect(xmin = 287, ymin = 0, xmax = 289, ymax = 0.04657738, color = "grey", fill = NA, size = 1) +
+  # geom_rect(xmin = 45, ymin = 0, xmax = 47, ymax = 0.45302850, color = "grey", fill = NA, size = 1) +
+  geom_rect(xmin = 7, ymin = 0, xmax = 9, ymax = 0.4696284, color = "grey", fill = NA, size = 1) +
+  geom_rect(xmin = 287, ymin = 0, xmax = 289, ymax = 0.04834458, color = "grey", fill = NA, size = 1) +
   # geom_segment(aes(x = 10, y = 0.6, xend = 35, yend = 0.18), arrow = arrow(length = unit(0.5, "cm"))) +
   geom_segment(aes(x = 270, y = .6, xend = 285, yend = .1), arrow = arrow(length = unit(0.5, "cm"))) +
-  annotate(geom="text", x=46, y=1.1, label="Feb 15\n Wettest Day \n of the Year", color="black") +
+  # annotate(geom="text", x=46, y=1.1, label="Feb 15\n Wettest Day \n of the Year", color="black") +
+  annotate(geom="text", x=8, y=1.1, label="Jan 8\n Wettest Day \n of the Year", color="black") +
   annotate(geom="text", x=255, y=.75, label="Oct 15\n Driest Day \n of the Year", color="black")
 
-fig_text <- "Average flow rate normalized by basin area for USGS NWIS gages in the upper (left) and lower (right) 
-Colorado River Basins. The flow is in mm per day across the entire basin area contributing to each gage."
+fig_text <- "Average flow rate normalized by basin area for USGS NWIS gages from 1981 - 2020 in the upper (left) and 
+lower (right) Colorado River Basins. The flow is in mm per day across the entire basin area contributing 
+to each gage. Jan 8th is likely the highest due to a major rain event in 1993."
 
 ggdraw() +
   draw_plot(p_1 + theme(legend.position = "none"), x= -.45, y = 0, width = 1.4, height = 1 ) +

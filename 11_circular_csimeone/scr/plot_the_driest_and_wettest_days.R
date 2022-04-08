@@ -23,7 +23,7 @@ end_date <- as.Date("2021-12-31")
 #     renameNWISColumns() %>%
 #     as_tibble()
 # 
-#   write_csv(df, paste0("../NWIS_Download/", station, ".csv"))
+#   write_csv(df, paste0("11_circular_csimeone/data_in/NWIS_data/", station, ".csv"))
 # }
   
 # Read in all individual percentile files. 

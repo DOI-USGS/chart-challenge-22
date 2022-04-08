@@ -12,3 +12,9 @@ The amount of flow in rivers in the continental United States varies throughout 
 ![](viz/Wettest_Day_of_the_Year_CRB.png)
 
 The Colorado River Basin demonstrates how varied sub-basin flows can be, with wetter conditions driven by snowmelt in the upper part of the basin, and drier conditions influenced more by monsoonal rains in the lower part of the basin. The USGS is currently working to better understand hydrological drought dynamics across the country and recently hosted a stakeholder listening session on [streamflow drought](https://www.drought.gov/webinars/drought-prediction-focus-streamflow-end-user-listening-session). Future listening sessions aimed at engaging a wide range of stakeholders will cover [groundwater drought](https://www.drought.gov/events/drought-prediction-focus-groundwater-end-user-listening-session), water use, ecosystems, and drought prediction.
+
+# Follow Up Post 3
+
+![](viz/Map_of_Gages.png)
+
+Gages with throrough historical records back to 1951 span across the country, but there are more in some regions than in other. 
