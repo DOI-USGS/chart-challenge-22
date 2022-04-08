@@ -16,16 +16,16 @@ font_files()[409:414,1:4]
 font_add(family = "Univers57", regular = "Univers-Condensed.otf")
 showtext_auto()
 
-
 # Download data from https://www.sciencebase.gov/catalog/item/5bb4de01e4b08583a5da4477
+# and put in "in/" folder
 
 # Read in data
-DF1 = read.csv("in/data1_vTSS/data1_vTSS.csv", stringsAsFactors = FALSE)
-DF2 = read.csv("in/predict_TSS/predict_TSS.csv", stringsAsFactors = FALSE)
+data_df = read.csv("in/SPARROWmodeldat/data1_vTSS/data1_vTSS.csv", stringsAsFactors = FALSE)
+predict_df = read.csv("in/SPARROWmodeldat/predict_TSS/predict_TSS.csv", stringsAsFactors = FALSE)
 
 # Join
-DF = left_join(DF2, DF1, by = "comid")
-rm(DF2, DF1)
+DF = left_join(data_df, predict_df, by = "comid")
+rm(data_df, predict_df)
 colnames(DF)
 
 # Add HUC12s
