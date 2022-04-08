@@ -25,7 +25,7 @@ DF_data = read.csv("in/SPARROWmodeldat/data1_vTSS/data1_vTSS.csv", stringsAsFact
 DF_predict = read.csv("in/SPARROWmodeldat/predict_TSS/predict_TSS.csv", stringsAsFactors = FALSE)
 
 # HUCs from NHD 
-DF_HUC = read.csv("in/Catchment_HUC12.csv", stringsAsFactors = FALSE)
+DF_HUC = read.csv("https://labs.waterdata.usgs.gov/visualizations/data/Catchment_HUC12.csv", stringsAsFactors = FALSE)
 
 # Join data and rename ecoregions
 DF_sediment = left_join(DF_data, DF_predict, by = "comid") %>%
