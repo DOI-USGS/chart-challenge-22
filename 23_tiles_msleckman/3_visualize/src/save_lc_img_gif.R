@@ -1,12 +1,10 @@
 produce_lc_img <- function(raster_list, legend_df, out_folder = "3_visualize/out/"){
-  
-  
+
   #stack to be able to produce level_plot 
   raster_list_stacked <- raster::stack(raster_list)
   
     for(i in c(1:nlayers(raster_list_stacked))){
         
-        print(raster_list_stacked[[i]])
         ## transform into categorical raster
         rat_lc <- ratify(raster_list_stacked[[i]])
         
@@ -19,7 +17,7 @@ produce_lc_img <- function(raster_list, legend_df, out_folder = "3_visualize/out
         ## Plot
         png(paste0(out_folder, "Plot_", raster_name,'.png'))
         
-        a <-lattice::levelplot(rat_lc, att='ID', 
+        a <- levelplot(rat_lc, att='ID', 
                      col.regions=legend_df$color,
                      par.settings = list(axis.line = list(col = "transparent"),
                                          strip.background = list(col = 'transparent'),
@@ -39,7 +37,7 @@ produce_lc_img <- function(raster_list, legend_df, out_folder = "3_visualize/out
     }
   
   # list frames
-  list_pngs <- list.files(paste0(out_folder,'Plot_reclassified'))
+  list_pngs <- list.files(out_folder, pattern = 'Plot_reclassified', full.names = TRUE)
                           
   return(list_pngs)
   
