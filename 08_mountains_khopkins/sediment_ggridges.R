@@ -11,15 +11,17 @@ library(viridis)
 library(ggridges)
 library(showtext)
 
-font_paths()
-font_families()
+# Set up font for plots
 font_files()[409:414,1:4]
 font_add(family = "Univers57", regular = "Univers-Condensed.otf")
 showtext_auto()
 
+
+# Download data from https://www.sciencebase.gov/catalog/item/5bb4de01e4b08583a5da4477
+
 # Read in data
-DF1 = read.csv("/Users/khopkins/Documents/R/ChartChallenge/data1_vTSS/data1_vTSS.csv", stringsAsFactors = FALSE)
-DF2 = read.csv("/Users/khopkins/Documents/R/ChartChallenge/predict_TSS/predict_TSS.csv", stringsAsFactors = FALSE)
+DF1 = read.csv("in/data1_vTSS/data1_vTSS.csv", stringsAsFactors = FALSE)
+DF2 = read.csv("in/predict_TSS/predict_TSS.csv", stringsAsFactors = FALSE)
 
 # Join
 DF = left_join(DF2, DF1, by = "comid")
@@ -27,7 +29,7 @@ rm(DF2, DF1)
 colnames(DF)
 
 # Add HUC12s
-DF3 = read.csv("/Users/khopkins/Documents/R/ChartChallenge/Catchment_HUC12.csv", stringsAsFactors = FALSE)
+DF3 = read.csv("in/Catchment_HUC12.csv", stringsAsFactors = FALSE)
 DF = left_join(DF, DF3, by = "comid")
 
 unique(DF3$HUC_8)
@@ -97,7 +99,7 @@ colnames(DF)
 
 # Save
 # This isnt working well.
-ggsave("/Users/khopkins/Documents/R/ChartChallenge/Sparrow_chart.tiff", 
+ggsave("out/Sparrow_chart.tiff", 
        plot = last_plot(),
        width = 6, height = 4, units = c("in"),
        dpi = 300)
