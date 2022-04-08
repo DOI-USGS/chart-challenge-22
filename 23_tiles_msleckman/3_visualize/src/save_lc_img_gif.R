@@ -1,47 +1,37 @@
-produce_lc_img <- function(raster_list, legend_df, out_folder = "3_visualize/out/"){
+produce_lc_img <- function(raster_in, raster_frame, legend_df, out_folder = "3_visualize/out/"){
   
+  ## transform into categorical raster
+  rat_lc <- ratify(raster_in[[1]])
   
-  #stack to be able to produce level_plot 
-  raster_list_stacked <- raster::stack(raster_list)
+  # Produce levelplot
+  ## define specs
+  raster_name <- names(rat_lc)
+  year <- substr(raster_name, nchar(raster_name)-3, nchar(raster_name))
+  main_title <- paste0("drb land cover ",year)
   
-    for(i in c(1:nlayers(raster_list_stacked))){
-        
-        print(raster_list_stacked[[i]])
-        ## transform into categorical raster
-        rat_lc <- ratify(raster_list_stacked[[i]])
-        
-        # Produce levelplot
-        ## define specs
-        raster_name <- names(raster_list_stacked[[i]])
-        year <- substr(raster_name, nchar(raster_name)-3, nchar(raster_name))
-        main_title <- paste0("drb land cover ",year)
-        
-        ## Plot
-        png(paste0(out_folder, "Plot_", raster_name,'.png'))
-        
-        a <-lattice::levelplot(rat_lc, att='ID', 
-                     col.regions=legend_df$color,
-                     par.settings = list(axis.line = list(col = "transparent"),
-                                         strip.background = list(col = 'transparent'),
-                                         strip.border = list(col = 'transparent')),
-                     scales = list(col = "transparent"),
-                     main= main_title,
-                     colorkey=F,
-                     key = list(rectangles=list(col = legend_df$color), 
-                                text=list(lab=legend_df$Reclassify_description),
-                                space='left',
-                                columns=1,
-                                size=2,
-                                cex=.6))
-        
-        print(a)
-        dev.off()
-    }
+  ## Plot
+  frame_out <- paste0(out_folder, "Plot_", raster_name,'.png')
+  png(frame_out)
   
-  # list frames
-  list_pngs <- list.files(paste0(out_folder,'Plot_reclassified'))
+  a <- levelplot(rat_lc, att='ID', 
+               col.regions=legend_df$color,
+               par.settings = list(axis.line = list(col = "transparent"),
+                                   strip.background = list(col = 'transparent'),
+                                   strip.border = list(col = 'transparent')),
+               scales = list(col = "transparent"),
+               main= main_title,
+               colorkey=F,
+               key = list(rectangles=list(col = legend_df$color), 
+                          text=list(lab=legend_df$Reclassify_description),
+                          space='left',
+                          columns=1,
+                          size=2,
+                          cex=.6))
+  
+  print(a)
+  dev.off()
                           
-  return(list_pngs)
+  return(frame_out)
   
 }
 
