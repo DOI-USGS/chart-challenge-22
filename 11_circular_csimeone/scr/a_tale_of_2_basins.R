@@ -26,23 +26,26 @@ loc_df <- station_metadata %>%
 
 load("11_circular_csimeone/data_in/site_list_CRB.RData")
 
-
 pCd <- "00060" #Discharge, cubic feet per second, see readNWISdv help file for more options
 start_date <- as.Date("1980-04-01")
 end_date <- as.Date("2021-12-31")
 
-# for (i in 1:length(site_list)){
-#   #NWIS data pull
-#   station <- site_list[i]
-#   cat(station, i, "of", length(site_list), "\n")
-# 
-#   df <- readNWISdv(station,pCd,start_date,end_date) %>%
-#     renameNWISColumns() %>%
-#     as_tibble()
-# 
-#   write_csv(df, paste0("11_circular_csimeone/data_in/NWIS_data/CRB/", station, ".csv"))
-# }
-
+# Download NWIS Data if set to TRUE
+download_new_data <- FALSE
+if (download_new_data == TRUE){
+  for (i in 1:length(site_list)){
+    #NWIS data pull
+    station <- site_list[i]
+    cat(station, i, "of", length(site_list), "\n")
+  
+    df <- readNWISdv(station,pCd,start_date,end_date) %>%
+      renameNWISColumns() %>%
+      as_tibble()
+  
+    write_csv(df, paste0("11_circular_csimeone/data_in/NWIS_data/CRB/", station, ".csv"))
+  }
+}
+  
 # Read in all individual percentile files. 
 df_list <- c()
 for (i in 1:length(site_list)){
@@ -51,12 +54,19 @@ for (i in 1:length(site_list)){
     
     df_temp <- read.csv(paste0("11_circular_csimeone/data_in/NWIS_data/CRB/", site_list[[i]], ".csv")) %>%
       as_tibble()
-    # df_temp$site <- site_list[[i]]
     
     df_list[[i]] <- df_temp
   }, error=function(e){cat("Site", i, "ERROR ", conditionMessage(e), "\n")})
 }
 
+# Take data from all sites and bind them together. 
+# Subset to desired columns and modify site names to be 8 char
+# Add metadata and subset to just upper CRB, HUC 14
+# Add date information
+# Remove extra day from leap years. 
+# Subset to only approved data. 
+# Summarize data from all years to a comprehensive value for each julian day. 
+# Add information for plotting months. Note that months are all averaged length. 
 df_ucrb <- bind_rows(df_list) %>%
   as_tibble() %>%
   select(c(site_no, Date, Flow, Flow_cd)) %>%
@@ -65,6 +75,7 @@ df_ucrb <- bind_rows(df_list) %>%
          value = Flow) %>%
   left_join(loc_df, by = 'site') %>%
   filter(HUC02 %in% c(14)) %>%
+  # filter(site %in% site_list_ucrb) %>%
   mutate(Date = as_date(Date)) %>%
   mutate(jd = yday(Date),
          month = month(Date),
@@ -119,6 +130,14 @@ p_1 <- ggplot(data = df_ucrb, aes(x=jd, y = mean_mm_flow)) +
   annotate(geom="text", x=130, y=2.5, label="June 8\n Wettest Day \n of the Year", color="black") +
   annotate(geom="text", x=370, y=0.9, label="February 4\n Driest Day \n of the Year", color="black")
 
+# Take data from all sites and bind them together. 
+# Subset to desired columns and modify site names to be 8 char
+# Add metadata and subset to just lower CRB, HUC 14
+# Add date information
+# Remove extra day from leap years. 
+# Subset to only approved data. 
+# Summarize data from all years to a comprehensive value for each julian day. 
+# Add information for plotting months. Note that months are all averaged length. 
 df_lcrb <- bind_rows(df_list) %>%
   as_tibble() %>%
   select(c(site_no, Date, Flow, Flow_cd)) %>%

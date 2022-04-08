@@ -1,6 +1,6 @@
 # Download NWIS Data For UCRB
 
-library("dataRetrieval")
+library(dataRetrieval)
 library(tidyverse)
 library(lubridate)
 library(RColorBrewer)
@@ -14,17 +14,22 @@ pCd <- "00060" #Discharge, cubic feet per second, see readNWISdv help file for m
 start_date <- as.Date("1950-04-01")
 end_date <- as.Date("2021-12-31")
 
-# for (i in 1:length(site_list)){
-#   #NWIS data pull
-#   station <- site_list[i]
-#   cat(station, i, "of", length(site_list), "\n")
-# 
-#   df <- readNWISdv(station,pCd,start_date,end_date) %>%
-#     renameNWISColumns() %>%
-#     as_tibble()
-# 
-#   write_csv(df, paste0("11_circular_csimeone/data_in/NWIS_data/", station, ".csv"))
-# }
+# Download NWIS Data if set to TRUE
+download_new_data <- FALSE
+if (download_new_data == TRUE){
+  for (i in 1:length(site_list)){
+    #NWIS data pull
+    station <- site_list[i]
+    cat(station, i, "of", length(site_list), "\n")
+    
+    df <- readNWISdv(station,pCd,start_date,end_date) %>%
+      renameNWISColumns() %>%
+      as_tibble()
+    
+    write_csv(df, paste0("11_circular_csimeone/data_in/NWIS_data/", station, ".csv"))
+  }
+}
+
   
 # Read in all individual percentile files. 
 df_list <- c()
@@ -40,6 +45,10 @@ for (i in 1:length(site_list)){
   }, error=function(e){cat("Site", i, "ERROR ", conditionMessage(e), "\n")})
 }
 
+# Combine data and subset desired columns. 
+# Add date information
+# Remove extra day from leap years. 
+# Subset to only approved data. 
 df <- bind_rows(df_list) %>%
   as_tibble() %>%
   select(c(site_no, Date, Flow, Flow_cd)) %>%
@@ -52,6 +61,9 @@ df <- bind_rows(df_list) %>%
   filter(Date <= as_date("2020-03-31")) %>%
   filter(Flow_cd %in% c('A' ,'A:e' ,'A e','A [0]' ,'A R' ,'A [4]', "A <"))
   
+
+# Summarize data from all years to a comprehensive value for each julian day. 
+# Add information for plotting months. Note that months are all averaged length. 
 df_jd <- df %>%
   group_by(jd) %>%
   summarize(mean_flow = sum(Flow, na.rm = TRUE)/70,
@@ -65,6 +77,7 @@ df_jd <- df %>%
 # August 27th jd = 239 is the dryiest day of the year: 1152951
 # April 6th jd = 96 is the wettest day of the year: 4277993
 
+#Subset for each CY to fine wettest/driest days of period. 
 df_jd_cy <- df %>%
   group_by(jd, year) %>%
   summarize(mean_flow = sum(Flow, na.rm = TRUE),
