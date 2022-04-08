@@ -24,8 +24,8 @@ showtext_auto()
 DF_data = read.csv("in/SPARROWmodeldat/data1_vTSS/data1_vTSS.csv", stringsAsFactors = FALSE)
 DF_predict = read.csv("in/SPARROWmodeldat/predict_TSS/predict_TSS.csv", stringsAsFactors = FALSE)
 
-# HUC12s
-DF_HUC = read.csv("in/Catchment_HUC12.csv", stringsAsFactors = FALSE)
+# HUCs from NHD 
+DF_HUC = read.csv("https://labs.waterdata.usgs.gov/visualizations/data/Catchment_HUC12.csv", stringsAsFactors = FALSE)
 
 # Join data and rename ecoregions
 DF_sediment = left_join(DF_data, DF_predict, by = "comid") %>%
@@ -89,7 +89,7 @@ ggplot(DF_long, aes(x = value, y = as.factor(EcoRegion),
                     fill = Source, color = Source
                     )) +
   geom_density_ridges(scale = 1.8, rel_min_height = 0.01, show.legend = TRUE, 
-                      alpha = 0.7, size = 1) +
+                      alpha = 0.65, size = 0.8) +
   scale_x_continuous(expand = c(0.01, 0), limits = c(NA, NA)) +
   scale_y_discrete(expand = c(0.01, 0)) +
   scale_color_manual(values = met.brewer(name = "Isfahan1", n = 4, type = "discrete"))+ # also try Isfahan1, Hiroshige, Egypt
