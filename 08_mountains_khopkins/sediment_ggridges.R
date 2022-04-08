@@ -39,7 +39,7 @@ DF_sediment = left_join(DF_data, DF_predict, by = "comid") %>%
     EcoRegion %in% c(5,6) ~ "Mountains",
     TRUE ~ as.character(EcoRegion) 
   )) %>%
-  transform(EcoRegion = factor(EcoRegion))
+  transform(EcoRegion = factor(EcoRegion, levels = c("Mountains", "Piedmont", "Coastal Plain")))
 
 # Clean up env
 rm(DF_data, DF_predict, DF_HUC)
@@ -86,13 +86,14 @@ DF_gather_sediment = DF_long %>%
 
 # Plot
 ggplot(DF_long, aes(x = value, y = as.factor(EcoRegion), 
-                    fill = Source, color = Source)) +
-  geom_density_ridges(scale = 1.9, rel_min_height = 0.01, show.legend = TRUE, 
-                      alpha = 0.7) +
+                    fill = Source, color = Source
+                    )) +
+  geom_density_ridges(scale = 1.8, rel_min_height = 0.01, show.legend = TRUE, 
+                      alpha = 0.7, size = 1) +
   scale_x_continuous(expand = c(0.01, 0), limits = c(NA, NA)) +
   scale_y_discrete(expand = c(0.01, 0)) +
   scale_color_manual(values = met.brewer(name = "Isfahan1", n = 4, type = "discrete"))+ # also try Isfahan1, Hiroshige, Egypt
-  scale_fill_manual(values = met.brewer(name = "Isfahan1", n = 4, type = "discrete"))+
+  scale_fill_manual(values = met.brewer(name = "Isfahan1", n = 4, type = "discrete"))+# also try Isfahan1, Hiroshige, Egypt
   labs(title = 'Where is sediment coming from in North Carolina?',
        subtitle = 'Comparing sediment sources for HUC8 basins, data from doi.org/10.5066/P97MV16H.', 
        x = "Sediment per year normalized by area \nMg/km2", y = "Ecoregion") +
@@ -100,7 +101,17 @@ ggplot(DF_long, aes(x = value, y = as.factor(EcoRegion),
     title.theme = element_text(face = "bold", size = 16, hjust = 1),
     label.theme = element_text(size = 16),
     label.position = "left",
-    title = 'Source',
+    title = 'Sediment source',
+    keywidth = 2,
+    keyheight = 2,
+    title.position = "top",
+  ),
+  #duplicating same legend for fill and color
+  color = guide_legend(
+    title.theme = element_text(face = "bold", size = 16, hjust = 1),
+    label.theme = element_text(size = 16),
+    label.position = "left",
+    title = 'Sediment source',
     keywidth = 2,
     keyheight = 2,
     title.position = "top",
