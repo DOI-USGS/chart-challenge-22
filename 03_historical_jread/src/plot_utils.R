@@ -50,7 +50,7 @@ plot_temp_diff <- function(fileout, early_data, late_data){
 
   ggsave(filename = fileout, width = 16, height = 10)
 
-
+  return(fileout)
 }
 make_legend <- function(fileout, pie_slices){
 
@@ -75,4 +75,6 @@ make_legend <- function(fileout, pie_slices){
     theme_void()
 
   ggsave(filename = fileout, width = 3, height = 3, dpi = 300)
+
+  return(fileout)
 }
