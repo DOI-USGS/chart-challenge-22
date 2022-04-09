@@ -30,6 +30,9 @@ gages_2020 <- rowwise(gages) %>%
   filter(2020 %in% unlist(which_years_active))
 
 # inventories for lat long associated with each site
+download.file('https://labs.waterdata.usgs.gov/visualizations/data/nwis_dv_inventory.rds', 'in_dat/nwis_dv_inventory.rds')
+download.file('https://labs.waterdata.usgs.gov/visualizations/data/nwis_uv_inventory.rds', 'in_dat/nwis_uv_inventory.rds')
+
 sites <- readRDS('in_dat/nwis_dv_inventory.rds') %>%
   bind_rows(readRDS('in_dat/nwis_uv_inventory.rds')) %>%
   dplyr::select(site_no, station_nm, site_tp_cd, dec_lat_va, dec_long_va) %>%
