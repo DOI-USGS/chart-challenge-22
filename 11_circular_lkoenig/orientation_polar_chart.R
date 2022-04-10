@@ -3,9 +3,14 @@ library(patchwork)
 library(nhdplusTools)
 library(sf)
 library(ggspatial)
+library(showtext)
 
 # Source helper functions
 source("11_circular_lkoenig/src/orientation_helpers.R")
+
+# Set up fonts for plots
+font_add_google('Source Sans Pro', regular.wt = 300, bold.wt = 700)
+showtext_auto()
 
 # Define huc8 sub-basins
 # note: HUC8 subsets from the watershed boundary dataset (WBD) were used for 
@@ -58,23 +63,35 @@ cp$is_free <- function() TRUE
 
 # Create grid containing channel orientation plots
 azimuth_grid <- plot_azimuth(flines_azimuth_df,cp, fill = "#105073", color = "#09344E") + 
-  facet_wrap(~huc8_name_ord, scales = "free_y")
+  facet_wrap(~huc8_name_ord, scales = "free_y") + 
+  theme(text = element_text(size = 26),
+        strip.text.x = element_text(size = 28))
 
 # Create "legend" inset plot that explains how to read the polar histograms
 inset_ntw_plot <- plot_ntw(filter(flines_azimuth_df, huc8_name == "Puyallup"))
 inset_polar_plot <- plot_azimuth(filter(flines_azimuth_df,huc8_name == "Puyallup")) + 
-  theme(plot.margin = unit(c(t=-4, r=15, b=-4, l=0), "lines"))
+  theme(plot.margin = unit(c(t=-4, r=15, b=-4, l=0), "lines"),
+        text = element_text(size = 20))
 
 inset_plot1 <- inset_polar_plot + inset_element(inset_ntw_plot, 0.5, 0.4, 1, 1, align_to = 'full') + 
-  plot_annotation(title = expression("The Puyallup River (WA) generally flows in the"~bold("northwest ")~"direction"),
+  plot_annotation(title = expression("The Puyallup River (WA) generally flows in the"~bold("northwest")~"direction"),
                   subtitle = "from its headwaters near Mt. Rainier toward Puget Sound.",
                   caption = 'The direction of each bar in the polar histogram represents the river orientation and the\nlength of each bar represents the proportion of total river length with that orientation.',
-                  theme = theme(plot.title = element_text(size = 12, hjust = 0, margin=margin(0,0,0.1,0)),
-                                plot.subtitle = element_text(size = 12, hjust = 0),
-                                text = element_text(family = "Source Sans Pro"),
-                                plot.caption = element_text(size = 11, hjust = 0)))
-inset_plot <- inset_plot1 + plot_compass()
+                  theme = theme(plot.title = element_text(size = 18, hjust = 0, margin = margin(0,0,0.1,0)),
+                                plot.subtitle = element_text(size = 18, hjust = 0),
+                                plot.caption = element_text(size = 18, hjust = 0, lineheight = 0.3)))
+inset_plot <- inset_plot1 + plot_compass(text_size = 11)
 
+# Save plots
+ggsave("11_circular_lkoenig/out/azimuth_grid.png", 
+       plot = azimuth_grid,
+       width = 7, height = 6, units = c("in"),
+       dpi = 300)
+
+ggsave("11_circular_lkoenig/out/azimuth_inset_plot.png", 
+       plot = inset_plot,
+       width = 6, height = 4, units = c("in"),
+       dpi = 300)
 
 
 

@@ -86,8 +86,7 @@ plot_azimuth <- function(data, cp = coord_polar(), color = "#2171b5", fill = "#0
           plot.title = element_text(hjust = 0.5),
           axis.title = element_blank(),
           axis.text.y = element_blank(),
-          axis.ticks.y = element_blank(),
-          text = element_text(family = "Source Sans Pro"))
+          axis.ticks.y = element_blank())
   
   return(az_plot)
   
@@ -114,7 +113,7 @@ plot_ntw <- function(data,huc8_name){
 
 #' Function to draw compass
 #' 
-plot_compass <- function(pad_x = 1, pad_y = 0, height = 0.8, width = 0.8, units = "cm"){
+plot_compass <- function(pad_x = 1, pad_y = 0, height = 0.8, width = 0.8, units = "cm", text_size = 8){
   
 compass <- ggspatial::annotation_north_arrow(
   location = "bl", which_north = "true",
@@ -124,7 +123,7 @@ compass <- ggspatial::annotation_north_arrow(
   style = ggspatial::north_arrow_orienteering(
     fill = c("grey70", "white"),
     line_col = "grey20",
-    text_size = 6))
+    text_size = text_size))
 return(compass)
 
 }
