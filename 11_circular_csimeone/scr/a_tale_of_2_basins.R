@@ -15,6 +15,7 @@ cfs_to_mm <- 28320000 * 86400 / (1000000 * 1000000)
 my.palette <- brewer.pal(n=10, name = 'RdYlBu')
 
 # Read in site list for UCRB
+download.file('https://labs.waterdata.usgs.gov/visualizations/data/site_list.RData', 'data_in/site_list_CRB.RData')
 load("data_in/site_list_CRB.RData")
 
 # Pull site information for site_list

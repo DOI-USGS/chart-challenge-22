@@ -10,7 +10,8 @@ library(cowplot)
 library(grid)
 
 # Read in site list
-# # Gages-2 sites with 70 years of data, near complete
+# Gages-2 sites with 70 years of data, near complete
+download.file('https://labs.waterdata.usgs.gov/visualizations/data/site_list.RData', 'data_in/site_list.RData')
 load("data_in/site_list.RData")
 
 pCd <- "00060" #Discharge, cubic feet per second, see readNWISdv help file for more options
@@ -101,11 +102,16 @@ my.palette <- brewer.pal(n=10, name = 'RdYlBu')
 p_1 <- ggplot(data = df_jd, aes(x=jd, y = mean_flow)) + 
   geom_bar(aes(fill = mean_flow), stat="identity", width = 1.3) +
   geom_line() +
-  geom_segment(aes(x = 140, y = 5500000, xend = 165, yend = 6800000), 
+  geom_segment(aes(x = 140, y = 5500000, 
+                   xend = 165, yend = 6800000), 
                arrow = arrow(length = unit(0.5, "cm"))) +
-  geom_point(aes(x = 307, y = 530098), color = 'white', size = 3, shape = 21, fill = NA) +
+  geom_point(aes(x = 307, y = 5500000), 
+             color = 'black', size = 3, shape = 21, fill = NA) +
+  geom_point(aes(x = 129, y = 530098), 
+            color = 'white', size = 3, shape = 21, fill = NA) +
   coord_polar(start = 0, direction = 1) +
-  geom_segment(aes(x = 280, y = 2400000, xend = 305, yend = 540000), 
+  geom_segment(aes(x = 280, y = 2400000, 
+                   xend = 305, yend = 540000), 
                arrow = arrow(length = unit(0.5, "cm"))) +
   ylim(-4000000, 7000000) + 
   xlim(0, 376) +
@@ -163,7 +169,7 @@ rect <- rectGrob(
 
 p_2 <- ggdraw() +
   draw_plot(p_1 , x=-0.11, y = -0.1, width = 1.2, height = 1.2 ) + 
-  draw_grob(rect) +
+  #draw_grob(rect) +
   draw_label("When are U.S. Rivers Wet or Dry?", x = 0.02, y = 0.9, fontface = "bold", size = 20, hjust = 0) +
   draw_text(fig_text, x = 0.02, y = 0.8, size = 12, hjust = 0)
 
