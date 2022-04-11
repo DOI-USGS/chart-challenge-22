@@ -219,3 +219,4 @@ ggdraw() +
   draw_text("Upper Colorado", x = 0.24, y = 0.8, size = 14, fontface = "bold") +
   draw_text("Lower Colorado", x = 0.7, y = 0.8, size = 14, fontface = "bold")
 ggsave("viz/Wettest_Day_of_the_Year_CRB.png", width = 10, height = 8)
+
