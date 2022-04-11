@@ -19,16 +19,18 @@ showtext_auto()
 # hydrography dataset (NHDPlusv2) downloaded locally. The selected HUC8 id's 
 # represent 'whole' watersheds/river networks, but not all HUC8 subsets do (i.e.,
 # they may represent just a portion of a watershed). 
-huc8_tbl <- tibble(huc8_id = c("05090202","18040008","02070001","17110014",
-                               "03120002","10030205","17070204","10200103",
-                               "04110002","15050202","08080101","02040101"),
-                   huc8_name = c("Little Miami","Merced","South Branch Potomac",
-                                 "Puyallup","Upper Ochlockonee","Teton",
-                                 "Lower John Day", "Middle Platte-Prairie",
-                                 "Cuyahoga","Upper San Pedro","Atchafalaya",
-                                 "Upper Delaware"))
+huc8_tbl <- tibble(huc8_id = c("07020001","10030205","08080101",
+                               "11030012","18040010","04110002",
+                               "15050202","17110014","02070001",
+                               "17070102", "02060006","05090202","03120002"),
+                   huc8_name = c("Upper Minnesota", "Teton","Atchafalaya",
+                                 "Little Arkansas","Stanislaus","Cuyahoga",
+                                 "Upper San Pedro","Puyallup","South Branch Potomac",
+                                 "Walla Walla", "Patuxent", "Little Miami","Upper Ochlockonee"))
 
 # Fetch NHDv2 flowlines for each huc8 basin
+# another function (fetch_flowlines_nwis) can also be used to fetch flowlines 
+# upstream of a selected NWIS gage.
 flines <- lapply(huc8_tbl$huc8_id, fetch_flowlines)
 
 # Estimate channel orientation (i.e., azimuth) for each huc8 basin
@@ -47,10 +49,10 @@ flines_azimuth_df <- do.call("rbind", flines_azimuth) %>%
   left_join(huc8_tbl, by = "huc8_id") %>%
   # define order of huc8's
   mutate(huc8_name_ord = factor(huc8_name, 
-                           levels = c("Lower John Day","Middle Platte-Prairie",
-                                      "Teton","Upper Ochlockonee","Upper Delaware",
-                                      "Little Miami","Merced","Puyallup","South Branch Potomac",
-                                      "Atchafalaya","Upper San Pedro","Cuyahoga"))) %>%
+                           levels = c("Upper Minnesota","Teton","Atchafalaya","Upper Ochlockonee",
+                                      "Patuxent","Little Arkansas","Little Miami","Stanislaus",
+                                      "Puyallup","Walla Walla","South Branch Potomac",
+                                      "Upper San Pedro","Cuyahoga"))) %>%
   relocate(geometry, .after = last_col())
 
 # We were getting inconsistent errors with this data pull
