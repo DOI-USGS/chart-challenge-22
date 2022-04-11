@@ -77,26 +77,28 @@ calc_azimuth_circ_mean <- function(segment){
 #' @param title character string indicating chart title
 #' 
 plot_azimuth <- function(data, cp = coord_polar(), color = "#2171b5", fill = "#08519c", 
-                         major_breaks = 45, minor_breaks = 15){
+                         major_breaks = 90, minor_breaks = 45){
 
   az_plot <- ggplot(data, aes(x = azimuth, weight = lengthkm)) +
     # instead of adjusting scale_x_continuous to span -5 to 365,
     # center first bin so that it fits between 0-10 (instead of -5 to 5);
     # the remaining bins will be automatically adjusted.
     geom_histogram(binwidth = 10, center = 5,
-                   fill = fill, color=color,
+                   fill = fill, color="white",
                    size = 0.25) + 
     cp +
     scale_x_continuous(expand = c(0,0),
-                       breaks = seq(0, 360, by = major_breaks),
+                       breaks = seq(0, 360-major_breaks, by = major_breaks),
                        minor_breaks = seq(0, 360, by = minor_breaks),
+                       labels = c('N', 'E','S','W'),
                        limits = c(0,360)) + 
     theme_minimal() + 
     theme(rect = element_blank(),
           plot.title = element_text(hjust = 0.5),
           axis.title = element_blank(),
           axis.text.y = element_blank(),
-          axis.ticks.y = element_blank())
+          axis.ticks.y = element_blank(),
+          panel.grid = element_line(size = 0.4, color = "grey"))
   
   return(az_plot)
   

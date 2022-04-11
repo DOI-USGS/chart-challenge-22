@@ -69,11 +69,12 @@ azimuth_grid <- plot_azimuth(flines_azimuth_df %>%
                              cp, fill = "#105073", color = "#09344E") + 
   facet_wrap(~huc8_name_ord, scales = "free_y", ncol = 4) + 
   theme(text = element_text(size = 20),
-        strip.text.x = element_text(size = 30, face = "bold"),
+        strip.text.x = element_text(size = 42, face = "bold"),
         plot.background = element_blank(),
         panel.background = element_blank(),
         aspect.ratio = 1,
-        axis.text.x = element_text(size = 24)) 
+        panel.grid = element_line(size = 0.2),
+        axis.text.x = element_text(size = 36)) 
 azimuth_grid
 
 # Create "legend" inset plot that explains how to read the polar histograms
@@ -102,11 +103,16 @@ inset_plot
 # Save plots
 ggsave("out/azimuth_grid.png", 
        plot = azimuth_grid,
-       width = 8, height = 8, units = c("in"),
+       width = 12, height = 12, units = c("in"),
        dpi = 300)
 
 ggsave("out/azimuth_inset_plot.png", 
        plot = inset_plot,
+       width = 6, height = 4, units = c("in"),
+       dpi = 300)
+
+ggsave("out/azimuth_inset_map.png", 
+       plot = inset_ntw_plot,
        width = 6, height = 4, units = c("in"),
        dpi = 300)
 
