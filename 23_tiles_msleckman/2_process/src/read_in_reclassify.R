@@ -27,7 +27,7 @@ read_in_reclassify <- function(lc_tif_path, reclassify_legend, value_cols = c('F
   name <- paste0('reclassified_', basename(lc_tif_path))
   
   ## reclassify + save
-  reclassified_raster <- raster::reclassify(raster, reclassify_matrix, filename = file.path(out_folder,name),format="GTiff", overwrite=TRUE)
+  reclassified_raster <- raster::reclassify(raster, reclassify_matrix)
   
   return(paste0(out_folder,name))
   
