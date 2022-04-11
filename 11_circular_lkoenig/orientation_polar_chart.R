@@ -54,6 +54,8 @@ flines_azimuth_df <- do.call("rbind", flines_azimuth) %>%
   relocate(geometry, .after = last_col())
 
 
+flines_azimuth_df <- readRDS('data/flines_azimuth_df.rds')
+
 # Assemble plot
 
 # A couple steps so that coord_polar will allow free scales for facets, 
@@ -62,16 +64,25 @@ cp <- coord_polar()
 cp$is_free <- function() TRUE
 
 # Create grid containing channel orientation plots
-azimuth_grid <- plot_azimuth(flines_azimuth_df,cp, fill = "#105073", color = "#09344E") + 
-  facet_wrap(~huc8_name_ord, scales = "free_y") + 
-  theme(text = element_text(size = 26),
-        strip.text.x = element_text(size = 28))
+azimuth_grid <- plot_azimuth(flines_azimuth_df %>%
+                               filter(huc8_name != 'Puyallup'),
+                             cp, fill = "#105073", color = "#09344E") + 
+  facet_wrap(~huc8_name_ord, scales = "free_y", ncol = 3) + 
+  theme(text = element_text(size = 20),
+        strip.text.x = element_text(size = 28),
+        plot.background = element_blank(),
+        panel.background = element_blank(),
+        aspect.ratio = 1) 
+azimuth_grid
 
 # Create "legend" inset plot that explains how to read the polar histograms
 inset_ntw_plot <- plot_ntw(filter(flines_azimuth_df, huc8_name == "Puyallup"))
 inset_polar_plot <- plot_azimuth(filter(flines_azimuth_df,huc8_name == "Puyallup")) + 
   theme(plot.margin = unit(c(t=-4, r=15, b=-4, l=0), "lines"),
-        text = element_text(size = 20))
+        text = element_text(size = 20),
+        plot.background = element_blank(),
+        panel.background = element_blank(),
+        aspect.ratio = 1)
 
 inset_plot1 <- inset_polar_plot + inset_element(inset_ntw_plot, 0.5, 0.4, 1, 1, align_to = 'full') + 
   plot_annotation(title = expression("The Puyallup River (WA) generally flows in the"~bold("northwest")~"direction"),
@@ -79,16 +90,20 @@ inset_plot1 <- inset_polar_plot + inset_element(inset_ntw_plot, 0.5, 0.4, 1, 1, 
                   caption = 'The direction of each bar in the polar histogram represents the river orientation and the\nlength of each bar represents the proportion of total river length with that orientation.',
                   theme = theme(plot.title = element_text(size = 18, hjust = 0, margin = margin(0,0,0.1,0)),
                                 plot.subtitle = element_text(size = 18, hjust = 0),
-                                plot.caption = element_text(size = 18, hjust = 0, lineheight = 0.3)))
+                                plot.caption = element_text(size = 18, hjust = 0, lineheight = 0.3),
+                                plot.background = element_blank(),
+                                panel.background = element_blank(),
+                                aspect.ratio = 1))
 inset_plot <- inset_plot1 + plot_compass(text_size = 11)
+inset_plot
 
 # Save plots
-ggsave("11_circular_lkoenig/out/azimuth_grid.png", 
+ggsave("out/azimuth_grid.png", 
        plot = azimuth_grid,
-       width = 7, height = 6, units = c("in"),
+       width = 7, height = 9, units = c("in"),
        dpi = 300)
 
-ggsave("11_circular_lkoenig/out/azimuth_inset_plot.png", 
+ggsave("out/azimuth_inset_plot.png", 
        plot = inset_plot,
        width = 6, height = 4, units = c("in"),
        dpi = 300)
