@@ -26,7 +26,8 @@
 08_mountains_khopkins/in
 09_statistics_soliver/in_dat/*.rds
 09_statistics_soliver/in_dat/gpw-v4-population-count-rev11_2020_30_sec_tif/
-11_circular_csimeone/data_in/NWIS_data
+11_circular_csimeone/data_in/*.rds
+11_circular_csimeone/data_in/NWIS_data/*.csv
 11_circular_csimeone/README.html
 
 # Spatial
