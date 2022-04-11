@@ -24,7 +24,7 @@ states_buff <- states %>% st_buffer(400000) # to extend map outside of USA on ca
 
 # crop raster data to states
 pop_usa <- crop(world, extent(states_buff))
-pop_lower <- crop(world, states50)
+pop_lower <- crop(world, states)
 
 # download gage information from S3 bucket "national-flow-observations"
 # that is where products from this pipeline are pushed: https://github.com/USGS-R/national-flow-observations
@@ -109,14 +109,12 @@ ggsave('out/distnace_dist.png', width = 16, height = 6)
 
 # there are many <1 values, which create negative orders of magnitude
 # on the log scale. Turn these all into zeros
-usa_dat <- as.data.frame(pop_lower, xy = TRUE)
-usa_dat$pop <- ifelse(usa_dat$gpw_v4_population_count_rev11_2020_30_sec < 1 & usa_dat$gpw_v4_population_count_rev11_2020_30_sec > 0, 0.1, usa_dat$gpw_v4_population_count_rev11_2020_30_sec)
-usa_dat$pop_log10 <- log10(usa_dat$pop)
+usa_dat <- as.data.frame(pop_usa, xy = TRUE)
 state_dat <- as.data.frame(states, xy = TRUE)
 
 p <- ggplot() +
   geom_raster(data = usa_dat, aes(x = x, y = y, 
-                                  fill = pop_log10)) +
+                                  fill = gpw_v4_population_count_rev11_2020_30_sec)) +
   geom_sf(data = states, fill = NA, color = 'gray20') +
   geom_sf(data = gages_2020_low, 
           #color = '#31ba1c', 
@@ -124,10 +122,16 @@ p <- ggplot() +
           size = 0.1, 
           shape = 21,
           alpha = 0.5) +
- scale_fill_viridis_c(na.value = 'black', option = 'B', breaks = c(0, 1, 2, 3, 4, 5),
+ scale_fill_viridis_c(na.value = 'black',
+                      option = 'B', 
+                      #breaks = c(0, 1, 2, 3, 4, 5),
+                      trans = "log1p",
+                      breaks = scales::breaks_log(),
+                      #labels = scales::label_number_si(),
                       # leave a little room for the NAs and Inf (which are 0s)
                       # to be darker than the -1 values
-                      labels = c(1, 10, 100, '1k', '10k', '100k'), begin = 0.05) +
+                     # labels = c(1, 10, 100, '1k', '10k', '100k'), 
+                     begin = 0.05) +
   labs(fill = 'Population') +
   theme(plot.background = element_rect(fill = "black", color = "black"),
         panel.background = element_rect(fill = NA, color = NA),
