@@ -209,8 +209,7 @@ p_2 <- ggplot(data = df_lcrb, aes(x=jd, y = mean_mm_flow)) +
 p_2
 
 fig_text <- "Average flow rate normalized by basin area (mm per day) for USGS NWIS gages from 1981 - 2020 in the upper and 
-lower Colorado River Basins. Flow is in mm per day across the entire basin area contributing 
-to each gage."
+lower Colorado River Basins. Flow is in mm per day across the entire basin area contributing to each gage."
 
 ggdraw() +
   draw_plot(p_1 + theme(legend.position = "none"), x= -.45, y = 0, width = 1.4, height = 1 ) +
