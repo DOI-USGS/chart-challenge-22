@@ -1,46 +1,37 @@
-produce_lc_img <- function(raster_list, legend_df, out_folder = "3_visualize/out/"){
+produce_lc_img <- function(raster_in, raster_frame, legend_df, out_folder = "3_visualize/out/"){
+  
+  ## transform into categorical raster
+  rat_lc <- ratify(raster_in[[1]])
+  
+  # Produce levelplot
+  ## define specs
+  raster_name <- names(rat_lc)
+  year <- substr(raster_name, nchar(raster_name)-3, nchar(raster_name))
+  main_title <- paste0("drb land cover ",year)
+  
+  ## Plot
+  frame_out <- paste0(out_folder, "Plot_", raster_name,'.png')
+  png(frame_out)
+  
+  a <- levelplot(rat_lc, att='ID', 
+               col.regions=legend_df$color,
+               par.settings = list(axis.line = list(col = "transparent"),
+                                   strip.background = list(col = 'transparent'),
+                                   strip.border = list(col = 'transparent')),
+               scales = list(col = "transparent"),
+               main= main_title,
+               colorkey=F,
+               key = list(rectangles=list(col = legend_df$color), 
+                          text=list(lab=legend_df$Reclassify_description),
+                          space='left',
+                          columns=1,
+                          size=2,
+                          cex=.6))
+  
+  print(a)
+  dev.off()
+  return(frame_out)
 
-  #stack to be able to produce level_plot 
-  raster_list_stacked <- raster::stack(raster_list)
-  
-    for(i in c(1:nlayers(raster_list_stacked))){
-        
-        ## transform into categorical raster
-        rat_lc <- ratify(raster_list_stacked[[i]])
-        
-        # Produce levelplot
-        ## define specs
-        raster_name <- names(raster_list_stacked[[i]])
-        year <- substr(raster_name, nchar(raster_name)-3, nchar(raster_name))
-        main_title <- paste0("drb land cover ",year)
-        
-        ## Plot
-        png(paste0(out_folder, "Plot_", raster_name,'.png'))
-        
-        a <- levelplot(rat_lc, att='ID', 
-                     col.regions=legend_df$color,
-                     par.settings = list(axis.line = list(col = "transparent"),
-                                         strip.background = list(col = 'transparent'),
-                                         strip.border = list(col = 'transparent')),
-                     scales = list(col = "transparent"),
-                     main= main_title,
-                     colorkey=F,
-                     key = list(rectangles=list(col = legend_df$color), 
-                                text=list(lab=legend_df$Reclassify_description),
-                                space='left',
-                                columns=1,
-                                size=2,
-                                cex=.6))
-        
-        print(a)
-        dev.off()
-    }
-  
-  # list frames
-  list_pngs <- list.files(out_folder, pattern = 'Plot_reclassified', full.names = TRUE)
-                          
-  return(list_pngs)
-  
 }
 
 ## from https://github.com/USGS-VIZLAB/lake-temp-timeseries/blob/77d06c4e2f21b36b7e8619c84108f0a842d03e30/src/plot_utils.R#L101-L109
