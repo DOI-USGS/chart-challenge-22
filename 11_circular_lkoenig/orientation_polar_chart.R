@@ -64,20 +64,22 @@ cp <- coord_polar()
 cp$is_free <- function() TRUE
 
 # Create grid containing channel orientation plots
-azimuth_grid <- plot_azimuth(flines_azimuth_df %>%
+azimuth_grid <- plot_azimuth(flines_azimuth_df %>% 
                                filter(huc8_name != 'Puyallup'),
                              cp, fill = "#105073", color = "#09344E") + 
-  facet_wrap(~huc8_name_ord, scales = "free_y", ncol = 3) + 
+  facet_wrap(~huc8_name_ord, scales = "free_y", ncol = 4) + 
   theme(text = element_text(size = 20),
-        strip.text.x = element_text(size = 28),
+        strip.text.x = element_text(size = 30, face = "bold"),
         plot.background = element_blank(),
         panel.background = element_blank(),
-        aspect.ratio = 1) 
+        aspect.ratio = 1,
+        axis.text.x = element_text(size = 24)) 
 azimuth_grid
 
 # Create "legend" inset plot that explains how to read the polar histograms
 inset_ntw_plot <- plot_ntw(filter(flines_azimuth_df, huc8_name == "Puyallup"))
-inset_polar_plot <- plot_azimuth(filter(flines_azimuth_df,huc8_name == "Puyallup")) + 
+inset_polar_plot <- plot_azimuth(filter(flines_azimuth_df,huc8_name == "Puyallup"),
+                                 fill = "#105073", color = "#09344E") + 
   theme(plot.margin = unit(c(t=-4, r=15, b=-4, l=0), "lines"),
         text = element_text(size = 20),
         plot.background = element_blank(),
@@ -100,7 +102,7 @@ inset_plot
 # Save plots
 ggsave("out/azimuth_grid.png", 
        plot = azimuth_grid,
-       width = 7, height = 9, units = c("in"),
+       width = 8, height = 8, units = c("in"),
        dpi = 300)
 
 ggsave("out/azimuth_inset_plot.png", 
