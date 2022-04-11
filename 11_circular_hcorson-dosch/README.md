@@ -2,7 +2,6 @@
 
 **Tweet 1:**
 
-* Image:
 ![11_Circular_LakeSDF](https://user-images.githubusercontent.com/54007288/162848294-c22f0515-09c2-497b-81dd-c31b8445c785.gif)
 
 * Text:
@@ -14,7 +13,7 @@
 
 **Tweet 2:**
 
-* Image: ![11_Circular_LakeSDF](https://user-images.githubusercontent.com/54007288/162848314-270f425d-631f-4b5e-b160-abe12a0dee03.png)
+![11_Circular_LakeSDF](https://user-images.githubusercontent.com/54007288/162848314-270f425d-631f-4b5e-b160-abe12a0dee03.png)
 
 * Text:
   * The more complex the lake shape, the larger the shoreline development factor is. This reflects how the lake formed as well as the amount of nearshore habitat. 
