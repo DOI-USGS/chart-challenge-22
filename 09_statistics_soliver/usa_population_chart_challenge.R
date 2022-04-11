@@ -1,10 +1,16 @@
+
+# Relating gage locations to population density ---------------------------
+
 library(raster)
 library(sf)
 library(rgdal)
 library(tidyverse)
 library(spData)
+library(ggbeeswarm)
 
-# dowload global gridded population data from: https://sedac.ciesin.columbia.edu/data/set/gpw-v4-population-count-rev11/data-download
+# Get data ----------------------------------------------------------------
+
+# Download global gridded population data from: https://sedac.ciesin.columbia.edu/data/set/gpw-v4-population-count-rev11/data-download
 # need to lcreate account and log in, and I selected 2020, tif, 30 second resolution
 # unzip folder into "in_dat"
 in_file <- 'in_dat/gpw-v4-population-count-rev11_2020_30_sec_tif/gpw_v4_population_count_rev11_2020_30_sec.tif'
@@ -12,12 +18,13 @@ GDALinfo(in_file)
 world <- raster(in_file) 
 
 # create state file
-states50 <- bind_rows(spData::us_states, spData::alaska, spData::hawaii)
-states <- spData::us_states
+states50 <- bind_rows(spData::us_states, spData::alaska, spData::hawaii) 
+states <- spData::us_states 
+states_buff <- states %>% st_buffer(400000) # to extend map outside of USA on canvas
 
 # crop raster data to states
-pop_usa <- crop(world, extent(states50))
-pop_lower <- crop(world, extent(states))
+pop_usa <- crop(world, extent(states_buff))
+pop_lower <- crop(world, states50)
 
 # download gage information from S3 bucket "national-flow-observations"
 # that is where products from this pipeline are pushed: https://github.com/USGS-R/national-flow-observations
@@ -47,34 +54,58 @@ gages_2020_low <- left_join(gages_2020, sites, by = c('site' = 'site_no')) %>%
   filter(dec_lat_va < 50 & dec_lat_va > 24.5 & dec_long_va < -66 & dec_long_va > -125) %>%
   st_as_sf(coords = c('dec_long_va', 'dec_lat_va'), crs = 4326)
 
+# Proximity to gages ------------------------------------------------------
+
 # how many people can walk/bike/drive to a gage in ~15 minutes?
 # estimated this to be roughly <2km for walking, <6km for biking, <15km for driving
 
 # one concern is double counting population for gages near eachother
 # remove grid cells that are duplicated in the return from different gages
+get_pop_by_dist <- function(gage_dist){
+  buffer_dist <- gage_dist*1000 # convert km to m
+  gages_2020_all$pop <- raster::extract(pop_usa, gages_2020_all, buffer = buffer_dist, cellnumbers = TRUE)
+  walkcells <- as.data.frame(do.call(rbind, gages_2020_all$pop)) %>%
+    distinct()
+  sum(walkcells$value, na.rm = TRUE)
+}
 
-# walk - 1km buffer which will include people 0-2km away (grid is 1kmx1km)
-# 6.6 million
-gages_2020_all$walk_population_1km <- raster::extract(pop_usa, gages_2020_all, buffer = 1000, cellnumbers = TRUE)
-walkcells <- as.data.frame(do.call(rbind, gages_2020_all$walk_population_1km)) %>%
-  distinct()
-sum(walkcells$value, na.rm = TRUE)
+# find population within 1 km bands of gages 
+dist_gage <- seq(1000, 100000, by= 1000)
+dist_gage_pop <- lapply(dist_gage, function(x)get_pop(x)) # this takes a while to run >20 min
+gage_dist <- data.frame(dist = do.call(rbind, dist_gage_pop), grid = dist_gage)
+gage_dist %>%str
 
-# how many people can bike to a gage? 104.1 million
-# 5km buffer which is anywhere from 0 to 6km distance
-gages_2020_all$bike_population_5km <- raster::extract(pop_usa, gages_2020_all, buffer = 5000, cellnumbers = TRUE)
-bikecells <- as.data.frame(do.call(rbind, gages_2020_all$bike_population_5km)) %>%
-  distinct()
+gage_dist %>%
+  ggplot(aes(x = grid, y = dist/1000)) +
+  geom_path(size = 1) +
+  theme_classic(base_size = 16) +
+  scale_y_continuous(
+    breaks = scales::breaks_pretty(),
+    labels = scales::label_number_si(),
+    expand = c(0,0)
+  ) +
+  scale_x_continuous(
+    breaks = scales::breaks_pretty(),
+    labels = scales::label_number(scale = 1/1000, suffix = "km"),
+    expand = c(0,0)
+  ) +
+  labs(x = "Distance from gage",
+       y = "Total population") +
+  geom_point(data = gage_dist %>%
+               filter(grid %in% c(2000, 6000, 20000)),
+             color = "black",
+             size = 5,
+             stroke = 1.5,
+             shape = 21, 
+             fill = "cyan")+
+  theme(
+    axis.title = element_text(hjust = 0, vjust = -1)
+  )
 
-sum(bikecells$value, na.rm = TRUE)
+ggsave('out/distnace_dist.png', width = 16, height = 6)
 
-# how many people can drive to a gage in 15 minutes? 0 to 21km - 302.7 million
-gages_2020_all$drive_population_20km <- raster::extract(pop_usa, gages_2020_all, buffer = 20000, cellnumbers = TRUE)
-drivecells <- as.data.frame(do.call(rbind, gages_2020_all$drive_population_20km)) %>%
-  distinct()
 
-sum(drivecells$value, na.rm = TRUE)
-
+# Plot population and gage locations --------------------------------------
 
 # there are many <1 values, which create negative orders of magnitude
 # on the log scale. Turn these all into zeros
@@ -87,21 +118,85 @@ p <- ggplot() +
   geom_raster(data = usa_dat, aes(x = x, y = y, 
                                   fill = pop_log10)) +
   geom_sf(data = states, fill = NA, color = 'gray20') +
-  geom_sf(data = gages_2020_low, color = '#31ba1c', size = 0.1, alpha = 0.5) +
-  scale_fill_viridis_c(na.value = 'black', option = 'B', breaks = c(0, 1, 2, 3, 4, 5),
-                       # leave a little room for the NAs and Inf (which are 0s)
-                       # to be darker than the -1 values
-                       labels = c(1, 10, 100, '1k', '10k', '100k'), begin = 0.05) +
+  geom_sf(data = gages_2020_low, 
+          #color = '#31ba1c', 
+          color = "cyan",
+          size = 0.1, 
+          shape = 21,
+          alpha = 0.5) +
+ scale_fill_viridis_c(na.value = 'black', option = 'B', breaks = c(0, 1, 2, 3, 4, 5),
+                      # leave a little room for the NAs and Inf (which are 0s)
+                      # to be darker than the -1 values
+                      labels = c(1, 10, 100, '1k', '10k', '100k'), begin = 0.05) +
   labs(fill = 'Population') +
-  theme(plot.background = element_rect(fill = NA, color = NA),
+  theme(plot.background = element_rect(fill = "black", color = "black"),
         panel.background = element_rect(fill = NA, color = NA),
         axis.title = element_blank(), 
         axis.text = element_blank(), 
         axis.ticks = element_blank(), 
         panel.grid = element_blank(),
-        legend.background = element_blank(),
-        legend.text = element_text(color = 'gray68'))
+        legend.background = element_blank()) +
+  guides(fill = guide_colorbar(
+    direction = "horizontal",
+    title = "Population (per km2)",
+    barwidth = 15, 
+    title.position = "top",
+    title.theme = element_text(color = "white"),
+    label.theme = element_text(color = "white")
+    
+  ))
+p
 
-ggsave('out/usa_population_sites.png', p, height = 6, width = 11)
+ggsave('out/usa_population_sites.png', p, height = 12, width = 20)
+
+
+# Plot population within buffer of gages by dist --------------------------
+
+# distribution of population within radius of all gages
+
+
+
+
+# Find pop for each gage at walk, bike, drive distances -------------------
+
+# given 1 km distances, how many people are within band for each gage?
+ppl_by_dist <- function(gage_dist){
+  
+  dist_km <- 1000*gage_dist
+  gages_2020_all$pop_dist <- raster::extract(pop_usa, gages_2020_all, buffer = dist_km, cellnumbers = TRUE)
+  
+  walk <- gages_2020_all %>%
+    select(site, pop_dist)%>%
+    unnest_longer(pop_dist, "pop") 
+  
+  site_walk <- walk %>% 
+    select(site) %>%
+    mutate(cell = walk$pop[,1], pop = walk$pop[,2]) %>%
+    group_by(site) %>%
+    summarize(pop_walk = sum(pop)) %>%
+    mutate(dist_km = dist_km)
+  
+  return(site_walk)
+}
+
+km1 <- ppl_by_dist(1)
+
+# do for range of distances
+
+# Plot beeswarms ----------------------------------------------------------
+
+km1 %>%
+  ggplot(aes(dist_km, pop_walk)) +
+  geom_beeswarm(side = 1L) +
+  #geom_quasirandom()+
+  #scale_y_continuous(trans = "log10")+
+  coord_flip()+
+  theme_classic()+
+  theme(
+    axis.line.y = element_blank(),
+    axis.title.y = element_blank(),
+    axis.text.y = element_blank(),
+    axis.ticks.y = element_blank()
+  )
 
 
