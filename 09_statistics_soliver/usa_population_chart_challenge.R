@@ -6,10 +6,6 @@ library(sf)
 library(rgdal)
 library(tidyverse)
 library(spData)
-#devtools::install_github("hrbrmstr/ggalt")
-library(ggalt)
-library(ggbeeswarm)
-
 # Get data ----------------------------------------------------------------
 
 # Download global gridded population data from: https://sedac.ciesin.columbia.edu/data/set/gpw-v4-population-count-rev11/data-download
@@ -22,7 +18,7 @@ world <- raster(in_file)
 # create state file
 states50 <- bind_rows(spData::us_states, spData::alaska, spData::hawaii) 
 states <- spData::us_states 
-states_buff <- states %>% st_buffer(400000) # to extend map outside of USA on canvas
+states_buff <- states %>% st_buffer(1000000) # to extend map outside of USA on canvas
 
 # crop raster data to states
 pop_usa <- crop(world, extent(states_buff))
@@ -75,7 +71,6 @@ get_pop_by_dist <- function(gage_dist){
 dist_gage <- seq(1000, 100000, by= 1000)
 dist_gage_pop <- lapply(dist_gage, function(x)get_pop(x)) # this takes a while to run >20 min
 gage_dist <- data.frame(dist = do.call(rbind, dist_gage_pop), grid = dist_gage)
-gage_dist %>%str
 
 gage_dist %>%
   ggplot(aes(x = grid, y = dist/1000)) +
@@ -88,13 +83,13 @@ gage_dist %>%
              size =1 ,
              color = "white") +
   geom_segment(data = gage_dist %>%
-                 filter(grid %in% c(2000, 6000, 20000)),
+                 filter(grid %in% c(1000,2000,3000, 6000, 20000)),
                aes(x = grid, xend = grid,
                    y = 0, yend = dist/1000),
                linetype = "dotted",
                size = 1, 
                color = "white") +
-  theme_classic(base_size = 24) +
+  theme_classic(base_size = 40) +
   scale_y_continuous(
     breaks = scales::breaks_pretty(),
     labels = scales::label_number_si(),
@@ -115,13 +110,15 @@ gage_dist %>%
              shape = 21, 
              fill = "black")+
   theme(
-    axis.title = element_text(hjust = 0, vjust = -1, color = "white"),
+    #axis.title = element_text(hjust = 0, vjust = -1, color = "white"),
+    axis.title = element_blank(),
     axis.text = element_text(hjust = 0, color = "white"),
     axis.ticks = element_blank(),
     axis.line = element_line(color = "white"),
     plot.background = element_rect(fill = NA, color = NA),
     panel.background = element_rect(fill = NA, color = NA)
-  )
+  )+
+  coord_cartesian(clip = "off")
 
 ggsave('out/distance_dist.png', width = 16, height = 6)
 
@@ -146,8 +143,13 @@ p <- ggplot() +
           alpha = 0.5) +
  scale_fill_viridis_c(na.value = 'black',
                       option = 'B', 
+                      breaks = c(1, 100, 1000, 10000, 100000),
                       trans = "log1p",
-                      breaks = scales::breaks_log(),
+                      #breaks = scales::breaks_pretty(),
+                      #labels = scales::label_number_si(),
+                      # leave a little room for the NAs and Inf (which are 0s)
+                      # to be darker than the -1 values
+                      labels = c(1, 100, '1k', '10k', '100k'), 
                      begin = 0.05) +
   labs(fill = 'Population') +
   theme(plot.background = element_rect(fill = "black", color = "black"),
@@ -165,7 +167,7 @@ p <- ggplot() +
     title.theme = element_text(color = "white"),
     label.theme = element_text(color = "white")
     
-  ))
+  )) 
 p
 
 ggsave('out/usa_population_sites.png', p, height = 12, width = 20)
@@ -173,31 +175,24 @@ ggsave('out/usa_population_sites.png', p, height = 12, width = 20)
 
 # Plot population within buffer of gages by dist --------------------------
 
-# distribution of population within radius of all gages
-
-
-
-
-# Find pop for each gage at walk, bike, drive distances -------------------
-
 # given 1 km distances, how many people are within band for each gage?
 ppl_by_dist <- function(gage_dist){
   
   dist_km <- 1000*gage_dist
   gages_2020_all$pop_dist <- raster::extract(pop_usa, gages_2020_all, buffer = dist_km, cellnumbers = TRUE)
   
-  walk <- gages_2020_all %>%
+  dist_df <- gages_2020_all %>%
     select(site, pop_dist)%>%
     unnest_longer(pop_dist, "pop") 
   
-  site_walk <- walk %>% 
+  site_dist <- dist_df %>% 
     select(site) %>%
-    mutate(cell = walk$pop[,1], pop = walk$pop[,2]) %>%
+    mutate(cell = dist_dfk$pop[,1], pop = dist_df$pop[,2]) %>%
     group_by(site) %>%
     summarize(pop_walk = sum(pop)) %>%
     mutate(dist_km = dist_km)
   
-  return(site_walk)
+  return(site_dist)
 }
 
 km1 <- ppl_by_dist(1)
