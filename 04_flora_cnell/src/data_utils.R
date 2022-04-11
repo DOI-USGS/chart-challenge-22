@@ -33,6 +33,7 @@ munge_npn_data <- function(current_timing, proj){
   # convert to df
   anom_df <- anom_stack %>%  
     as.data.frame(xy = TRUE) %>% 
+    # by default cell values are assigned to 3rd col, after x & y coords
     rename(timing = 3) %>%
     mutate(timing_day = round(timing, 0))
 }
