@@ -39,6 +39,38 @@ fetch_flowlines <- function(huc8 ,include_diversions = FALSE){
 }
 
 
+#' Function to download NHD v2 flowlines upstream of a given NWIS gage
+#' @param gage_id is a character string indicating the USGS gage identifier
+#' @param distance_km integer indicating the maximum upstream distance for
+#' network navigation; default is 8000 km
+#' @param attr character string indicating NHDPlusV2 value-added attributes
+#' to append to the returned data frame
+#' @example fetch_flowlines_nwis(gage_id = ""05301000")
+#' @value returns an sf data frame
+#' 
+fetch_flowlines_nwis <- function(gage_id, distance_km = 8000, 
+                                           attr = c("comid","lengthkm","streamorde")){
+  # Format gage id
+  gage <- list(featureSource = "nwissite",
+               featureID = paste0("USGS-",gage_id))
+  
+  # Print message
+  message(sprintf("Fetching NHDv2 flowlines upstream of gage ID %s",gage_id))
+  
+  # Navigate NLDI to get upstream tributaries (within distance_km)
+  ntw <- nhdplusTools::navigate_nldi(gage, mode = "UT", distance_km = distance_km)
+  
+  # download nhdplus subset to get vaa 
+  ntw_w_vaa <- nhdplusTools::get_nhdplus(comid = ntw$UT_flowlines$nhdplus_comid, realization = "flowline") %>%
+    select(any_of(attr)) %>%
+    mutate(downstream_gage_id = gage_id) %>%
+    relocate(downstream_gage_id,.before = comid)
+  
+  return(ntw_w_vaa)
+  
+}
+
+
 #' Function to calculate the circular mean of azimuths calculated
 #' between successive nodes that comprise an NHD reach.
 #' @param segment character string indicating the reach for which
