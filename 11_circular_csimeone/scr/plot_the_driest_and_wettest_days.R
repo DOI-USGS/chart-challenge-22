@@ -102,12 +102,12 @@ my.palette <- brewer.pal(n=10, name = 'RdYlBu')
 p_1 <- ggplot(data = df_jd, aes(x=jd, y = mean_flow)) + 
   geom_bar(aes(fill = mean_flow), stat="identity", width = 1.3) +
   geom_line() +
-  geom_segment(aes(x = 140, y = 5500000, 
-                   xend = 165, yend = 6800000), 
+  geom_segment(aes(x = 150, y = 6000000, 
+                   xend = 163, yend = 6800000), 
                arrow = arrow(length = unit(0.5, "cm"))) +
-  geom_point(aes(x = 307, y = 5500000), 
+  geom_point(aes(x = 165, y = 6800000), 
              color = 'black', size = 3, shape = 21, fill = NA) +
-  geom_point(aes(x = 129, y = 530098), 
+  geom_point(aes(x = 307, y = 530098), 
             color = 'white', size = 3, shape = 21, fill = NA) +
   coord_polar(start = 0, direction = 1) +
   geom_segment(aes(x = 280, y = 2400000, 
@@ -140,7 +140,7 @@ p_1 <- ggplot(data = df_jd, aes(x=jd, y = mean_flow)) +
            label="August 27: Driest Day\nof the Year, on average", color="black") +
   annotate(geom="text", x=275, y=3600000, 
            label="Nov 3, 1952:\n Driest Day \n 1951-2020", color="black") +
-  annotate(geom="text", x=129, y=5700000, 
+  annotate(geom="text", x=139, y=5700000, 
            label="June 24, 1972:\nWettest Day 1951-2020\nat 10,975,834 cfs \nit's off the chart!", color="black") +
   geom_segment(data=df_jd, 
                aes(x = month_start + 2, y = -100000, xend = month_end - 2, yend = -100000), 
