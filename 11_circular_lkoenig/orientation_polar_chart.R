@@ -53,8 +53,10 @@ flines_azimuth_df <- do.call("rbind", flines_azimuth) %>%
                                       "Atchafalaya","Upper San Pedro","Cuyahoga"))) %>%
   relocate(geometry, .after = last_col())
 
-
-flines_azimuth_df <- readRDS('data/flines_azimuth_df.rds')
+# We were getting inconsistent errors with this data pull
+# Data can also be downloaded from s3 with the following lines
+# download.file('https://labs.waterdata.usgs.gov/visualizations/data/flines_azimuth_df.rds', 'data/flines_azimuth_df.rds')
+#flines_azimuth_df <- readRDS('data/flines_azimuth_df.rds')
 
 # Assemble plot
 
