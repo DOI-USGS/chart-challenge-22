@@ -6,12 +6,14 @@ library(sf)
 library(rgdal)
 library(tidyverse)
 library(spData)
+#devtools::install_github("hrbrmstr/ggalt")
+library(ggalt)
 library(ggbeeswarm)
 
 # Get data ----------------------------------------------------------------
 
 # Download global gridded population data from: https://sedac.ciesin.columbia.edu/data/set/gpw-v4-population-count-rev11/data-download
-# need to lcreate account and log in, and I selected 2020, tif, 30 second resolution
+# need to create account and log in, and I selected 2020, tif, 30 second resolution
 # unzip folder into "in_dat"
 in_file <- 'in_dat/gpw-v4-population-count-rev11_2020_30_sec_tif/gpw_v4_population_count_rev11_2020_30_sec.tif'
 GDALinfo(in_file)
@@ -77,8 +79,22 @@ gage_dist %>%str
 
 gage_dist %>%
   ggplot(aes(x = grid, y = dist/1000)) +
-  geom_path(size = 1) +
-  theme_classic(base_size = 16) +
+  geom_path(size = 1.5, color = "white") +
+  geom_segment(data = gage_dist %>%
+                    filter(grid %in% c(2000, 6000, 20000)),
+             aes(y = dist/1000, yend = dist/1000,
+                 x = 0, xend = grid),
+             linetype = "dotted",
+             size =1 ,
+             color = "white") +
+  geom_segment(data = gage_dist %>%
+                 filter(grid %in% c(2000, 6000, 20000)),
+               aes(x = grid, xend = grid,
+                   y = 0, yend = dist/1000),
+               linetype = "dotted",
+               size = 1, 
+               color = "white") +
+  theme_classic(base_size = 24) +
   scale_y_continuous(
     breaks = scales::breaks_pretty(),
     labels = scales::label_number_si(),
@@ -93,16 +109,21 @@ gage_dist %>%
        y = "Total population") +
   geom_point(data = gage_dist %>%
                filter(grid %in% c(2000, 6000, 20000)),
-             color = "black",
+             color = "white",
              size = 5,
              stroke = 1.5,
              shape = 21, 
-             fill = "cyan")+
+             fill = "black")+
   theme(
-    axis.title = element_text(hjust = 0, vjust = -1)
+    axis.title = element_text(hjust = 0, vjust = -1, color = "white"),
+    axis.text = element_text(hjust = 0, color = "white"),
+    axis.ticks = element_blank(),
+    axis.line = element_line(color = "white"),
+    plot.background = element_rect(fill = NA, color = NA),
+    panel.background = element_rect(fill = NA, color = NA)
   )
 
-ggsave('out/distnace_dist.png', width = 16, height = 6)
+ggsave('out/distance_dist.png', width = 16, height = 6)
 
 
 # Plot population and gage locations --------------------------------------
@@ -113,8 +134,9 @@ usa_dat <- as.data.frame(pop_usa, xy = TRUE)
 state_dat <- as.data.frame(states, xy = TRUE)
 
 p <- ggplot() +
-  geom_raster(data = usa_dat, aes(x = x, y = y, 
-                                  fill = gpw_v4_population_count_rev11_2020_30_sec)) +
+  geom_raster(data = usa_dat, 
+              aes(x = x, y = y,
+                  fill = gpw_v4_population_count_rev11_2020_30_sec)) +
   geom_sf(data = states, fill = NA, color = 'gray20') +
   geom_sf(data = gages_2020_low, 
           #color = '#31ba1c', 
@@ -124,13 +146,8 @@ p <- ggplot() +
           alpha = 0.5) +
  scale_fill_viridis_c(na.value = 'black',
                       option = 'B', 
-                      #breaks = c(0, 1, 2, 3, 4, 5),
                       trans = "log1p",
                       breaks = scales::breaks_log(),
-                      #labels = scales::label_number_si(),
-                      # leave a little room for the NAs and Inf (which are 0s)
-                      # to be darker than the -1 values
-                     # labels = c(1, 10, 100, '1k', '10k', '100k'), 
                      begin = 0.05) +
   labs(fill = 'Population') +
   theme(plot.background = element_rect(fill = "black", color = "black"),
