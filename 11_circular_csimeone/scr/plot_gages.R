@@ -11,11 +11,11 @@ library(ggmap)
 library(tigris)
 
 # Load Site List
-load("11_circular_csimeone/data_in/site_list.RData")
+load("data_in/site_list.RData")
 
 # Read in metadata for plotting. 
 # gages 2 metadata can be found here: https://www.sciencebase.gov/catalog/item/59692a64e4b0d1f9f05fbd39
-loc_df <- read.csv("11_circular_csimeone/data_in/NWIS_data/gagesII_metadata.csv",header=TRUE,stringsAsFactors = FALSE) %>%
+loc_df <- read.csv("data_in/NWIS_data/gagesII_metadata.csv",header=TRUE,stringsAsFactors = FALSE) %>%
   mutate(StaID = str_pad(STAID, width=8, side="left", pad = "0")) %>%
   as_tibble() %>%
   rename(site = StaID, latitude = LAT_GAGE, longitude = LNG_GAGE) %>%
@@ -35,11 +35,11 @@ us_geo <- tigris::states(class = "sf", cb = TRUE) %>%
 
 # Basin shapefiles can be downloaded here. 
 # https://apps.nationalmap.gov/downloader/#/
-sh_14 <- sf::st_read("11_circular_csimeone/data_in/Shapefiles/HUC_14/WBDHU2.shp")
+sh_14 <- sf::st_read("data_in/Shapefiles/HUC_14/WBDHU2.shp")
 sh_f_14 <- fortify(sh_14)
 sh_f_5070_14 <- st_transform(sh_f_14, 5070)[1]
 
-sh_15 <- sf::st_read("11_circular_csimeone/data_in/Shapefiles/HUC_15/WBDHU2.shp")
+sh_15 <- sf::st_read("data_in/Shapefiles/HUC_15/WBDHU2.shp")
 sh_f_15 <- fortify(sh_15)
 sh_f_5070_15 <- st_transform(sh_f_15, 5070)[1]
 
@@ -64,4 +64,4 @@ p_2 <- ggdraw() +
 
 p_2
 
-ggsave(plot = p_2, "11_circular_csimeone/viz/Map_of_Gages.png", width = 8, height = 8)
+ggsave(plot = p_2, "viz/Map_of_Gages.png", width = 8, height = 8)
