@@ -2,7 +2,8 @@
 
 **Tweet 1:**
 
-* Image:![11_Circular_LakeSDF](https://user-images.githubusercontent.com/54007288/162848294-c22f0515-09c2-497b-81dd-c31b8445c785.gif)
+* Image:
+![11_Circular_LakeSDF](https://user-images.githubusercontent.com/54007288/162848294-c22f0515-09c2-497b-81dd-c31b8445c785.gif)
 
 * Text:
   * Shoreline development factor is the ratio of the lake shoreline to the circumference of a circle of the same area, aka how circular a lake is 🔵. Here are 100 U.S. lakes, from most to least circular 
