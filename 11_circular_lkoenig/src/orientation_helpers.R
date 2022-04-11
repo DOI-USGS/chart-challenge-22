@@ -9,6 +9,11 @@ fetch_flowlines <- function(huc8 ,include_diversions = FALSE){
   # Fetch flowlines within huc8 polygon
   huc8_flines <- nhdplusTools::get_nhdplus(AOI = huc8_poly, realization = 'flowline')
   
+  # check that flowlines were returned by nhdplusTools; if not, stop.
+  if(length(huc8_flines$comid) < 1){
+    stop(huc8, ' has failed to download flowlines. Try fetch_flowlines() again.')
+  }
+  
   # Find reach identifier (i.e., comid) at huc8 outlet
   outlet_comid <- huc8_flines$comid[which.max(huc8_flines$totdasqkm)]
   
@@ -23,6 +28,11 @@ fetch_flowlines <- function(huc8 ,include_diversions = FALSE){
       } else {.}
     } %>%
     mutate(huc8_id = huc8)
+  
+  # check that flowlines were returned by nhdplusTools; if not, stop.
+  if(length(network$comid) < 1){
+    stop(huc8, ' has failed to download flowlines. Try fetch_flowlines() again.')
+  }
   
   return(network)
   
