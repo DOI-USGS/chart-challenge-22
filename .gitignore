@@ -6,4 +6,7 @@
 03_historical_jread/*.remake
 *.Rproj
 .DS_Store
-0x_shamshaw/data/*.csv
+
+19_shamshaw/data/*
+19_shamshaw/out/*
+*/_targets/*

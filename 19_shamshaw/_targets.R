@@ -1,0 +1,93 @@
+library(targets)
+
+source("src/prep_functions.R")
+source("src/plot_functions.R")
+
+options(tidyverse.quiet = TRUE,
+        clustermq.scheduler = "multiprocess")
+tar_option_set(packages = c("tidyverse", "lubridate", "paletteer","BAMMtools","scales", "ggforce"))
+
+list(
+  # Streamflow drought events calculated using Julian day 30-day moving window method 
+  # for 1980-2020 for gages in Colorado River Basin region. 
+  # Data file from regional drought early warning project 
+  # Data > Data from National Project > Streamflow > Drought Summaries
+  tar_target(events_crb_jd_1980,
+             read_csv("data/weibull_jd_30d_wndw_Drought_Properties.csv")), 
+  
+  # Read in gage metadata for sites that are part of RDEWS project. Data file from regional drought early warning project 
+  # Data > Data from National Project > Streamflow 
+  tar_target(rdews_gages,
+             {read_csv("data/all_gages_metadata.csv") %>% rename(StaID = site)}),
+  
+  tar_target(event_swarm_1980_1990_t5,
+             create_event_swarm(event_data = events_crb_jd_1980, 
+                                metadata = rdews_gages,
+                                start_period = as.Date("1980-01-01"),
+                                end_period = as.Date("1989-12-31"),
+                                target_threshold = 5)),
+  tar_target(event_swarm_1990_2000_t5,
+             create_event_swarm(event_data = events_crb_jd_1980, 
+                                metadata = rdews_gages,
+                                start_period = as.Date("1990-01-01"),
+                                end_period = as.Date("1999-12-31"),
+                                target_threshold = 5)),
+  tar_target(event_swarm_2000_2010_t5,
+             create_event_swarm(event_data = events_crb_jd_1980, 
+                                metadata = rdews_gages,
+                                start_period = as.Date("2000-01-01"),
+                                end_period = as.Date("2009-12-31"),
+                                target_threshold = 5)),
+  tar_target(event_swarm_2010_2020_t5,
+             create_event_swarm(event_data = events_crb_jd_1980, 
+                                metadata = rdews_gages,
+                                start_period = as.Date("2010-01-01"),
+                                end_period = as.Date("2019-12-31"),
+                                target_threshold = 5)),
+  
+  # tar_target(upperc_crb_jd_5_1980_2020_png,
+  #            multi_panel_swarm_plot(out_file = 'out/uppercol_jd_5_1980-2020.png',
+  #                                   swarm1 = event_swarm_1980_1990_t5,
+  #                                   swarm2 = event_swarm_1990_2000_t5,
+  #                                   swarm3 = event_swarm_2000_2010_t5,
+  #                                   swarm4 = event_swarm_2010_2020_t5,
+  #                                   c_pal = 'pals::kovesi.linear_ternary_blue_0_44_c57', 
+  #                                   dir = -1),
+  #            format = "file" ),
+  # tar_target(upperc_crb_jd_5_1980_2020_v2_png,
+  #            multi_panel_swarm_plot(out_file = 'out/uppercol_jd_5_1980-2020_v2.png',
+  #                                   swarm1 = event_swarm_1980_1990_t5,
+  #                                   swarm2 = event_swarm_1990_2000_t5,
+  #                                   swarm3 = event_swarm_2000_2010_t5,
+  #                                   swarm4 = event_swarm_2010_2020_t5,
+  #                                   c_pal = 'scico::lajolla', 
+  #                                   dir = 1),
+  #            format = "file" ),
+  # tar_target(upperc_crb_jd_5_1980_2020_v3_png,
+  #            multi_panel_swarm_plot(out_file = 'out/uppercol_jd_5_1980-2020_v3.png',
+  #                                   swarm1 = event_swarm_1980_1990_t5,
+  #                                   swarm2 = event_swarm_1990_2000_t5,
+  #                                   swarm3 = event_swarm_2000_2010_t5,
+  #                                   swarm4 = event_swarm_2010_2020_t5,
+  #                                   c_pal = 'ggthemes::Orange', 
+  #                                   dir = 1),
+  #            format = "file" ),
+  # tar_target(upperc_crb_jd_5_1980_2020_v4_png,
+  #            multi_panel_swarm_plot(out_file = 'out/uppercol_jd_5_1980-2020_v4.png',
+  #                                   swarm1 = event_swarm_1980_1990_t5,
+  #                                   swarm2 = event_swarm_1990_2000_t5,
+  #                                   swarm3 = event_swarm_2000_2010_t5,
+  #                                   swarm4 = event_swarm_2010_2020_t5,
+  #                                   c_pal = 'pals::kovesi.linear_blue_5_95_c73', 
+  #                                   dir = -1),
+  #            format = "file" ),
+  tar_target(upperc_crb_jd_5_1980_2020_v5_png,
+             multi_panel_swarm_plot(out_file = 'out/uppercol_jd_5_1980-2020_v5.png',
+                                    swarm1 = event_swarm_1980_1990_t5,
+                                    swarm2 = event_swarm_1990_2000_t5,
+                                    swarm3 = event_swarm_2000_2010_t5,
+                                    swarm4 = event_swarm_2010_2020_t5,
+                                    c_pal = 'viridis::magma', 
+                                    dir = -1),
+             format = "file" )
+)
