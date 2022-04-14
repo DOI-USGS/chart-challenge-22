@@ -10,7 +10,7 @@ tar_option_set(packages = c("tidyverse", "dplyr", "lubridate",
                             "purrr", "sbtools", "terra",
                             'nhdplusTools','raster','sp',
                             'FedData', 'RColorBrewer','lattice',
-                            'rgdal', 'rasterVis', 'magick')
+                            'rgdal', 'rasterVis', 'magick', 'stringr')
                )
 
 source("1_fetch.R")

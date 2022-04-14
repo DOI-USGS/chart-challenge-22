@@ -13,6 +13,11 @@ p1_targets_list <- list(
               name_unzip_folder = NULL,
               overwrite_file = TRUE,
               name = NULL),
-    format = 'file')
-
+    format = 'file'),
+  
+  ## Download all FORESCE Data 1640 - 2010
+  tar_target(
+    p1_FORESCE_lc_tif_download_filtered,
+    p1_FORESCE_lc_tif_download %>% str_subset(pattern = '1900|1910|1920|1930|1940|1950|1960|1970|1980|1990|2000')
+    )
 )
