@@ -77,13 +77,15 @@ list(
                                     event_swarm_2010_2020_t5
                                     )),
   tar_target(upper_crb_jd_5_1980_2020_png,
-             ggsave('out/uppercol_jd_5_1980-2020.png', upper_crb_jd_5_1980_2020),
+             ggsave('out/uppercol_jd_5_1980-2020.png', upper_crb_jd_5_1980_2020,
+                    width = 10, height = 10, dpi = 300),
              format = "file" ),
 
   tar_target(upper_crb_jd_5_2021,
              event_swarm_plot(swarm_data = event_swarm_2021_t5)),
   tar_target(upper_crb_jd_5_2021_png,
-             ggsave('out/uppercol_jd_5_2021.png', upper_crb_jd_5_2021),
+             ggsave('out/uppercol_jd_5_2021.png', upper_crb_jd_5_2021,
+                    width = 8, height = 5, dpi = 300),
              format = "file" )
 
 )
