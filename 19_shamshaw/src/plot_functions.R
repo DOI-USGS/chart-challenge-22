@@ -1,6 +1,6 @@
-multi_panel_swarm_plot <- function(out_file, swarm1, swarm2, swarm3, swarm4,c_pal, dir){
+multi_panel_swarm_plot <- function(...){
   
-  combined_swarms <- bind_rows(swarm1,swarm2,swarm3,swarm4)
+  combined_swarms <- bind_rows(...)
   
   max_dur <- max(combined_swarms$duration)
   max_rnum <- max(combined_swarms$rnum)
@@ -25,13 +25,11 @@ multi_panel_swarm_plot <- function(out_file, swarm1, swarm2, swarm3, swarm4,c_pa
           legend.title = element_text(angle = 90))+
     facet_col(vars(decade), scales = "free", space = "free")
 
-  ggsave(out_file, width = 8, height = 8, dpi = 300)  
-  
-  
+  return(p) 
   
 }
 
-event_swarm_plot <- function(out_file, swarm_data){
+event_swarm_plot <- function(swarm_data){
   
   max_dur <- max(swarm_data$duration)
   max_rnum <- max(swarm_data$rnum)
@@ -52,7 +50,7 @@ event_swarm_plot <- function(out_file, swarm_data){
           axis.line.x = element_line(color = "black"),
           strip.text = element_blank(),
           panel.spacing.y=unit(0, "lines"))
-
-  ggsave(out_file, width = 8, height = 5, dpi = 300)  
+  
+  return(p) 
   
 }

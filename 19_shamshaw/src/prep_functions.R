@@ -9,11 +9,6 @@ create_event_swarm <- function(event_data, metadata, start_period, end_period, t
     mutate(end_day = as.integer(end - start_period)) %>% 
     arrange(onset_day, drought_id)
   
-  # if using higher threshold of 10%, restrict to just HCDN gages to avoid too many events
-  if(target_threshold == 10){
-    event_subset <- event_subset %>% filter(HCDN.2009 == "yes")
-    }
-  
   # set up an empty "swarm grid" to place drought events into
   n <- 100 # set arbitrarily large number of possible simultaneous drought events positions. Trimmed prior to plotting
   
@@ -74,4 +69,28 @@ create_event_swarm <- function(event_data, metadata, start_period, end_period, t
   return(plot_dat)
 }
 
+count_events <- function(event_data, metadata, target_threshold){
+  event_counts_per_decade <- event_data %>% 
+    left_join(metadata, by = "StaID", suffix = c("",".gages")) %>% 
+    filter(HUC02 == 14) %>% # restrict to upper Colorado river basin
+    filter(threshold == target_threshold) %>% 
+    mutate(decade = as.factor(floor(year(start)/10)*10)) %>% 
+    group_by(decade) %>% 
+    summarize(num_events = n())
+  
+  return(event_counts_per_decade)
+    
+}
 
+longest_events <- function(event_data, metadata, target_threshold){
+  longest_event_per_decade <- event_data %>% 
+    left_join(metadata, by = "StaID", suffix = c("",".gages")) %>% 
+    filter(HUC02 == 14) %>% # restrict to upper Colorado river basin
+    filter(threshold == target_threshold) %>% 
+    mutate(decade = as.factor(floor(year(start)/10)*10)) %>% 
+    group_by(decade) %>% 
+    slice_max(duration, n = 1)
+  
+  return(longest_event_per_decade)
+  
+}
