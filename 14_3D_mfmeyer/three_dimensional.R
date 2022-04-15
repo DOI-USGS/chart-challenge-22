@@ -43,7 +43,6 @@ library(rayshader)
 library(maps)
 library(sf)
 library(spData)
-library(plotly)
 
 ## Load GLCP and filter for lakes within the continental USA
 
@@ -54,8 +53,6 @@ glcp <- fread(file = "glcp.csv", integer64 = "character") %>%
 
 usa <- map('usa', plot=F) %>% 
   st_as_sf()
-
-sf::sf_use_s2(FALSE)
 
 ## Create empty vectors to throw in model parameters and Hylak_ids
 unique_lakes <- unique(glcp$Hylak_id)
@@ -114,7 +111,7 @@ map_change <- ggplot() +
 # 4. Build Rayshader for lakes that are decreasing in surface area --------
 
 map_shrinking <- ggplot() +
-  geom_sf(data = spData::us_states %>% st_transform(proj), 
+  geom_sf(data = spData::us_states, 
           fill = "grey95") +
   geom_hex(data = unique_lakes_loc %>%
              filter(centr_lat >= 21,
@@ -138,7 +135,7 @@ plot_gg(map_shrinking, height=6, width=9, scale = 300,
 # 5. Build Rayshader for lakes that are increasing in surface area --------
 
 map_growing <- ggplot() +
-  geom_sf(data = spData::us_states %>% st_transform(proj), 
+  geom_sf(data = spData::us_states, 
           fill = "grey95") +
   geom_hex(data = unique_lakes_loc %>%
              filter(beta_area >= 0.01),
