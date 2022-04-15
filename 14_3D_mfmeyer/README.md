@@ -1,0 +1,2 @@
+# Data Source
+Labou, S.G., M.F. Meyer, M.R. Brousil, A.N. Cramer, and B.T. Luff. 2020. Global lake area, climate, and population dataset ver 4. Environmental Data Initiative. https://doi.org/10.6073/pasta/834e2d4e8ee7eb2fa9a5a5b32d759683
