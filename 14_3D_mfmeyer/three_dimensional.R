@@ -32,6 +32,7 @@
 ### 4. Build Rayshader for lakes that are decreasing in surface area
 ### 5. Build Rayshader for lakes that are increasing in surface area
 ### 6. Save snapshot and movie of Rayshader output
+### 7. Export legends to overlay on Rayshader output
 
 
 # 1. Build models for each lake and extract slope of linear model ---------
@@ -140,11 +141,13 @@ map_shrinking <- ggplot() +
         axis.text = element_blank(),
         axis.ticks = element_blank(),
         legend.position = "none")
-map_shrinking
 
 plot_gg(map_shrinking, height=6, width=9, scale = 300,
         multicore=TRUE, preview = FALSE, 
         theta = 30, phi = 30, zoom = 0.5)
+
+render_snapshot(filename = "glcp_rayshader", 
+                title_text = "Where are lakes decreasing in surface area?")
 
 # 5. Build Rayshader for lakes that are increasing in surface area --------
 
@@ -162,12 +165,15 @@ map_growing <- ggplot() +
   theme(axis.title = element_blank(),
         axis.text = element_blank(),
         axis.ticks = element_blank(),
-        legend.position = "none")
+        legend.position = "top")
+map_growing
 
 plot_gg(map_growing, height=6, width=9, scale = 300,
         multicore=TRUE, preview = FALSE, 
         theta = 30, phi = 30, zoom = 0.5)
 
+render_snapshot(filename = "glcp_rayshader", 
+                title_text = "Where are lakes increasing in surface area?")
 
 # 6. Save snapshot and movie of Rayshader output --------------------------
 
@@ -176,3 +182,73 @@ render_snapshot(filename = "glcp_rayshader",
 
 render_movie(filename = "glcp_rayshader", 
              frames = 720, fps = 60)
+
+# 7. Create legends -------------------------------------------------------
+
+library(cowplot)
+library(grid)
+library(gridExtra)
+library(magick)
+
+map_growing_legend <- ggplot() +
+  geom_sf(data = spData::us_states %>% st_transform(proj), 
+          fill = "grey95") +
+  geom_hex(data = unique_lakes_df %>%
+             filter(beta_area >= 0.01),
+           aes(x = centr_lon, y = centr_lat),
+           bins = 75, alpha = 0.9) +
+  scale_fill_distiller(palette = "Blues", 
+                       name = "Number of Lakes Growing", 
+                       trans = "sqrt", direction = 1) +
+  theme_bw(base_size = 18) +
+  theme(axis.title = element_blank(),
+        axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        legend.position = "bottom") +
+  guides(fill = guide_colorbar(
+    direction = "horizontal",
+    barwidth = 14,
+    title.position = "top",
+    panel.background = element_blank(),
+    panel.background = element_blank(),
+    legend.box.background = element_rect(fill = NA)
+  ))
+
+map_shrinking_legend <- ggplot() +
+  geom_sf(data = spData::us_states %>% st_transform(proj), 
+          fill = "grey95") +
+  geom_hex(data = unique_lakes_df %>%
+             filter(centr_lat >= 21,
+                    beta_area <= -0.01),
+           aes(x = centr_lon, y = centr_lat),
+           bins = 75, alpha = 0.9) +
+  scale_fill_distiller(palette = "YlOrBr", 
+                       name = "Number of Lakes Shrinking", 
+                       trans = "sqrt", direction = 1) +
+  theme_bw(base_size = 18) +
+  theme(axis.title = element_blank(),
+        axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        legend.position = "bottom") +
+  guides(fill = guide_colorbar(
+    direction = "horizontal",
+    barwidth = 14,
+    title.position = "top",
+    panel.background = element_blank(),
+    legend.box.background = element_rect(fill = NA)
+  ))
+
+# Draw just the legends
+legend_grow <- cowplot::get_legend(map_growing_legend)
+legend_shrink <- cowplot::get_legend(map_shrinking_legend)
+
+grid.newpage()
+png('legend_grow.png', height = 100, width = 300)
+grid.draw(legend_grow)
+dev.off()
+
+grid.newpage()
+png('legend_shrink.png', height = 100, width = 300)
+grid.draw(legend_shrink)
+dev.off()
+
