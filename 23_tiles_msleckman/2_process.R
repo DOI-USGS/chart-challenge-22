@@ -27,7 +27,7 @@ p2_targets_list<- list(
   tar_target(
     p2_all_reclassified_rasters,
     append(p2_write_reclassified_rasters_FOR, p2_write_reclassified_rasters_NLCD)
-  )
+  ),
   # read in rasters from `2_process/out`. Not working with ratify and levelplot otherwise. 
   tar_target(
     p2_reclassified_raster_list,
