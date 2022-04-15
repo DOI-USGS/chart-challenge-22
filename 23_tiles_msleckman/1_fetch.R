@@ -54,6 +54,7 @@ p1_targets_list <- list(
       sf::st_transform(., crs(drb_boundary))
   ), 
   
+  ## note that the mask 
   tar_target(
     fetch_nlcd_all_years, 
     {lapply(nlcd_years[1:2], function(x) 
