@@ -6,6 +6,7 @@ library(sf)
 library(rgdal)
 library(tidyverse)
 library(spData)
+
 # Get data ----------------------------------------------------------------
 
 # Download global gridded population data from: https://sedac.ciesin.columbia.edu/data/set/gpw-v4-population-count-rev11/data-download
@@ -68,28 +69,31 @@ get_pop_by_dist <- function(gage_dist){
 }
 
 # find population within 1 km bands of gages 
-dist_gage <- seq(1000, 100000, by= 1000)
-dist_gage_pop <- lapply(dist_gage, function(x)get_pop(x)) # this takes a while to run >20 min
+dist_gage <- c(seq(1000, 100000, by= 1000))
+dist_gage_pop <- lapply(dist_gage, function(x)get_pop(x)) # this takes a while to run >30 min
 gage_dist <- data.frame(dist = do.call(rbind, dist_gage_pop), grid = dist_gage)
+write_csv(gage_dist, 'out/gage_dist_20.csv')
 
-gage_dist %>%
+
+# each grid cell is 1km, so to get the pop within 2 km, add 1 km buffer etc...
+dist_gage %>%
   ggplot(aes(x = grid, y = dist/1000)) +
   geom_path(size = 1.5, color = "white") +
   geom_segment(data = gage_dist %>%
-                    filter(grid %in% c(2000, 6000, 20000)),
+                    filter(grid %in% c(1000, 5000, 19000)),
              aes(y = dist/1000, yend = dist/1000,
                  x = 0, xend = grid),
              linetype = "dotted",
              size =1 ,
              color = "white") +
   geom_segment(data = gage_dist %>%
-                 filter(grid %in% c(1000,2000,3000, 6000, 20000)),
+                 filter(grid %in% c(1000,5000, 19000)),
                aes(x = grid, xend = grid,
                    y = 0, yend = dist/1000),
                linetype = "dotted",
                size = 1, 
                color = "white") +
-  theme_classic(base_size = 40) +
+  theme_classic(base_size = 24) +
   scale_y_continuous(
     breaks = scales::breaks_pretty(),
     labels = scales::label_number_si(),
@@ -103,9 +107,9 @@ gage_dist %>%
   labs(x = "Distance from gage",
        y = "Total population") +
   geom_point(data = gage_dist %>%
-               filter(grid %in% c(2000, 6000, 20000)),
+               filter(grid %in% c(1000, 5000, 19000)),
              color = "white",
-             size = 5,
+             size = 3,
              stroke = 1.5,
              shape = 21, 
              fill = "black")+
