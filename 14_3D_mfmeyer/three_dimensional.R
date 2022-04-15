@@ -45,6 +45,8 @@ library(sf)
 library(spData)
 library(plotly)
 
+proj <- "+proj=lcc +lat_1=30.7 +lat_2=29.3 +lat_0=28.5 +lon_0=-91.33333333333333 +x_0=999999.9999898402 +y_0=0 +ellps=GRS80 +datum=NAD83 +to_meter=0.3048006096012192 +no_defs"
+
 ## Load GLCP and filter for lakes within the continental USA
 
 glcp <- fread(file = "glcp.csv", integer64 = "character") %>%
@@ -53,7 +55,8 @@ glcp <- fread(file = "glcp.csv", integer64 = "character") %>%
          centr_lat >= 21) 
 
 usa <- map('usa', plot=F) %>% 
-  st_as_sf()
+  st_as_sf() %>% 
+  st_transform(proj)
 
 sf::sf_use_s2(FALSE)
 
@@ -91,12 +94,19 @@ unique_lakes_loc <- glcp %>%
   distinct() %>%
   inner_join(x = .,
              y = tibble(unique_lakes, beta_area, rsquared_area),
-             by = c("Hylak_id" = "unique_lakes"))
+             by = c("Hylak_id" = "unique_lakes")) 
+
+lake_coords <- unique_lakes_loc %>% 
+  # project and extract coordinates for plotting
+  st_as_sf(coords = c('centr_lon', 'centr_lat'), crs = 4269) %>%
+  st_transform(proj) %>%
+  st_coordinates()
+
+unique_lakes_df <- unique_lakes_loc %>%
+  mutate(centr_lon = lake_coords[,'X'], centr_lat = lake_coords[,'Y'])
 
 
 # 3. Make a high-level 2-Dimensional plot to get a sense of trends --------
-
-proj <- "+proj=lcc +lat_1=30.7 +lat_2=29.3 +lat_0=28.5 +lon_0=-91.33333333333333 +x_0=999999.9999898402 +y_0=0 +ellps=GRS80 +datum=NAD83 +to_meter=0.3048006096012192 +no_defs"
 
 map_change <- ggplot() +
   geom_sf(data = spData::us_states %>% st_transform(proj), 
@@ -106,17 +116,18 @@ map_change <- ggplot() +
             st_as_sf(coords = c("centr_lon", "centr_lat"),
                      crs = 4269),
           aes(color = as.numeric(beta_area)),
-          alpha = 0.05, size = 0.5) +
+          alpha = 0.5, size = 0.5) +
   scale_color_distiller(palette = "BrBG", direction = 1, 
                         name = "Slope of Change") +
   theme_void()
+map_change
 
 # 4. Build Rayshader for lakes that are decreasing in surface area --------
 
 map_shrinking <- ggplot() +
   geom_sf(data = spData::us_states %>% st_transform(proj), 
           fill = "grey95") +
-  geom_hex(data = unique_lakes_loc %>%
+  geom_hex(data = unique_lakes_df %>%
              filter(centr_lat >= 21,
                     beta_area <= -0.01),
            aes(x = centr_lon, y = centr_lat),
@@ -129,18 +140,18 @@ map_shrinking <- ggplot() +
         axis.text = element_blank(),
         axis.ticks = element_blank(),
         legend.position = "none")
+map_shrinking
 
 plot_gg(map_shrinking, height=6, width=9, scale = 300,
         multicore=TRUE, preview = FALSE, 
         theta = 30, phi = 30, zoom = 0.5)
-
 
 # 5. Build Rayshader for lakes that are increasing in surface area --------
 
 map_growing <- ggplot() +
   geom_sf(data = spData::us_states %>% st_transform(proj), 
           fill = "grey95") +
-  geom_hex(data = unique_lakes_loc %>%
+  geom_hex(data = unique_lakes_df %>%
              filter(beta_area >= 0.01),
            aes(x = centr_lon, y = centr_lat),
            bins = 75, alpha = 0.9) +
