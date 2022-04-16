@@ -14,16 +14,23 @@ list(
   # Data file from regional drought early warning project 
   # Data > Data from National Project > Streamflow > Drought Summaries
   tar_target(events_crb_jd_1980_2020,
-             read_csv("data/weibull_jd_30d_wndw_Drought_Properties.csv")), 
+             read_csv("data/weibull_jd_30d_wndw_Drought_Properties.csv")%>%
+               transform(StaID = as.character(StaID))%>%
+               mutate(across(c(start, end, previous_end), ~as.Date(.x, '%m/%d/%y')))), 
   
   # Preliminary version of file which includes 2021 data
   tar_target(events_crb_jd_1980_2021,
-             read_csv("data/weibull_jd_30d_wndw_Drought_Properties_2021.csv")), 
+             read_csv("data/weibull_jd_30d_wndw_Drought_Properties_2021.csv") %>%
+               transform(StaID = as.character(StaID))%>%
+               mutate(across(c(start, end, previous_end), ~as.Date(.x, '%m/%d/%y')))), 
   
   # Read in gage metadata for sites that are part of RDEWS project. Data file from regional drought early warning project 
   # Data > Data from National Project > Streamflow 
   tar_target(rdews_gages,
-             {read_csv("data/all_gages_metadata.csv") %>% rename(StaID = site)}),
+             {read_csv("data/all_gages_metadata.csv", col_types = 'ccncnncclnnnnnnnnnnnnncccnc') %>% 
+                 rename(StaID = site) %>%
+                 transform(StaID = as.character(StaID))}
+             ),
   
   # create event swarms for each time period
   tar_target(event_swarm_1980_1990_t5,
