@@ -14,64 +14,67 @@ list(
   # Data file from regional drought early warning project 
   # Data > Data from National Project > Streamflow > Drought Summaries
   tar_target(events_crb_jd_1980_2020,
-             read_csv("data/weibull_jd_30d_wndw_Drought_Properties.csv")%>%
-               transform(StaID = as.character(StaID))%>%
-               mutate(across(c(start, end, previous_end), ~as.Date(.x, '%m/%d/%y')))), 
-  
+             read_csv("data/weibull_jd_30d_wndw_Drought_Properties.csv")
+             ), 
   # Preliminary version of file which includes 2021 data
   tar_target(events_crb_jd_1980_2021,
-             read_csv("data/weibull_jd_30d_wndw_Drought_Properties_2021.csv") %>%
-               transform(StaID = as.character(StaID))%>%
-               mutate(across(c(start, end, previous_end), ~as.Date(.x, '%m/%d/%y')))), 
+             read_csv("data/weibull_jd_30d_wndw_Drought_Properties_2021.csv")
+             ), 
+  # Combine data long format
+  tar_target(
+    crb_events,
+    bind_rows(events_crb_jd_1980_2020, events_crb_jd_1980_2021) %>%
+      distinct() %>%
+      transform(StaID = as.character(StaID))%>%
+      mutate(across(c(start, end, previous_end), ~as.Date(.x, '%m/%d/%y')))
+  ),
   
   # Read in gage metadata for sites that are part of RDEWS project. Data file from regional drought early warning project 
   # Data > Data from National Project > Streamflow 
   tar_target(rdews_gages,
              {read_csv("data/all_gages_metadata.csv", col_types = 'ccncnncclnnnnnnnnnnnnncccnc') %>% 
-                 rename(StaID = site) %>%
-                 transform(StaID = as.character(StaID))}
+                 transform(StaID = as.character(site))}
              ),
-  
   # create event swarms for each time period
   tar_target(event_swarm_1980_1990_t5,
-             create_event_swarm(event_data = events_crb_jd_1980_2020, 
+             create_event_swarm(event_data = crb_events, 
                                 metadata = rdews_gages,
                                 start_period = as.Date("1980-01-01"),
                                 end_period = as.Date("1989-12-31"),
                                 target_threshold = 5)),
   tar_target(event_swarm_1990_2000_t5,
-             create_event_swarm(event_data = events_crb_jd_1980_2020, 
+             create_event_swarm(event_data = crb_events, 
                                 metadata = rdews_gages,
                                 start_period = as.Date("1990-01-01"),
                                 end_period = as.Date("1999-12-31"),
                                 target_threshold = 5)),
   tar_target(event_swarm_2000_2010_t5,
-             create_event_swarm(event_data = events_crb_jd_1980_2020, 
+             create_event_swarm(event_data = crb_events, 
                                 metadata = rdews_gages,
                                 start_period = as.Date("2000-01-01"),
                                 end_period = as.Date("2009-12-31"),
                                 target_threshold = 5)),
   tar_target(event_swarm_2010_2020_t5,
-             create_event_swarm(event_data = events_crb_jd_1980_2020, 
+             create_event_swarm(event_data = crb_events, 
                                 metadata = rdews_gages,
                                 start_period = as.Date("2010-01-01"),
                                 end_period = as.Date("2019-12-31"),
                                 target_threshold = 5)),
   tar_target(event_swarm_2021_t5,
-             create_event_swarm(event_data = events_crb_jd_1980_2021, 
+             create_event_swarm(event_data = crb_events, 
                                 metadata = rdews_gages,
                                 start_period = as.Date("2020-01-01"),
                                 end_period = as.Date("2021-12-31"),
                                 target_threshold = 5)),
   # count number of events per decade
   tar_target(event_counts_per_decade,
-             count_events(event_data  = events_crb_jd_1980_2020, 
+             count_events(event_data  = crb_events, 
                           metadata = rdews_gages,
                           target_threshold = 5
                           )),
   # find the longest drought event per decade
   tar_target(longest_drought_per_decade,
-             longest_events(event_data = events_crb_jd_1980_2020,
+             longest_events(event_data = crb_events,
                             metadata = rdews_gages,
                             target_threshold = 5
                             )),
