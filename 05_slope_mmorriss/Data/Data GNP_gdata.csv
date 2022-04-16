@@ -1,0 +1,157 @@
+"","Glacier Name","Year","Area m^2"
+"1","Agassiz Glacier","2015",736669.75
+"2","Ahern Glacier","2015",511589.79
+"3","Baby Glacier","2015",75562.6
+"4","Blackfoot Glacier","2015",1498505.92
+"5","Boulder Glacier","2015",35298.01
+"6","Carter Glacier","2015",224773.89
+"7","Chaney Glacier","2015",334484.9
+"8","Dixon Glacier","2015",125831.13
+"9","Gem Glacier","2015",22156.68
+"10","Grant Glacier","2015",279157.8
+"11","Grinnell Glacier","2015",563720.29
+"12","Harris Glacier","2015",34260.89
+"13","Harrison Glacier","2015",1661456.75
+"14","Herbst Glacier","2015",31886.02
+"15","Hudson Glacier","2015",52167.62
+"16","Ipasha Glacier","2015",194738.75
+"17","Jackson Glacier","2015",756864.1
+"18","Kintla Glacier","2015",877726.05
+"19","Logan Glacier","2015",219016.92
+"20","Lupfer Glacier","2015",73274.68
+"21","Miche Wabun","2015",103616.92
+"22","North Swiftcurrent Glacier","2015",86305.3
+"23","Old Sun Glacier","2015",341077.95
+"24","Piegan Glacier","2015",244307.08
+"25","Pumpelly Glacier","2015",902787.3
+"26","Rainbow Glacier","2015",1053376.03
+"27","Red Eagle Glacier","2015",63685.24
+"28","Salamander Glacier","2015",176108.77
+"29","Sexton Glacier","2015",298681.73
+"30","Shepard Glacier","2015",70739.49
+"31","Siyeh Glacier","2015",205386.48
+"32","Sperry Glacier","2015",801670.14
+"33","Stanton Glacier","2015",268967.55
+"34","Swiftcurrent Glacier","2015",170348.1
+"35","Thunderbird Glacier","2015",107012.09
+"36","Two Ocean Glacier","2015",75172.89
+"37","Vulture Glacier","2015",296786.09
+"38","Weasel Collar Glacier","2015",499734.76
+"39","Whitecrow Glacier","2015",103824.86
+"40","Agassiz Glacier","2005",1039612.34
+"41","Ahern Glacier","2005",511939.47
+"42","Baby Glacier","2005",76006.47
+"43","Blackfoot Glacier","2005",1630173.41
+"44","Boulder Glacier","2005",45803.63
+"45","Carter Glacier","2005",234414.36
+"46","Chaney Glacier","2005",359686.58
+"47","Dixon Glacier","2005",162669.91
+"48","Gem Glacier","2005",23527.27
+"49","Grant Glacier","2005",285758.27
+"50","Grinnell Glacier","2005",615568.81
+"51","Harris Glacier","2005",38969.1
+"52","Harrison Glacier","2005",1697714.47
+"53","Herbst Glacier","2005",40856.01
+"54","Hudson Glacier","2005",52269.76
+"55","Ipasha Glacier","2005",195800.97
+"56","Jackson Glacier","2005",803342.15
+"57","Kintla Glacier","2005",931213.7
+"58","Logan Glacier","2005",367936.17
+"59","Lupfer Glacier","2005",63843.53
+"60","Miche Wabun","2005",NA
+"61","North Swiftcurrent Glacier","2005",NA
+"62","Old Sun Glacier","2005",346751.63
+"63","Piegan Glacier","2005",250768.05
+"64","Pumpelly Glacier","2005",908834.15
+"65","Rainbow Glacier","2005",1089977.46
+"66","Red Eagle Glacier","2005",77923.53
+"67","Salamander Glacier","2005",173617.99
+"68","Sexton Glacier","2005",312762.43
+"69","Shepard Glacier","2005",75248.66
+"70","Siyeh Glacier","2005",214663.2
+"71","Sperry Glacier","2005",888095.13
+"72","Stanton Glacier","2005",301630.87
+"73","Swiftcurrent Glacier","2005",176239.36
+"74","Thunderbird Glacier","2005",115978.22
+"75","Two Ocean Glacier","2005",189199.44
+"76","Vulture Glacier","2005",329180.45
+"77","Weasel Collar Glacier","2005",506575.45
+"78","Whitecrow Glacier","2005",112799.23
+"79","Agassiz Glacier","1998",1174485.68
+"80","Ahern Glacier","1998",516658.66
+"81","Baby Glacier","1998",80880.38
+"82","Blackfoot Glacier","1998",1625124.38
+"83","Boulder Glacier","1998",48774.13
+"84","Carter Glacier","1998",269013.88
+"85","Chaney Glacier","1998",430372.02
+"86","Dixon Glacier","1998",166983.6
+"87","Gem Glacier","1998",23756.51
+"88","Grant Glacier","1998",288223.64
+"89","Grinnell Glacier","1998",715907.79
+"90","Harris Glacier","1998",40263.73
+"91","Harrison Glacier","1998",1846232.52
+"92","Herbst Glacier","1998",50794.78
+"93","Hudson Glacier","1998",55762.11
+"94","Ipasha Glacier","1998",228254.45
+"95","Jackson Glacier","1998",811857.45
+"96","Kintla Glacier","1998",972884.73
+"97","Logan Glacier","1998",387547.07
+"98","Lupfer Glacier","1998",66661.16
+"99","Miche Wabun","1998",NA
+"100","North Swiftcurrent Glacier","1998",NA
+"101","Old Sun Glacier","1998",349137.54
+"102","Piegan Glacier","1998",265084.78
+"103","Pumpelly Glacier","1998",910631.86
+"104","Rainbow Glacier","1998",1120814.92
+"105","Red Eagle Glacier","1998",77923.58
+"106","Salamander Glacier","1998",181688.65
+"107","Sexton Glacier","1998",324011.87
+"108","Shepard Glacier","1998",91584.19
+"109","Siyeh Glacier","1998",214597.44
+"110","Sperry Glacier","1998",953104.43
+"111","Stanton Glacier","1998",315177.77
+"112","Swiftcurrent Glacier","1998",188681.39
+"113","Thunderbird Glacier","1998",121885.69
+"114","Two Ocean Glacier","1998",193677.91
+"115","Vulture Glacier","1998",336924.77
+"116","Weasel Collar Glacier","1998",507418.42
+"117","Whitecrow Glacier","1998",124759.84
+"118","Agassiz Glacier","1966",1600559.72536
+"119","Ahern Glacier","1966",589185.627728
+"120","Baby Glacier","1966",117171.12624
+"121","Blackfoot Glacier","1966",1832451.35202
+"122","Boulder Glacier","1966",231017.727697
+"123","Carter Glacier","1966",355743.436581
+"124","Chaney Glacier","1966",563819.032376
+"125","Dixon Glacier","1966",291142.049983
+"126","Gem Glacier","1966",29140.1216822
+"127","Grant Glacier","1966",347753.174791
+"128","Grinnell Glacier","1966",1020200.38901
+"129","Harris Glacier","1966",148501.604124
+"130","Harrison Glacier","1966",2059376.83899
+"131","Herbst Glacier","1966",170234.16033
+"132","Hudson Glacier","1966",90213.4518685
+"133","Ipasha Glacier","1966",328608.595822
+"134","Jackson Glacier","1966",1280508.23746
+"135","Kintla Glacier","1966",1309016.19847
+"136","Logan Glacier","1966",503361.090258
+"137","Lupfer Glacier","1966",126375.82567
+"138","Miche Wabun","1966",NA
+"139","North Swiftcurrent Glacier","1966",NA
+"140","Old Sun Glacier","1966",421347.414185
+"141","Piegan Glacier","1966",280151.616853
+"142","Pumpelly Glacier","1966",1006469.52665
+"143","Rainbow Glacier","1966",1430411.36112
+"144","Red Eagle Glacier","1966",134709.821577
+"145","Salamander Glacier","1966",229028.193906
+"146","Sexton Glacier","1966",400493.532522
+"147","Shepard Glacier","1966",250678.8168
+"148","Siyeh Glacier","1966",306295.748477
+"149","Sperry Glacier","1966",1339531.53624
+"150","Stanton Glacier","1966",532357.356387
+"151","Swiftcurrent Glacier","1966",221786.00439
+"152","Thunderbird Glacier","1966",135074.706587
+"153","Two Ocean Glacier","1966",429001.733967
+"154","Vulture Glacier","1966",408034.378599
+"155","Weasel Collar Glacier","1966",558088.212055
+"156","Whitecrow Glacier","1966",242488.013013

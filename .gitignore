@@ -1,11 +1,42 @@
+# R
 .Rproj.user
 .Rhistory
 .RData
 .Ruserdata
-*.nc
-03_historical_jread/*.remake
+*/_targets/*
 *.Rproj
+*/_targets/
+*/scratch.R
+
 .DS_Store
 
+# Large files
+*.ai
+*.gif
+*.psd
+*.nc
+
+# Subdirectory specific files
+01_part-to-whole_mfmeyer/in/*.csv
+03_historical_jread/_targets/*
+04_flora_cnell/out/*.tiff
+04_flora_cnell/out/*.png
+05_slope_mmorriss/Data/
+05_slope_mmorriss/figures/*.eps
+05_slope_mmorriss/figures/*.svg
+07_physical_distributions_stopp/data_in/*
+08_mountains_khopkins/in
+09_statistics_soliver/in_dat/*.rds
+09_statistics_soliver/in_dat/gpw-v4-population-count-rev11_2020_30_sec_tif/
+11_circular_csimeone/data_in/*.rds
+11_circular_csimeone/data_in/NWIS_data/*.csv
+11_circular_csimeone/README.html
 19_shamshaw/data/*
-*/_targets/*
+
+# Spatial
+*.cpg
+*.dbf
+*.fix
+*.prj
+*.shp
+*.shx
