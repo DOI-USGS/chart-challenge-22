@@ -43,6 +43,12 @@ list(
                }
              ),
   # create event swarms for each time period
+  tar_target(event_swarm_2021_t5,
+             create_event_swarm(event_data = events_crb_jd_1980_2021, 
+                                metadata = rdews_gages,
+                                start_period = as.Date("2020-01-01"),
+                                end_period = as.Date("2021-12-31"),
+                                target_threshold = 5)),
   tar_target(event_swarm_all,
              create_event_swarm(event_data = crb_events, 
                                 metadata = rdews_gages,
@@ -71,13 +77,9 @@ list(
              horiz_swarm_plot(swarm_data = event_swarm_all)),
   
   # Export plots
-  tar_target(upper_crb_jd_5_1980_2020_png,
-             ggsave('out/uppercol_jd_5_1980-2020.png', upper_crb_jd_5_1980_2020,
-                    width = 10, height = 10, dpi = 300),
-             format = "file" ),
   tar_target(upper_crb_jd_5_2021_png,
              ggsave('out/uppercol_jd_5_2021.png', upper_crb_jd_5_2021,
-                    width = 8, height = 5, dpi = 300),
+                    width = 14, height = 10, dpi = 300),
              format = "file" ),
   tar_target(upper_crb_jd_5_1980_2021_png,
              ggsave('out/uppercol_jd_5_1980-2021.png', upper_crb_jd_5_1980_2021,
