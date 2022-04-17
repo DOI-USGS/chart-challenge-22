@@ -31,7 +31,100 @@ multi_panel_swarm_plot <- function(...){
   return(p) 
   
 }
-
+horiz_swarm_plot <- function(swarm_data){
+  
+  # set breaks
+  max_dur <- max(swarm_data$duration)
+  max_rnum <- max(swarm_data$rnum)
+  
+  hbreaks <- BAMMtools::getJenksBreaks(swarm_data$duration, k=10)
+  scaledBreaks <- scales::rescale(c(0,hbreaks), c(0,1))
+  
+  combined_swarms <- swarm_data %>%
+    mutate(year = lubridate::year(date)) %>%
+    mutate(decade_order = as.numeric(date-as.Date(sprintf('%s-01-01', decade), '%Y-%d-%m')),
+           date_order = as.numeric(date-as.Date('1980-01-01')))
+  
+  ## add first and last date for each decade
+  x_df <- combined_swarms %>%
+    distinct(year) %>% 
+    mutate(decade = as.factor(floor(year/10)*10),
+           date_start = as.Date(sprintf('%s-01-01', year)),
+           date_end = as.Date(sprintf('%s-12-31', year))) %>% 
+    pivot_longer(!c(decade, year), values_to = 'date') %>% 
+    mutate(rnum = NA, names = NA, duration = NA, dt = NA) %>%
+    mutate(decade_order = as.numeric(date-as.Date(sprintf('%s-01-01', decade), '%Y-%d-%m')),
+           date_order = as.numeric(date-as.Date('1980-01-01'))) %>%
+    select(names(combined_swarms)) 
+ 
+  
+  # add empty rows to data
+  plot_df <- combined_swarms %>%
+    bind_rows(x_df) 
+  
+  # add font
+  font_fam <- 'Noto Sans Display'
+  font_add_google(font_fam, regular.wt = 300, bold.wt = 700) 
+  showtext_opts(dpi = 300)
+  showtext_auto(enable = TRUE)
+  
+  # build plot
+  plot_df %>%
+    ggplot(aes(y = date_order, x = rnum))+
+    geom_vline(xintercept = 0, color="#dddddd",size = 1)+
+    geom_tile(aes(fill = duration), 
+              width = 0.75
+    )+
+    scale_fill_scico(values = scaledBreaks, 
+                     palette = "lajolla", 
+                     begin = 0.25, 
+                     end = 1 , 
+                     direction = 1, 
+                     guide_legend(title = "Duration (days)"),
+                     breaks = c(5, 100, 200, 300)) +
+    theme_minimal(base_size = 16)+
+    ylab(element_blank()) +
+    xlab(element_blank()) +
+    # adding title here to position within bound of plot
+    annotate('text', label = "40 Years of Streamflow Drought\nin the Upper Colorado River Basin", 
+             x = 65, y = 0,
+             size = 10,
+             hjust = 0,
+             vjust = 1,
+             fontface = "bold",
+             family = font_fam)+
+    # custom x-axis labelling
+    geom_text(data = x_df %>%
+                filter(year %in% seq(1980, 2020, by = 5)) %>%
+                group_by(decade, year)%>%
+                slice_min(date_order),
+              aes(x=-66, label = year),
+              color = "black",
+              family = font_fam) +
+    # vertical gridlines for x axis
+    geom_segment(data = x_df %>%
+                   filter(year %in% seq(1980, 2020, by = 5)) %>%
+                   group_by(decade, year)%>%
+                   slice_min(date_order),
+                 aes(x=-64, xend = -2, yend=date_order),
+                 color = "grey",
+                 linetype = "dotted")+
+    theme(text = element_text(family = font_fam),
+          axis.text=element_blank(),
+          panel.grid = element_blank(),
+          axis.line = element_blank(),
+          axis.ticks = element_blank(),
+          legend.position = c(0.22,0.76), 
+          legend.box.just = "left",
+          legend.direction = "horizontal") +
+    guides(fill = guide_colorbar(
+      barheight = 0.62,
+      barwidth = 21,
+      
+      title.theme = element_text(vjust = 1, size = 16, family = font_fam)
+    )) +
+    coord_flip(clip = "off")
+}
 event_swarm_plot <- function(swarm_data){
   
   max_dur <- max(swarm_data$duration)
@@ -42,7 +135,7 @@ event_swarm_plot <- function(swarm_data){
   
   p <- swarm_data %>% ggplot()+
     geom_hline(yintercept=0, color="#dddddd",size = 1)+
-    geom_tile(aes(x=date, y=rnum, fill = duration), height=0.7)+
+    geom_tile(aes(x=date, y=rnum, fill = duration), height=0.5)+
     scale_fill_scico(values = scaledBreaks, palette = "lajolla", begin = 0.25, end = 1 , direction = 1,
                      guide_legend(title = "Drought Duration (Days)"), breaks = c(5, 100, 200, 300))+
     theme_minimal()+
