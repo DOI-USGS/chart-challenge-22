@@ -69,7 +69,7 @@ horiz_swarm_plot <- function(swarm_data){
   showtext_auto(enable = TRUE)
   
   # build plot
-  plot_df %>%
+  p <- plot_df %>%
     ggplot(aes(y = date_order, x = rnum))+
     geom_vline(xintercept = 0, color="#dddddd",size = 1)+
     geom_tile(aes(fill = duration), 
@@ -85,14 +85,6 @@ horiz_swarm_plot <- function(swarm_data){
     theme_minimal(base_size = 16)+
     ylab(element_blank()) +
     xlab(element_blank()) +
-    # adding title here to position within bound of plot
-    annotate('text', label = "40 Years of Streamflow Drought\nin the Upper Colorado River Basin", 
-             x = 65, y = 0,
-             size = 10,
-             hjust = 0,
-             vjust = 1,
-             fontface = "bold",
-             family = font_fam)+
     # custom x-axis labelling
     geom_text(data = x_df %>%
                 filter(year %in% seq(1980, 2020, by = 5)) %>%
@@ -114,7 +106,6 @@ horiz_swarm_plot <- function(swarm_data){
           panel.grid = element_blank(),
           axis.line = element_blank(),
           axis.ticks = element_blank(),
-          legend.position = c(0.22,0.76), 
           legend.box.just = "left",
           legend.direction = "horizontal") +
     guides(fill = guide_colorbar(
@@ -124,6 +115,19 @@ horiz_swarm_plot <- function(swarm_data){
       title.theme = element_text(vjust = 1, size = 16, family = font_fam)
     )) +
     coord_flip(clip = "off")
+  
+  
+  # piece together plot elements
+  p_legend <- get_legend(p)
+
+  ggdraw() +
+    draw_plot(p+theme(legend.position = "none")) +
+    draw_label("40 Years of Streamflow Drought\nin the Upper Colorado River Basin", x = 0.015, y = 0.9, 
+               fontface = "bold", size = 30, hjust = 0, fontfamily = font_fam,
+               lineheight = 1.1) +
+    draw_plot(p_legend, x = 0.13, y = 0.75, width = 0.2, height = 0.1)
+  
+  
 }
 event_swarm_plot <- function(swarm_data){
   
