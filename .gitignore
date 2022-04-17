@@ -3,10 +3,12 @@
 .Rhistory
 .RData
 .Ruserdata
+*/_targets/*
 *.Rproj
-.DS_Store
 */_targets/
 */scratch.R
+
+.DS_Store
 
 # Large files
 *.ai
@@ -29,6 +31,7 @@
 11_circular_csimeone/data_in/*.rds
 11_circular_csimeone/data_in/NWIS_data/*.csv
 11_circular_csimeone/README.html
+19_shamshaw/data/*
 
 # Spatial
 *.cpg
