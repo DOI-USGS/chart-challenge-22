@@ -14,7 +14,9 @@ list(
   # Data file from regional drought early warning project 
   # Data > Data from National Project > Streamflow > Drought Summaries
   tar_target(events_crb_jd_1980_2020,
-             read_csv("data/weibull_jd_30d_wndw_Drought_Properties.csv")), 
+             read_csv("data/weibull_jd_30d_wndw_Drought_Properties.csv") %>%
+               transform(StaID = as.character(StaID))%>%
+               mutate(across(c(start, end, previous_end), ~as.Date(.x, '%m/%d/%y')))), 
   
   # Preliminary version of file which includes 2021 data
   tar_target(events_crb_jd_1980_2021,
