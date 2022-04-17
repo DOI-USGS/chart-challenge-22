@@ -10,25 +10,13 @@ horiz_swarm_plot <- function(swarm_data){
   
   combined_swarms <- swarm_data %>%
     mutate(year = lubridate::year(date)) %>%
-    mutate(decade_order = as.numeric(date-as.Date(sprintf('%s-01-01', decade), '%Y-%d-%m')),
-           date_order = as.numeric(date-as.Date('1980-01-01')))
+    mutate(date_order = as.numeric(date-as.Date('1980-01-01')))
   
-  ## add first and last date for each decade
-  x_df <- combined_swarms %>%
+  ## add first date for each year label positioning
+  x_df <- combined_swarms %>% 
     distinct(year) %>% 
-    mutate(decade = as.factor(floor(year/10)*10),
-           date_start = as.Date(sprintf('%s-01-01', year)),
-           date_end = as.Date(sprintf('%s-12-31', year))) %>% 
-    pivot_longer(!c(decade, year), values_to = 'date') %>% 
-    mutate(rnum = NA, names = NA, duration = NA, dt = NA) %>%
-    mutate(decade_order = as.numeric(date-as.Date(sprintf('%s-01-01', decade), '%Y-%d-%m')),
-           date_order = as.numeric(date-as.Date('1980-01-01'))) %>%
-    select(names(combined_swarms)) 
- 
-  
-  # add empty rows to data
-  plot_df <- combined_swarms %>%
-    bind_rows(x_df) 
+    mutate(date_start = as.Date(sprintf('%s-01-01', year))) %>% 
+    mutate(date_order = as.numeric(date_start-as.Date('1980-01-01'))) 
   
   # add font
   font_fam <- 'Noto Sans Display'
@@ -37,7 +25,7 @@ horiz_swarm_plot <- function(swarm_data){
   showtext_auto(enable = TRUE)
   
   # build plot
-  p <- plot_df %>%
+  p <- combined_swarms %>%
     ggplot(aes(y = date_order, x = rnum))+
     geom_vline(xintercept = 0, color="#dddddd",size = 1)+
     geom_tile(aes(fill = duration), 
@@ -55,18 +43,14 @@ horiz_swarm_plot <- function(swarm_data){
     xlab(element_blank()) +
     # custom x-axis labelling
     geom_text(data = x_df %>%
-                filter(year %in% seq(1980, 2020, by = 5)) %>%
-                group_by(decade, year)%>%
-                slice_min(date_order),
+                filter(year %in% seq(1980, 2020, by = 5)),
               aes(x=-66, label = year),
               color = "black",
               size = 6,
               family = font_fam, fontface="bold") +
     # vertical gridlines for x axis
     geom_segment(data = x_df %>%
-                   filter(year %in% seq(1980, 2020, by = 5)) %>%
-                   group_by(decade, year)%>%
-                   slice_min(date_order),
+                   filter(year %in% seq(1980, 2020, by = 5)),
                  aes(x=-64, xend = -2, yend=date_order),
                  color = "grey",
                  linetype = "dotted")+
