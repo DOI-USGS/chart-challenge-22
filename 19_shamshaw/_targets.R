@@ -18,6 +18,7 @@ list(
                transform(StaID = as.character(StaID))%>%
                mutate(across(c(start, end, previous_end), ~as.Date(.x, '%m/%d/%y')))
              ), 
+
   # Preliminary version of file which includes 2021 data
   tar_target(events_crb_jd_1980_2021,
              read_csv("data/weibull_jd_30d_wndw_Drought_Properties_2021.csv") %>%
