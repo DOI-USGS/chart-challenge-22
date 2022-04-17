@@ -80,7 +80,7 @@ horiz_swarm_plot <- function(swarm_data){
                      begin = 0.25, 
                      end = 1 , 
                      direction = 1, 
-                     guide_legend(title = "Duration (days)"),
+                     guide_legend(title = "Drought duration (days)"),
                      breaks = c(5, 100, 200, 300)) +
     theme_minimal(base_size = 16)+
     ylab(element_blank()) +
@@ -92,7 +92,8 @@ horiz_swarm_plot <- function(swarm_data){
                 slice_min(date_order),
               aes(x=-66, label = year),
               color = "black",
-              family = font_fam) +
+              size = 6,
+              family = font_fam, fontface="bold") +
     # vertical gridlines for x axis
     geom_segment(data = x_df %>%
                    filter(year %in% seq(1980, 2020, by = 5)) %>%
@@ -111,21 +112,38 @@ horiz_swarm_plot <- function(swarm_data){
     guides(fill = guide_colorbar(
       barheight = 0.62,
       barwidth = 21,
-      
+      title.position = "top",
       title.theme = element_text(vjust = 1, size = 16, family = font_fam)
     )) +
     coord_flip(clip = "off")
   
   
   # piece together plot elements
-  p_legend <- get_legend(p)
+  p_legend <- get_legend(p) # the legned
+  logo <- magick::image_read('../logo/usgs_logo_white.png') %>%
+    magick::image_resize('x100') %>%
+    magick::image_colorize(100, "black")
 
-  ggdraw() +
-    draw_plot(p+theme(legend.position = "none")) +
-    draw_label("40 Years of Streamflow Drought\nin the Upper Colorado River Basin", x = 0.015, y = 0.9, 
-               fontface = "bold", size = 30, hjust = 0, fontfamily = font_fam,
+  ggdraw(xlim = c(0, 0.97), ylim = c(-0.05, 1)) +
+    draw_plot(p+theme(legend.position = "none"), 
+              y = 0, x = 0, 
+              height = 1) +
+    draw_label("40+ Years of Streamflow Drought\nin the Upper Colorado River Basin", 
+               x = 0.015, y = 0.9, 
+               fontface = "bold", 
+               size = 30, 
+               hjust = 0, 
+               fontfamily = font_fam,
                lineheight = 1.1) +
-    draw_plot(p_legend, x = 0.13, y = 0.75, width = 0.2, height = 0.1)
+    draw_label("Scott Hamshaw, USGS\nData: NWIS", 
+               x = 0.95, y = -0.025, 
+               fontface = "italic", 
+               size = 14, 
+               hjust = 1, vjust = 0,
+               fontfamily = font_fam,
+               lineheight = 1.1) +
+    draw_plot(p_legend, x = 0.06, y = 0.73, width = 0.2, height = 0.1, hjust = 0) +
+    draw_image(logo, x = 0.015, y = -0.025, width = 0.08, hjust = 0, vjust = 0, halign = 0, valign = 0)
   
   
 }
