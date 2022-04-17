@@ -52,15 +52,15 @@ p1_targets_list <- list(
     streams_polylines_drb, 
     st_read('1_fetch/in/study_stream_reaches/study_stream_reaches.shp') %>% 
       sf::st_transform(., crs(drb_boundary))
-  ), 
+  )#, 
   
   ## note that the mask 
-  tar_target(
-    fetch_nlcd_all_years, 
-    {lapply(nlcd_years[1:2], function(x) 
-      get_nlcd_aoi(aoi = drb_boundary, aoi_label = 'drb',
-                   nlcd_dataset = 'landcover', nlcd_year = x, file_name = paste0('nlcd_',x,'.tif'), out_folder = '1_fetch/out/nlcd'))
-    },
-      format = 'file')
+ #tar_target(
+ #  fetch_nlcd_all_years, 
+ #  {lapply(nlcd_years[1:2], function(x) 
+ #    get_nlcd_aoi(aoi = drb_boundary, aoi_label = 'drb',
+ #                 nlcd_dataset = 'landcover', nlcd_year = x, file_name = paste0('nlcd_',x,'.tif'), out_folder = '1_fetch/out/nlcd'))
+ #  },
+ #    format = 'file')
   
 )

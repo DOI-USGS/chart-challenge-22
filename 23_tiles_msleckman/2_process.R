@@ -9,7 +9,7 @@ p2_targets_list<- list(
          .f = ~read_in_reclassify(lc_tif_path = .x,
                                   reclassify_legend = reclassify_df_nlcd,
                                   value_cols = c('FORESCE_value','Reclassify_match'),
-                                  aoi_crop = drb_boundary,
+                                  aoi_for_crop = drb_boundary,
                                   legend_file_sep = ','))
     },
   ),
@@ -20,6 +20,7 @@ p2_targets_list<- list(
                 .f = ~read_in_reclassify(lc_tif_path = .x,
                                          reclassify_legend = reclassify_df_nlcd,
                                          value_cols = c('NLCD_value','Reclassify_match'),
+                                         aoi_for_crop = drb_boundary,
                                          legend_file_sep = ','))
     }
   ),

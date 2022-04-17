@@ -34,9 +34,9 @@ reclassify_df_FOR <- read.delim(legend_df_path, sep = ',') %>% filter(Reclassify
 reclassify_df_nlcd <- read.delim('1_fetch/in/legend_color_map_NLCD.csv', sep = ',') %>% filter(., Reclassify_match != 'NA')
 # defining legend dataframe, [1] removing duplicates and then [2] reassigning colors (to streamline if time allows)
 ## [1]
-legend_df_FOR <- reclassify_df %>%
+legend_df_FOR <- reclassify_df_FOR %>% 
   arrange(Reclassify_match) %>% 
-  dplyr::select(-c(FORESCE_value, FORESCE_description, color)) %>%
+  dplyr::select(-c(FORESCE_value, FORESCE_description, color_name)) %>%
   distinct(Reclassify_match, Reclassify_description)
 
 legend_df_nlcd <- reclassify_df_nlcd %>% 
@@ -45,8 +45,8 @@ legend_df_nlcd <- reclassify_df_nlcd %>%
   distinct(Reclassify_match, Reclassify_description)
   
 ## [2]
-legend_df <- legend_df %>% 
-  mutate(color = brewer.pal(nrow(legend_df), "Set3")) 
+legend_df <- legend_df_nlcd %>% 
+  mutate(color = brewer.pal(nrow(legend_df_nlcd), "Set3")) 
 
 # Returning the complete list of targets
 c(p1_targets_list, p2_targets_list, p3_targets_list)

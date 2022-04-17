@@ -1,4 +1,4 @@
-read_in_reclassify <- function(lc_tif_path, reclassify_legend_FOR,
+read_in_reclassify <- function(lc_tif_path, reclassify_legend,
                                value_cols = c('FORESCE_value','Reclassify_match'),
                                legend_file_sep = ',', aoi_for_crop = NULL,
                                out_folder = '2_process/out/'){
@@ -22,9 +22,9 @@ read_in_reclassify <- function(lc_tif_path, reclassify_legend_FOR,
   
   ## read in legend file
   if(is.data.frame(reclassify_legend)){
-    reclassify_matrix <- reclassify_legend %>% dplyr::select(all_of(value_cols)) %>% as.matrix()
+    reclassify_matrix <- reclassify_legend %>% dplyr::select(any_of(value_cols)) %>% as.matrix()
   } else if(is.character(reclassify_legend)){
-    reclassify_matrix <- read.delim(reclassify_legend, sep = legend_file_sep) %>% dplyr::select(all_of(value_cols)) %>% as.matrix()
+    reclassify_matrix <- read.delim(reclassify_legend, sep = legend_file_sep) %>% dplyr::select(any_of(value_cols)) %>% as.matrix()
   } else {
     print('legend_reclassify_file must already be a dataframe or matrix, or a path to delimited table file')
   }
@@ -43,7 +43,7 @@ read_in_reclassify <- function(lc_tif_path, reclassify_legend_FOR,
   
   }
 
-reclassify_nlcd(nlcd_tif_path = '1_fetch/out/nlcd/nlcd_2001.tif',
+reclassify_nlcd <- function(nlcd_tif_path = '1_fetch/out/nlcd/nlcd_2001.tif',
                 reclassify_legend = reclassify_df_nlcd,
                 value_cols = c('NLCD_value','Reclassify_match'),
                 legend_file_sep = ',',
