@@ -29,8 +29,7 @@ list(
   # Combine data long format
   tar_target(
     crb_events,
-    bind_rows(events_crb_jd_1980_2020, events_crb_jd_1980_2021) %>%
-      distinct() %>%
+    bind_rows(events_crb_jd_1980_2020, events_crb_jd_1980_2021[which(events_crb_jd_1980_2021$start >= "2020-04-01"),]) %>%
       transform(StaID = as.character(StaID))%>%
       mutate(across(c(start, end, previous_end), ~as.Date(.x, '%m/%d/%y')))
   ),
