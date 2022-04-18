@@ -14,7 +14,7 @@ list(
   # for 1980-2020 for gages in Colorado River Basin region. 
 
   tar_target(event_data,
-             read_csv("data/event_delineations.csv") %>%
+             read_csv("https://labs.waterdata.usgs.gov/visualizations/data/event_delineations.csv") %>%
                mutate(across(c(start, end), ~as.Date(.x, '%Y-%m-%d')))
              ), 
 
