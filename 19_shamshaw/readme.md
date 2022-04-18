@@ -6,7 +6,7 @@ This data visualization shows the occurence of streamflow drought events observe
 
 To prepare the plot data file the following processing steps were performed:
 
- - Audit streamflow records to filter all available data to only data from streamgages where records between 1980 and 2020 have 5% or less missing data.
+ - Audit streamflow records to filter all available data to only data from streamgages where records between 1980 and 2020 have 5% or less missing data. This resulted in 122 gage locations in the Upper Colorado River basin.
  - Convert daily streamflow values to daily streamflow percentile values by comparing each daily observation to the historical record of observation on that day, and the 15 days before/after using a Weibull plotting position. For handling days with zero streamflow measured, values are ranked by the number of previous zero flow days and the length of zero flow period. 
  - Delineate the start, end, and duration of drought events by defining a minimum drought event duration of 5 days and pooling separate individual events separated by less than 5 days.
  
