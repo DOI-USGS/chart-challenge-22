@@ -10,63 +10,24 @@ tar_option_set(packages = c("tidyverse", "lubridate", "scico", "paletteer",
                             "BAMMtools","scales", "ggforce", "showtext", "cowplot"))
 
 list(
-  # Streamflow drought events calculated using Julian day 30-day moving window method 
+  # Streamflow drought event start and end dates and durations 
   # for 1980-2020 for gages in Colorado River Basin region. 
-  # Data file from regional drought early warning project 
-  # Data > Data from National Project > Streamflow > Drought Summaries
-  tar_target(events_crb_jd_1980_2020,
-             read_csv("data/weibull_jd_30d_wndw_Drought_Properties.csv") %>%
-               transform(StaID = as.character(StaID)) %>%
-               mutate(across(c(start, end, previous_end), ~as.Date(.x, '%m/%d/%y')))
+
+  tar_target(event_data,
+             read_csv("data/event_delineations.csv") %>%
+               mutate(across(c(start, end), ~as.Date(.x, '%Y-%m-%d')))
              ), 
 
-  # Preliminary version of file which includes 2021 data
-  tar_target(events_crb_jd_1980_2021,
-             read_csv("data/weibull_jd_30d_wndw_Drought_Properties_2021.csv") %>%
-               transform(StaID = as.character(StaID))%>%
-               mutate(across(c(start, end, previous_end), ~as.Date(.x, '%m/%d/%y')))
-             ), 
-  # Combine data long format
-  tar_target(
-    crb_events,
-    bind_rows(events_crb_jd_1980_2020, events_crb_jd_1980_2021[which(events_crb_jd_1980_2021$start >= "2020-04-01"),]) %>%
-      transform(StaID = as.character(StaID))%>%
-      mutate(across(c(start, end, previous_end), ~as.Date(.x, '%m/%d/%y')))
-  ),
-  
-  # Read in gage metadata for sites that are part of RDEWS project. Data file from regional drought early warning project 
-  # Data > Data from National Project > Streamflow 
-  tar_target(rdews_gages,
-             {read_csv("data/all_gages_metadata.csv", col_types = 'ccncnncclnnnnnnnnnnnnncccnc') %>% 
-                 transform(StaID = as.character(site))
-               }
-             ),
   # create event swarms for each time period
   tar_target(event_swarm_2021_t5,
-             create_event_swarm(event_data = events_crb_jd_1980_2021, 
-                                metadata = rdews_gages,
+             create_event_swarm(event_data = event_data, 
                                 start_period = as.Date("2020-01-01"),
-                                end_period = as.Date("2021-12-31"),
-                                target_threshold = 5)),
+                                end_period = as.Date("2021-12-31"))),
   tar_target(event_swarm_all,
-             create_event_swarm(event_data = crb_events, 
-                                metadata = rdews_gages,
+             create_event_swarm(event_data = event_data, 
                                 start_period = as.Date("1980-01-01"),
-                                end_period = as.Date("2021-12-31"),
-                                target_threshold = 5)),
-  # count number of events per decade
-  tar_target(event_counts_per_decade,
-             count_events(event_data  = crb_events, 
-                          metadata = rdews_gages,
-                          target_threshold = 5
-                          )),
-  # find the longest drought event per decade
-  tar_target(longest_drought_per_decade,
-             longest_events(event_data = crb_events,
-                            metadata = rdews_gages,
-                            target_threshold = 5
-                            )),
-  
+                                end_period = as.Date("2021-12-31"))),
+
   # Create plots
   # "Strip swarm" for just 2021
   tar_target(upper_crb_jd_5_2021,

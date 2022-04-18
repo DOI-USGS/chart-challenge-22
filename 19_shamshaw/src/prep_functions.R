@@ -1,13 +1,10 @@
-create_event_swarm <- function(event_data, metadata, start_period, end_period, target_threshold){
+create_event_swarm <- function(event_data, start_period, end_period){
   event_subset <- event_data %>% 
-    left_join(metadata, by = "StaID", suffix = c("",".gages")) %>% 
-    filter(HUC02 == 14) %>% # restrict to upper Colorado river basin
     filter(start > start_period) %>%
     filter(start <= end_period) %>% 
-    filter(threshold == target_threshold) %>% 
     mutate(onset_day = as.integer(start - start_period)) %>% 
     mutate(end_day = as.integer(end - start_period)) %>% 
-    arrange(onset_day, drought_id)
+    arrange(onset_day)
   
   # set up an empty "swarm grid" to place drought events into
   n <- 100 # set arbitrarily large number of possible simultaneous drought events positions. Trimmed prior to plotting
