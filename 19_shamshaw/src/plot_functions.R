@@ -44,14 +44,14 @@ horiz_swarm_plot <- function(swarm_data){
     # custom x-axis labelling
     geom_text(data = x_df %>%
                 filter(year %in% seq(1980, 2020, by = 5)),
-              aes(x=-66, label = year),
+              aes(x=-38, label = year),
               color = "black",
               size = 6,
               family = font_fam, fontface="bold") +
     # vertical gridlines for x axis
     geom_segment(data = x_df %>%
                    filter(year %in% seq(1980, 2020, by = 5)),
-                 aes(x=-64, xend = -2, yend=date_order),
+                 aes(x=-36, xend = -2, yend=date_order),
                  color = "grey",
                  linetype = "dotted")+
     theme(text = element_text(family = font_fam),
