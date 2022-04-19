@@ -30,18 +30,13 @@ nlcd_years <- list('2001','2004','2006','2011','2013','2016', '2019')
 reclassify_df_FOR <- read.delim('1_fetch/in/legend_color_map_FORESCE.csv', sep = ',') %>% filter(Reclassify_match != 'NA')
 
 reclassify_df_nlcd <- read.delim('1_fetch/in/legend_color_map_NLCD.csv', sep = ',') %>% filter(., Reclassify_match != 'NA')
-# defining legend dataframe, [1] removing duplicates and then [2] reassigning colors (to streamline if time allows)
+# defining legend dataframe
 ## [1]
 legend_df <- reclassify_df_FOR %>%
   arrange(Reclassify_match) %>% 
   dplyr::select(-c(FORESCE_value, FORESCE_description, color_name)) %>%
   distinct()
-## [2]
-legend_df_nlcd <- reclassify_df_nlcd %>% 
-  arrange(Reclassify_match) %>%
-  dplyr::select(-c(NLCD_value, NLCD_description, color_name)) %>%
-  distinct(Reclassify_match, Reclassify_description)
-  
+
 # ## [2]
 # legend_df <- legend_df %>% 
 #   mutate(color = brewer.pal(nrow(legend_df), "Set3")) 
