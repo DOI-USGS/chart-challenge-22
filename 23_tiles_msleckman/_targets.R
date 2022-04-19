@@ -32,10 +32,10 @@ reclassify_df_FOR <- read.delim('1_fetch/in/legend_color_map_FORESCE.csv', sep =
 reclassify_df_nlcd <- read.delim('1_fetch/in/legend_color_map_NLCD.csv', sep = ',') %>% filter(., Reclassify_match != 'NA')
 # defining legend dataframe, [1] removing duplicates and then [2] reassigning colors (to streamline if time allows)
 ## [1]
-legend_df_FOR <- reclassify_df_FOR %>%
+legend_df <- reclassify_df_FOR %>%
   arrange(Reclassify_match) %>% 
   dplyr::select(-c(FORESCE_value, FORESCE_description, color_name)) %>%
-  distinct(Reclassify_match, Reclassify_description)
+  distinct()
 ## [2]
 legend_df_nlcd <- reclassify_df_nlcd %>% 
   arrange(Reclassify_match) %>%

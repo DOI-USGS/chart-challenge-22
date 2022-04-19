@@ -1,7 +1,12 @@
 produce_lc_img <- function(raster_in, raster_frame, legend_df, out_folder = "3_visualize/out/"){
   
+  # raster_in <- gif_frames$raster
+  # raster_frame <- gif_frames$seq[3]
+
+  raster_in <- raster_in[[raster_frame]]
+
   ## transform into categorical raster
-  rat_lc <- ratify(raster_in[[1]])
+  rat_lc <- ratify(raster_in)
   
   # Produce levelplot
   ## define specs
@@ -14,14 +19,14 @@ produce_lc_img <- function(raster_in, raster_frame, legend_df, out_folder = "3_v
   png(frame_out)
   
   a <- levelplot(rat_lc, att='ID', 
-               col.regions=legend_df$color,
+               col.regions=legend_df$color_hex,
                par.settings = list(axis.line = list(col = "transparent"),
                                    strip.background = list(col = 'transparent'),
                                    strip.border = list(col = 'transparent')),
                scales = list(col = "transparent"),
                main= main_title,
                colorkey=F,
-               key = list(rectangles=list(col = legend_df$color), 
+               key = list(rectangles=list(col = legend_df$color_hex), 
                           text=list(lab=legend_df$Reclassify_description),
                           space='left',
                           columns=1,

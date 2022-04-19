@@ -54,16 +54,15 @@ p1_targets_list <- list(
       sf::st_transform(., crs(drb_boundary))
   ), 
   
-  ## note that the mask 
+  ## fetching + masking raster to aoi 
   tar_target(
     fetch_nlcd_all_years, 
-    {lapply(nlcd_years[1:2], function(x) 
+    {lapply(nlcd_years, function(x) 
       get_nlcd_aoi(aoi = drb_boundary, aoi_label = 'drb',
                    nlcd_dataset = 'landcover',
                    nlcd_year = x,
                    file_name = paste0('nlcd_',x,'.tif'),
                    out_folder = '1_fetch/out/nlcd'))
-    },
-      format = 'file')
+    })
   
 )
