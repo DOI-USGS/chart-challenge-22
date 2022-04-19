@@ -1,4 +1,4 @@
-produce_lc_img <- function(raster_in, raster_frame, legend_df, out_folder = "3_visualize/out/"){
+produce_lc_img <- function(raster_in, raster_frame, legend_df, out_folder = "3_visualize/out/", reach_shp = NULL){
   
   # raster_in <- gif_frames$raster
   # raster_frame <- gif_frames$seq[3]
@@ -32,6 +32,10 @@ produce_lc_img <- function(raster_in, raster_frame, legend_df, out_folder = "3_v
                           columns=1,
                           size=2,
                           cex=.6))
+  
+  if(!is.null(reach_shp)){
+    a + layer(sp.polygons(reach_shp, lwd=0.8, col='blue'))
+  }
   
   print(a)
   dev.off()
