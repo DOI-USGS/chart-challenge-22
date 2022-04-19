@@ -35,7 +35,7 @@ The pipeline will automatically download the data needed. In total, the pipeline
 
 1. Are occurrences of streamflow drought events becoming more common? To answer we plot streamflow drought event periods for 122 river gages in the Upper Colorado River basin for day 19 #30DayChartChallenge, Global Change by Scott Hamshaw 
 
-![](out/uppercol_jd_5_1980-2020.png)
+![](out/uppercol_jd_5_1980-2021.png)
 
 *Alt text: A time series of streamflow drought events occurring across 122 stream gages in the Upper Colorado River basin for each decade from 1980 to 2020*
 
