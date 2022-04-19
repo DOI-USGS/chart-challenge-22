@@ -1,4 +1,6 @@
 source('3_visualize/src/save_lc_img_gif.R')
+source('3_visualize/src/raster_plotting_w_ggplot.R')
+
  
 p3_targets_list<- list(
   

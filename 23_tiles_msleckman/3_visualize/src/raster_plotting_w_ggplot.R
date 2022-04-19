@@ -1,8 +1,12 @@
 raster_ploting_w_ggplot <- function(raster_in, reach_shp, out_folder = "3_visualize/out/"){
   
-  raster_in <- p2_reclassified_raster_list[[1]]
+  #raster_in <- p2_reclassified_raster_list[[1]]
   raster_name <- names(raster_in)
-  raster_df <- as.data.frame(raster_in, xy = TRUE) %>% na.omit() %>% rename(value = {{raster_name}})
+  
+  #
+  raster_df <- as.data.frame(raster_in, xy = TRUE) %>%
+    na.omit() %>%
+    rename(value = {{raster_name}})
   
   raster_name <- names(raster_in)
   frame_out <- paste0(out_folder, "ggplot_", raster_name,'.png')
