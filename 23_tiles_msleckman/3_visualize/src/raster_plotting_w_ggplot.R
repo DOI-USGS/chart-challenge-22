@@ -13,7 +13,6 @@ raster_ploting_w_ggplot <- function(raster_in, reach_shp, out_folder = "3_visual
   
   ## legend to add. color for legend mapped out in legend_df
   
-    
   print(raster_plot)
   dev.off()
   

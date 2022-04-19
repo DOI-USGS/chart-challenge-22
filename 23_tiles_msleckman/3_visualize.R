@@ -18,6 +18,17 @@ p3_targets_list<- list(
     format = 'file'
     ),
   
+  tar_target(
+    p3_save_map_frames_ggplot,
+    raster_plotting_w_ggplot(
+      raster_in = gif_frames$raster,
+      reach_shp = p1_streams_polylines_drb,
+      out_folder = "3_visualize/out/"),
+    pattern = map(gif_frames),
+    format = 'file'
+  ),
+  
+  
   # animate
   tar_target(
     p3_animate_frames_gif,

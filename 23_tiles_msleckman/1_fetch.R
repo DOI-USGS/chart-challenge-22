@@ -53,7 +53,8 @@ p1_targets_list <- list(
   ## Get reaches shp 
   # https://www.sciencebase.gov/catalog/item/5f6a285d82ce38aaa244912e
   # Because it's a shapefile, it's not easily downloaded using sbtools
-  # Because of that and since it's small (<700 Kb), just added to in folder
+  # Because of that and since it's small (<700 Kb), just added the zip into the in folder
+  # you need to unzip to be able to run correctly
   tar_target(
     p1_streams_polylines_drb, 
     st_read('1_fetch/in/study_stream_reaches/study_stream_reaches.shp') %>% 
