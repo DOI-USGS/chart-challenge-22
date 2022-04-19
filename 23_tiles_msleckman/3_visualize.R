@@ -1,4 +1,5 @@
 source('3_visualize/src/save_lc_img_gif.R')
+source('3_visualize/src/raster_plotting_w_ggplot.R')
  
 p3_targets_list<- list(
   
@@ -12,7 +13,7 @@ p3_targets_list<- list(
     p3_save_map_frames,
     produce_lc_img(raster_in = gif_frames$raster,
                    raster_frame = gif_frames$seq,
-                   legend_df = legend_df,
+                   legend_df = legend_df_FOR,
                    out_folder = "3_visualize/out/"),
     pattern = map(gif_frames),
     format = 'file'
@@ -20,7 +21,7 @@ p3_targets_list<- list(
   
   tar_target(
     p3_save_map_frames_ggplot,
-    raster_plotting_w_ggplot(
+    raster_ploting_w_ggplot(
       raster_in = gif_frames$raster,
       reach_shp = p1_streams_polylines_drb,
       out_folder = "3_visualize/out/"),

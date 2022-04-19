@@ -45,7 +45,6 @@ legend_df_nlcd <- reclassify_df_nlcd %>%
 # ## [2]
 # legend_df <- legend_df %>% 
 #   mutate(color = brewer.pal(nrow(legend_df), "Set3")) 
->>>>>>> d992a1c800d3c42b00c5b6da7e16e529d59a5353
 
 # Returning the complete list of targets
 c(p1_targets_list, p2_targets_list, p3_targets_list)
