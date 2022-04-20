@@ -31,12 +31,6 @@ p3_targets_list<- list(
     pattern = map(p2_downsamp_raster_list),
   format = "file",
   ),
-  tar_target(
-    p3_area_time_ggplot,
-    plot_time(counts =  p2_raster_cell_count, 
-              legend_df = legend_df_FOR)
-  ),
-
   # animate
   tar_target(
     p3_animate_frames_gif,
