@@ -51,9 +51,13 @@ downsamp_cat <- function(raster, down_fact){
   rast_down <- terra::aggregate(rast_seg, fact = down_fact,  sum) # downsample
   
   # convert to dataframe to plot wtih ggplot
+  ## find the mode for each aggregated cell
   rast_down_df <- as.data.frame(rast_down, xy = TRUE) %>%
-    na.omit() %>%
-    rename(value = 3) 
+    pivot_longer(!c(x,y)) %>%
+    filter(value > 0) %>%
+    group_by(x,y) %>%
+    arrange(desc(value)) %>%
+    slice_max(1)
   return(rast_down_df)
 }
 ## OLD CODE
