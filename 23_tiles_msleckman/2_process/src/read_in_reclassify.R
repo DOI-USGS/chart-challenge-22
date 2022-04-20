@@ -45,7 +45,7 @@ read_in_reclassify <- function(lc_tif_path, reclassify_legend,
   }
 downsamp_cat <- function(raster, down_fact){
   #' @param raster input raster
-  #' @param down_fact factor to downsample by
+  #' @param down_fact factor to downsample by in x and y directon
   rast <- terra::rast(raster[[1]]) # convert to Spat
   rast_seg <- terra::segregate(rast) # split categorical data
   rast_down <- terra::aggregate(rast_seg, fact = down_fact,  sum) # downsample

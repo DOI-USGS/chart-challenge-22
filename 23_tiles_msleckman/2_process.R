@@ -55,6 +55,7 @@ p2_targets_list<- list(
     
   ),
   # downsample raster to plot more easily
+  # this is over-reduced - gg developed areas notably different from levelplot
   tar_target(
    p2_downsamp_raster_list,
      downsamp_cat(p2_reclassified_raster_list[[1]], down_fact = 10)%>% 

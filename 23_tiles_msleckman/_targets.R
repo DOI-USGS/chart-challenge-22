@@ -4,14 +4,13 @@ library(RColorBrewer, quietly = T)
 
 options(tidyverse.quiet = TRUE)
 
-tar_option_set(packages = c("tidyverse", "dplyr", "lubridate",
-                            "rmarkdown","dataRetrieval",
-                            "knitr","leaflet","sf",
+tar_option_set(packages = c("tidyverse", "lubridate",
+                            "dataRetrieval","sf",
                             "purrr", "sbtools", "terra",
-                            'nhdplusTools','raster','sp',
+                            'nhdplusTools','raster',
                             'FedData', 'RColorBrewer','lattice',
-                            'rgdal', 'rasterVis', 'magick', 'stringr',
-                            'FedData')
+                            'rasterVis', 'magick', 'stringr',
+                            'FedData', 'cowplot', 'showtext')
                )
 
 source("1_fetch.R")

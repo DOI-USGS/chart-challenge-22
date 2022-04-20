@@ -24,13 +24,19 @@ p3_targets_list<- list(
     raster_ploting_w_ggplot(
       raster_in = p2_downsamp_raster_list,
       reach_shp = p1_streams_polylines_drb,
+      counts = p2_raster_cell_count,
       legend_df = legend_df_FOR,
-      out_folder = "3_visualize/out/"),
+      title = "NLCD in the DRB",
+      font_fam = "Dongle"),
     pattern = map(p2_downsamp_raster_list),
-    format = 'file'
+  format = "file",
+  ),
+  tar_target(
+    p3_area_time_ggplot,
+    plot_time(counts =  p2_raster_cell_count, 
+              legend_df = legend_df_FOR)
   ),
 
-  
   # animate
   tar_target(
     p3_animate_frames_gif,
