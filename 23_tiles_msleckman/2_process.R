@@ -43,6 +43,12 @@ p2_targets_list<- list(
       p2_all_reclassified_rasters,
       raster)
       }
+  ),
+  # downsample raster to plot more easily
+  tar_target(
+   p2_downsamp_raster_list,
+     downsamp_cat(p2_reclassified_raster_list, down_fact = 10),
+   pattern = map(p2_reclassified_raster_list)
   )
 )
 

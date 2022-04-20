@@ -30,7 +30,7 @@ nlcd_years <- list('2001','2004','2006','2011','2013','2016', '2019')
 reclassify_df_FOR <- read.delim('1_fetch/in/legend_color_map_FORESCE.csv', sep = ',') %>% filter(Reclassify_match != 'NA')
 
 reclassify_df_nlcd <- read.delim('1_fetch/in/legend_color_map_NLCD.csv', sep = ',') %>% filter(., Reclassify_match != 'NA')
-# defining legend dataframe, [1] removing duplicates and then [2] reassigning colors (to streamline if time allows)
+# defining legend dataframe
 ## [1]
 legend_df_FOR <- reclassify_df_FOR %>% 
   arrange(Reclassify_match) %>% 

@@ -43,7 +43,19 @@ read_in_reclassify <- function(lc_tif_path, reclassify_legend,
   #return(reclassified_raster)
   
   }
-
+downsamp_cat <- function(raster, down_fact){
+  #' @param raster input raster
+  #' @param down_fact factor to downsample by
+  rast <- terra::rast(raster[[1]]) # convert to Spat
+  rast_seg <- terra::segregate(rast) # split categorical data
+  rast_down <- terra::aggregate(rast_seg, fact = down_fact,  sum) # downsample
+  
+  # convert to dataframe to plot wtih ggplot
+  rast_down_df <- as.data.frame(rast_down, xy = TRUE) %>%
+    na.omit() %>%
+    rename(value = 3) 
+  return(rast_down_df)
+}
 ## OLD CODE
 #mapview(raster) # to remove
 
@@ -69,4 +81,4 @@ read_in_reclassify <- function(lc_tif_path, reclassify_legend,
 #   
 #   
 # }
->>>>>>> d992a1c800d3c42b00c5b6da7e16e529d59a5353
+

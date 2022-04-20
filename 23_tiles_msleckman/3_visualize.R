@@ -1,6 +1,6 @@
 source('3_visualize/src/save_lc_img_gif.R')
 source('3_visualize/src/raster_plotting_w_ggplot.R')
- 
+
 p3_targets_list<- list(
   
   # Create output images for each year
@@ -18,7 +18,7 @@ p3_targets_list<- list(
     pattern = map(gif_frames),
     format = 'file'
     ),
-  
+
   tar_target(
     p3_save_map_frames_ggplot,
     raster_ploting_w_ggplot(
@@ -28,7 +28,7 @@ p3_targets_list<- list(
     pattern = map(gif_frames),
     format = 'file'
   ),
-  
+
   
   # animate
   tar_target(
