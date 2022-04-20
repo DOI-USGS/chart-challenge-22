@@ -6,7 +6,7 @@ p2_targets_list<- list(
   ## reclassification for the FORESCE backcasting tif files. This needs cropping to the correct polygon boundary
   tar_target(
     p2_write_reclassified_rasters_FOR, 
-    {purrr::map(.x = p1_FORESCE_lc_tif_download_filtered[1:2], # using just the first 2 tif images for now 
+    {purrr::map(.x = p1_FORESCE_lc_tif_download_filtered, # using just the first 2 tif images for now 
          .f = ~read_in_reclassify(lc_tif_path = .x,
                                   reclassify_legend = reclassify_df_FOR,
                                   value_cols = c('FORESCE_value','Reclassify_match'),

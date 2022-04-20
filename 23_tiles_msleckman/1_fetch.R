@@ -20,7 +20,8 @@ p1_targets_list <- list(
   ## Subset FORESCE (FOR) historical land cover files to the years of interest
   tar_target(
     p1_FORESCE_lc_tif_download_filtered,
-    p1_FORESCE_lc_tif_download %>% str_subset(pattern = '1900|1910|1920|1930|1940|1950|1960|1970|1980|1990|2000')
+    p1_FORESCE_lc_tif_download %>% str_subset(
+      pattern = '1900|1910|1920|1930|1940|1950|1960|1970|1980|1990|2000')
     ),
   
   ## Get drb boundary shp 
@@ -43,7 +44,7 @@ p1_targets_list <- list(
   tar_target(
     p1_drb_boundary,
     st_read(p1_drb_boundary_unzip %>% str_subset('.shp$')) %>%
-      head(5) %>% 
+      # head(5) %>% 
       group_by(Source) %>%
       summarize() %>% 
       mutate(region = 'drb') 
