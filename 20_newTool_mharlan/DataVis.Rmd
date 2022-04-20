@@ -67,20 +67,22 @@ rivers10 <- ne_download(scale = 10, type = 'rivers_lake_centerlines', category =
   st_intersection(AK_shp) 
 
 AK_map = ggplot(data = AK_sites_sf) + 
-  geom_sf(data = AK_shp, fill = 'azure') + 
+  geom_sf(data = AK_shp, 
+          fill = 'azure',
+          #fill = "lightgrey",
+          #color = NA,
+          alpha = 0.7
+          ) + 
   #xlim(c(-170, -130)) + 
   #ylim(c(55,72))# + 
   theme_void() + 
   theme(legend.position="top") +
-  geom_sf(data = NA_rivers, col = 'grey70') + 
-  geom_sf(data = rivers10, col = 'grey70') +
+  geom_sf(data = NA_rivers, col = 'dimgrey') + 
+  geom_sf(data = rivers10, col = 'dimgrey') +
   geom_sf(data = AK_SWORD_reaches, col = "royalblue") +
   #geom_sf(aes(col = end_date)) +
   labs(x = "Longitude", y = "Latitude", colour="Gage End") +
-  geom_sf(data = current_sites_sf, col = "redorange", shape = 21) +
-  #annotate("text", x = -139, y = 72, label = "Large AK Rivers", col = "dimgray") + 
-  #annotate("text", x = -139, y = 70.8, label = "SWOT Rivers", col = "lightpink3") + 
-  #annotate("text", x = -161, y = 72, label = "Active Gage", col = "green3") +
+  geom_sf(data = current_sites_sf, fill = "orangered", col = "white", shape =21) +
   theme(legend.key.width=unit(1.5,"cm")) +
   coord_sf()
 AK_map
@@ -93,8 +95,6 @@ library(lubridate)
 require(scales)
 library(png)
 library(grid)
-library(terra)
-
 # MERIT data can be downloaded here: http://hydro.iis.u-tokyo.ac.jp/~yamadai/MERIT_Hydro/
 # merged with HydroBasins for AK https://www.hydrosheds.org/products/hydrobasins
 if(!file.exists('data/MERITHydro/AK_MERITHydro.shp')){
@@ -139,23 +139,39 @@ for(i in 1:length(MERITHydro_SWORD)){
 }
 
 SWOT_df = data.frame(upstream_area = c(rep(upstream_df[116,2]+sum(close_SWORD_df$uparea.uparea),3)), year = 2023:2025)
-combined_df = rbind(upstream_df %>% mutate(type = 'Gages'), SWOT_df %>% mutate(type = 'SWOT'))
+combined_df = rbind(upstream_df %>% mutate(type = 'gage'), SWOT_df %>% mutate(type = 'SWOT'))
 combined_df$upstream_area = combined_df$upstream_area/1000
 
 combined_df = combined_df %>% filter(year > 1949)
 
+seg_df <- combined_df %>%
+  filter(year %in% c(2022, 2023))
+
 img = readPNG(source = "SWOT_spacecraft_model.png")
 g = rasterGrob(img, interpolate=TRUE)
-
+combined_df
 area_timeline = ggplot(combined_df, aes(x = year, y = upstream_area)) + 
-  geom_line(col = "cornflowerblue") + 
-  theme_bw() + 
+  geom_line(col = "cornflowerblue", size = 1, aes(linetype = type)) + 
+  geom_segment(aes(y = min(seg_df$upstream_area), 
+                   yend = max(seg_df$upstream_area), 
+                   x = min(seg_df$year), 
+                   xend = max(seg_df$year)),
+               linetype = "dotted",
+               col = "cornflowerblue")+
+  theme_classic(base_size = 16) + 
+  theme(legend.position = 'none') +
   xlab("Year") + 
-  ggtitle("Cumulative Upstream Area of \nObserved River Flow (1,000km2)") + 
+  ggtitle("River flow captured by monitoring\n(cumulative upstream area, 1,000km2)") + 
   ylab("") + 
-  annotate("text", x = 1990, y = 1000, label = "Total discharge captured by gages", col = "dimgray") + 
-  annotate("text", x = 2000, y = 50000, label = "Increased monitoring with SWOT ->", col = "dimgray")+
-  annotation_custom(g, xmin = 1990, xmax = 2020) + scale_y_continuous(trans = "log10", labels =  comma)#+coord_trans(y='log10')
+  annotate("text", x = 1990, y = 800, label = "Streamflow captured by gages", col = "black") + 
+  annotate("text", x = 2020, y = 100000, label = "Increased monitoring\nwith SWOT", col = "black", hjust = 1)+
+  annotation_custom(g, xmin = 1990, xmax = 2020) + 
+  scale_y_continuous(trans = "log10", labels =  comma) +
+  scale_x_continuous(
+    breaks = seq(1950, 2020, by = 10)
+  )+
+  theme(axis.title = element_blank())+
+  scale_linetype_manual(values = c('solid', 'dashed'))
 
 area_timeline
 
@@ -163,30 +179,22 @@ area_timeline
 
 ```{r}
 #Combine both plots into one, add title
-library(ggpubr)
 library(cowplot)
 library(showtext)
 
- # add font
- font_fam = "Source Sans Pro"
-  font_add_google(font_fam, regular.wt = 300, bold.wt = 700) 
-  showtext_opts(dpi = 300)
-  showtext_auto(enable = TRUE)
-  plot_margin <- 0.025
+# add font
+font_fam = "Source Sans Pro"
+font_add_google(font_fam, regular.wt = 300, bold.wt = 700) 
+showtext_opts(dpi = 300)
+showtext_auto(enable = TRUE)
+plot_margin <- 0.025
 
 t = textGrob(paste0("Many large rivers in Alaska are still either unmonitored \n or are no longer being monitored. A future tool that could \n help us estimate river discharge is satellite imagery!"), gp=gpar(fontsize=14, fontface="bold", lineheight=0.8))
 
-#Export as png
-figure = ggarrange(AK_map, area_timeline)
-annotate_figure(figure,
-                top = t)+
-  bgcolor("white")
-
 canvas <- rectGrob(
-  width = 16,
-  height = 9,
-  hjust = 0, vjust = 1,
-  gp = gpar(fill = "white", alpha = 1, col = "white")
+  x = 0, y = 0, 
+  width = 16, height = 9,
+  gp = gpar(fill = "white", alpha = 1, col = 'white')
 )
 
 # combine plot elements
@@ -200,16 +208,32 @@ ggdraw() +
                          axis.text = element_blank(),
                          axis.ticks = element_blank(),
                          panel.grid = element_blank()),
-            x = 0.2, y = 0, 
-            width = 0.8, height = 0.9) +
-  draw_plot(area_timeline+
-              theme(plot.background = element_blank()),
-            x = 0, y = 0.2,
-            width = 0.5, height = 0.7) +
+            x = 0.02, y = -0.1, 
+            height = 1.1) +
+  draw_plot(area_timeline +
+              theme(plot.background = element_blank(),
+                    panel.background = element_blank(),
+                    text = element_text(family = font_fam)),
+            x = plot_margin, y = 0.15,
+            width = 0.35, height = 0.7) +
   draw_label("Opportunities using Surface Water Ocean Topography (SWOT)\nto estimate river discharge in unmonitored locations", 
              x = 0+plot_margin, y = 1-plot_margin,
-             fontface = "bold", size = 20,
+             fontface = "bold", size = 30,
+             fontfamily = font_fam,
              hjust = 0, vjust = 1)+
+  draw_label("SWOT observed reaches", 
+             x = 1-plot_margin, y = 0.625,
+             color = "royalblue",
+             fontfamily = font_fam,
+             hjust = 1, vjust = 1) +
+  #draw_label("Major rivers", 
+  #           x = 1-plot_margin, y = 0.65,
+  #           color = "grey70",
+  #           hjust = 1, vjust = 1) +
+  draw_label("Active streamgages", 
+             x = 1-plot_margin, y = 0.6,
+             color = "orangered",
+             hjust = 1, vjust = 1) +
   draw_label("Merritt Harlan, USGS\nData: SWOT (Altenau et al. 2021) & MERIT Hydro (Yamazaki et al. 2019)", 
                x = 1-plot_margin, y = plot_margin, 
                fontface = "italic", 
@@ -218,9 +242,14 @@ ggdraw() +
                fontfamily = font_fam,
                lineheight = 1.1) 
 
-
 ggsave("SWOT_chart.png", width = 16, height = 9, dpi = 300)
 
+
+canvas <- rectGrob(
+  x = 0, y = 0, 
+  width = 16, height = 9,
+  gp = gpar(fill = "white", alpha = 1, col = 'white')
+)
 
 ```
 
