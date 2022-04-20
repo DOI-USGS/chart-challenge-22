@@ -50,16 +50,24 @@ p1_targets_list <- list(
       
       ), 
   
-  ## Get reaches shp 
-  # https://www.sciencebase.gov/catalog/item/5f6a285d82ce38aaa244912e
-  # Because it's a shapefile, it's not easily downloaded using sbtools
-  # Because of that and since it's small (<700 Kb), just added the zip into the in folder
-  # you need to unzip to be able to run correctly
+  # use DRB boundary to get flowlines from NHD
+  # using this method to be able to get straemorder for plotting
   tar_target(
-    p1_streams_polylines_drb, 
-    st_read('1_fetch/in/study_stream_reaches/study_stream_reaches.shp') %>% 
-      sf::st_transform(., crs(p1_drb_boundary))
-  ), 
+    p1_drb_huc8,
+    nhdplusTools::get_huc8(AOI = p1_drb_boundary)
+    ),
+  tar_target(
+    p1_drb_flines,
+    nhdplusTools::get_nhdplus(AOI = p1_drb_huc8, realization = 'flowline')
+  ),
+  tar_target(
+    p1_streams_polylines_drb,
+    p1_drb_flines %>%
+      group_by(streamorde) %>%
+      summarize() %>%
+      rmapshaper::ms_simplify() %>%
+      st_intersection(p1_drb_huc8)
+  ),
   
   ## Get nlcd data usign the FedData packages and the get_nlcd() function 
   ## This process includes fetching + masking raster to aoi (drb aoi in our case) 
