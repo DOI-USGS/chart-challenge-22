@@ -1,0 +1,131 @@
+---
+title: "DataVis"
+author: "Merritt Harlan"
+date: '2022-04-14'
+output: html_document
+---
+
+```{r SWOT observable AK rivers, echo=FALSE, message=FALSE, warning=FALSE}
+library(dplyr)
+library(sf)
+library(dataRetrieval)
+
+#Get outline of AK for basemap
+AK_shp = read_sf("GIS/AK/GU_StateOrTerritory.shp")
+
+#Get outline of North American rivers
+NA_rivers = read_sf("GIS/ne_10m_rivers_north_america/ne_10m_rivers_north_america.shp")
+
+# Get SWOT-observable rivers in AK from the SWORD database
+hb78_reaches = read_sf("GIS/SWORD/NA/na_sword_reaches_hb78_v1.shp")
+hb81_reaches = read_sf("GIS/SWORD/NA/na_sword_reaches_hb81_v1.shp")
+hb82_reaches = read_sf("GIS/SWORD/NA/na_sword_reaches_hb82_v1.shp")
+
+AK_SWORD_reaches = rbind(hb78_reaches, hb81_reaches, hb82_reaches)
+
+# Overlay with USGS gauge sites
+all_AK_sites = whatNWISdata(stateCd = "AK", 
+                          parameterCd = "00060")
+AK_sites_sf = st_as_sf(all_AK_sites, coords = c("dec_long_va", "dec_lat_va"), crs = 4269)
+
+current_sites_sf = AK_sites_sf %>% filter(end_date > "2022-01-01")
+```
+
+
+```{r plotting, echo=FALSE, message=FALSE, warning=FALSE}
+# Plot SWORD reaches and gauge locations as a function of last date of data
+library(rnaturalearth)
+library(ggplot2)
+
+rivers10 <- ne_download(scale = 10, type = 'rivers_lake_centerlines', category = 'physical', returnclass = c("sf"))
+
+AK_map = ggplot(data = AK_sites_sf) + geom_sf(data = st_geometry(AK_shp), fill = 'azure') + xlim(c(-170, -130)) + ylim(c(55,72)) + theme_bw() + 
+  theme(legend.position="top")+
+  geom_sf(data = st_geometry(NA_rivers), col = 'grey70') + 
+  geom_sf(data = st_geometry(rivers10), col = 'grey70') +
+  geom_sf(data = st_geometry(AK_SWORD_reaches), col = "lightpink") +
+  geom_sf(aes(col = end_date))+labs(x = "Longitude", y = "Latitude", colour="Gage End")+
+  geom_sf(data = st_geometry(current_sites_sf), col = "green") +
+  annotate("text", x = -139, y = 72, label = "Large AK Rivers", col = "dimgray") + 
+  annotate("text", x = -139, y = 70.8, label = "SWOT Rivers", col = "lightpink3") + 
+  annotate("text", x = -161, y = 72, label = "Active Gage", col = "green3") +
+  theme(legend.key.width=unit(1.5,"cm"))
+
+AK_map
+```
+
+
+```{r plotting, echo=FALSE, message=FALSE, warning=FALSE}
+#Plot time series of available discharge data in terms of available upstream area, overlay with MERIT Hydro to get upstream area. 
+library(lubridate)
+require(scales)
+library(png)
+library(grid)
+
+MERITHydro = read_sf("GIS/MERITHydro/AK_MERITHydro.shp")
+AK_sites_4326 = st_transform(AK_sites_sf, st_crs(MERITHydro))
+MERITHydro_gaged = st_is_within_distance(MERITHydro, AK_sites_4326, dist = 500)
+
+#Find overlapping gage and MERITHydro rivers, to get the upstream area of the gaged rivers
+close_gage_df = data.frame()
+for(i in 1:length(MERITHydro_gaged)){
+  if(length(MERITHydro_gaged[[i]])>0){
+    df = data.frame(MERITHydro_index = i, Gauge_index = as.numeric(MERITHydro_gaged[[i]][1]), uparea = MERITHydro[i, "uparea"], end_date = AK_sites_4326[MERITHydro_gaged[[i]][1],"end_date"], 
+                    start_date = AK_sites_4326[MERITHydro_gaged[[i]][1],"begin_date"])
+    close_gage_df = rbind(df, close_gage_df)
+  }
+}
+
+upstream_df = data.frame(year = c(1907:2022), upstream_area = NA)
+
+for(i in 1:nrow(close_gage_df)){
+  upstream_df[upstream_df$year %in% c(year(close_gage_df[i,7]):year(close_gage_df[i,5])),2] = 
+    rowSums(cbind(close_gage_df[i,3],upstream_df[upstream_df$year %in% c(year(close_gage_df[i,7]):year(close_gage_df[i,5])),2]), na.rm = T)
+  
+}
+
+#Repeat analysis for SWORD database
+MERITHydro_SWORD= st_intersects(MERITHydro, AK_SWORD_reaches)
+
+close_SWORD_df = data.frame()
+for(i in 1:length(MERITHydro_SWORD)){
+  if(length(MERITHydro_SWORD[[i]])>0){
+    df = data.frame(MERITHydro_index = i, SWORD_index = as.numeric(MERITHydro_SWORD[[i]][1]), uparea = MERITHydro[i, "uparea"])
+    close_SWORD_df = rbind(df, close_SWORD_df)
+  }
+}
+
+SWOT_df = data.frame(upstream_area = c(rep(upstream_df[116,2]+sum(close_SWORD_df$uparea.uparea),3)), year = 2023:2025)
+combined_df = rbind(upstream_df, SWOT_df)
+combined_df$upstream_area = combined_df$upstream_area/1000
+
+combined_df = combined_df %>% filter(year > 1949)
+
+img = readPNG(source = "SWOT_spacecraft_model.png")
+g = rasterGrob(img, interpolate=TRUE)
+
+area_timeline = ggplot(combined_df, aes(x = year, y = upstream_area)) + geom_line(col = "cornflowerblue") + theme_bw() + 
+  xlab("Year") + ggtitle("Cumulative Upstream Area of \n Observed River Flow (1,000km2)") + ylab("") + annotate("text", x = 1990, y = 1000, label = "Gage discharge", col = "dimgray") + annotate("text", x = 2000, y = 50000, label = "Expected SWOT \n satellite discharge ->", col = "dimgray")+
+  annotation_custom(g, xmin = 1990, xmax = 2020) + scale_y_continuous(trans = "log10", labels =  comma)#+coord_trans(y='log10')
+
+area_timeline
+
+```
+
+```{r}
+#Combine both plots into one, add title
+library(ggpubr)
+
+t = textGrob(paste0("Many large rivers in Alaska are still either unmonitored \n or are no longer being monitored. A future tool that could \n help us estimate river discharge is satellite imagery!"), gp=gpar(fontsize=14, fontface="bold", lineheight=0.8))
+
+#Export as png
+figure = ggarrange(AK_map, area_timeline)
+annotate_figure(figure,
+                top = t)+
+  bgcolor("white")
+
+ggsave("chart.png",dpi = 300)
+
+
+```
+
