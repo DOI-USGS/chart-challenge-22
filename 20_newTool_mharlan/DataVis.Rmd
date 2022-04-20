@@ -17,7 +17,16 @@ proj_ak <- '+proj=aea +lat_1=55 +lat_2=65 +lat_0=50 +lon_0=-154 +x_0=0 +y_0=0 +e
 AK_shp <- spData::alaska %>% st_transform(proj_ak)
 
 #Get outline of North American rivers
-NA_rivers = read_sf("GIS/ne_10m_rivers_north_america/ne_10m_rivers_north_america.shp")
+file_rivers <- 'data/ne_10m_rivers_north_america'
+if(!file.exists(sprintf('%s.zip',file_rivers))){
+  download.file('https://www.naturalearthdata.com/http//www.naturalearthdata.com/download/10m/physical/ne_10m_rivers_north_america.zip',
+              destfile = sprintf('%s.zip',file_rivers))  
+  unzip(sprintf('%s.zip',file_rivers), exdir = 'data')
+}
+
+# Read in NA ivers
+NA_rivers = read_sf("data/ne_10m_rivers_north_america.shp")
+
 
 # Get SWOT-observable rivers in AK from the SWORD database
 hb78_reaches = read_sf("GIS/SWORD/NA/na_sword_reaches_hb78_v1.shp")
@@ -26,7 +35,7 @@ hb82_reaches = read_sf("GIS/SWORD/NA/na_sword_reaches_hb82_v1.shp")
 
 AK_SWORD_reaches = rbind(hb78_reaches, hb81_reaches, hb82_reaches)
 
-# Overlay with USGS gauge sites
+# Overlay with USGS gage sites
 all_AK_sites = whatNWISdata(stateCd = "AK", 
                           parameterCd = "00060")
 AK_sites_sf = st_as_sf(all_AK_sites, coords = c("dec_long_va", "dec_lat_va"), crs = 4269)
