@@ -245,11 +245,6 @@ ggdraw() +
 ggsave("SWOT_chart.png", width = 16, height = 9, dpi = 300)
 
 
-canvas <- rectGrob(
-  x = 0, y = 0, 
-  width = 16, height = 9,
-  gp = gpar(fill = "white", alpha = 1, col = 'white')
-)
 
 ```
 
