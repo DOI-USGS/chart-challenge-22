@@ -66,7 +66,7 @@ p1_targets_list <- list(
       group_by(streamorde) %>%
       summarize() %>%
       rmapshaper::ms_simplify() %>%
-      st_intersection(p1_drb_huc8)
+      st_intersection(p1_drb_boundary)
   ),
   
   ## Get nlcd data usign the FedData packages and the get_nlcd() function 

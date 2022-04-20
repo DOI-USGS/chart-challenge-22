@@ -22,10 +22,11 @@ p3_targets_list<- list(
   tar_target(
     p3_save_map_frames_ggplot,
     raster_ploting_w_ggplot(
-      raster_in = gif_frames$raster,
+      raster_in = p2_downsamp_raster_list,
       reach_shp = p1_streams_polylines_drb,
+      legend_df = legend_df_FOR,
       out_folder = "3_visualize/out/"),
-    pattern = map(gif_frames),
+    pattern = map(p2_downsamp_raster_list),
     format = 'file'
   ),
 

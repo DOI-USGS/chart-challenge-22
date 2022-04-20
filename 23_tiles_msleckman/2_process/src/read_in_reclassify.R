@@ -54,7 +54,7 @@ downsamp_cat <- function(raster, down_fact){
   ## find the mode for each aggregated cell
   rast_down_df <- as.data.frame(rast_down, xy = TRUE) %>%
     pivot_longer(!c(x,y)) %>%
-    filter(value > 0) %>%
+    filter(value > 0, name != 0) %>%
     group_by(x,y) %>%
     arrange(desc(value)) %>%
     slice_max(1)
