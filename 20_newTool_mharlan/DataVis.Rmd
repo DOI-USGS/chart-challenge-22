@@ -88,13 +88,24 @@ AK_map
 
 
 ```{r plotting, echo=FALSE, message=FALSE, warning=FALSE}
-#Plot time series of available discharge data in terms of available upstream area, overlay with MERIT Hydro to get upstream area. 
+# Plot time series of available discharge data in terms of available upstream area, overlay with MERIT Hydro to get upstream area. 
 library(lubridate)
 require(scales)
 library(png)
 library(grid)
+library(terra)
 
-MERITHydro = read_sf("GIS/MERITHydro/AK_MERITHydro.shp")
+# MERIT data can be downloaded here: http://hydro.iis.u-tokyo.ac.jp/~yamadai/MERIT_Hydro/
+# merged with HydroBasins for AK https://www.hydrosheds.org/products/hydrobasins
+if(!file.exists('data/MERITHydro/AK_MERITHydro.shp')){
+  download.file('https://labs.waterdata.usgs.gov/visualizations/data/MERITHydro.zip', 'data/MERITHydro.zip')
+  unzip('data/MERITHydro.zip', exdir = 'data')
+}
+
+MERITHydro = read_sf("data/MERITHydro/AK_MERITHydro.shp") %>%
+  st_transform(proj_ak) %>%
+  st_intersection(AK_shp)
+
 AK_sites_4326 = st_transform(AK_sites_sf, st_crs(MERITHydro))
 MERITHydro_gaged = st_is_within_distance(MERITHydro, AK_sites_4326, dist = 500)
 
