@@ -43,11 +43,11 @@ p1_targets_list <- list(
   tar_target(
     p1_drb_boundary,
     st_read(p1_drb_boundary_unzip %>% str_subset('.shp$')) %>%
+      head(5) %>% 
       group_by(Source) %>%
       summarize() %>% 
       mutate(region = 'drb') 
       ## keeping the project of this file - projection
-      
       ), 
   
   ## Get reaches shp 

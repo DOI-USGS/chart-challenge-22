@@ -20,11 +20,11 @@ p2_targets_list<- list(
   ## reclassification for the nlcd tif files found in the 1_fetch/nlcd/ folder. Already cropped to the correct boundary 
   tar_target(
     p2_write_reclassified_rasters_NLCD, 
-    {purrr::map(.x = list.files(path = '1_fetch/out/nlcd/', full.names = TRUE, pattern = '.tif$'),
+    {purrr::map(.x = list.files(path = '1_fetch/out/nlcd', full.names = TRUE, pattern = '.tif$'),
                 .f = ~read_in_reclassify(lc_tif_path = .x,
                                          reclassify_legend = reclassify_df_nlcd,
                                          value_cols = c('NLCD_value','Reclassify_match'),
-                                         aoi_for_crop = NULL,
+                                         aoi_for_crop = p1_drb_boundary,
                                          legend_file_sep = ',',
                                          out_folder = '2_process/out/reclassified/'))
     }
