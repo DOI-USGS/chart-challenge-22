@@ -27,18 +27,27 @@ if(!file.exists(sprintf('%s.zip',file_rivers))){
 # Read in NA ivers
 NA_rivers = read_sf("data/ne_10m_rivers_north_america.shp")
 
-
 # Get SWOT-observable rivers in AK from the SWORD database
-hb78_reaches = read_sf("GIS/SWORD/NA/na_sword_reaches_hb78_v1.shp")
-hb81_reaches = read_sf("GIS/SWORD/NA/na_sword_reaches_hb81_v1.shp")
-hb82_reaches = read_sf("GIS/SWORD/NA/na_sword_reaches_hb82_v1.shp")
+# Download and unzip into 'data' from https://zenodo.org/record/5643392#.YmBFPfPMKHF
+# this will take at least 20 minutes!
+sword_data <- 'data/SWORD_shp_v2'
+if(!file.exists(sprintf('%s.zip',sword_data))){
+  download.file('https://zenodo.org/record/5643392/files/SWORD_shp_v2.zip?download=1',
+              destfile = sprintf('%s.zip',sword_data))  
+  unzip(sprintf('%s/%s.zip', sword_data, sword_data), exdir = 'data')
+}
+
+hb78_reaches = read_sf("data/shp/NA/na_sword_reaches_hb78_v2.shp")
+hb81_reaches = read_sf("data/shp/NA/na_sword_reaches_hb81_v2.shp")
+hb82_reaches = read_sf("data/shp/NA/na_sword_reaches_hb82_v2.shp")
 
 AK_SWORD_reaches = rbind(hb78_reaches, hb81_reaches, hb82_reaches)
 
 # Overlay with USGS gage sites
 all_AK_sites = whatNWISdata(stateCd = "AK", 
                           parameterCd = "00060")
-AK_sites_sf = st_as_sf(all_AK_sites, coords = c("dec_long_va", "dec_lat_va"), crs = 4269)
+AK_sites_sf = st_as_sf(all_AK_sites, coords = c("dec_long_va", "dec_lat_va"), crs = 4269) %>%
+  st_transform(proj_ak)
 
 current_sites_sf = AK_sites_sf %>% filter(end_date > "2022-01-01")
 ```
