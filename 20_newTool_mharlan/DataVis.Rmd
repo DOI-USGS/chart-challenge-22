@@ -25,7 +25,9 @@ if(!file.exists(sprintf('%s.zip',file_rivers))){
 }
 
 # Read in NA ivers
-NA_rivers = read_sf("data/ne_10m_rivers_north_america.shp")
+NA_rivers = read_sf("data/ne_10m_rivers_north_america.shp") %>%
+  st_transform(proj_ak)%>%
+  st_intersection(AK_shp)
 
 # Get SWOT-observable rivers in AK from the SWORD database
 # Download and unzip into 'data' from https://zenodo.org/record/5643392#.YmBFPfPMKHF
@@ -41,7 +43,9 @@ hb78_reaches = read_sf("data/shp/NA/na_sword_reaches_hb78_v2.shp")
 hb81_reaches = read_sf("data/shp/NA/na_sword_reaches_hb81_v2.shp")
 hb82_reaches = read_sf("data/shp/NA/na_sword_reaches_hb82_v2.shp")
 
-AK_SWORD_reaches = rbind(hb78_reaches, hb81_reaches, hb82_reaches)
+AK_SWORD_reaches = rbind(hb78_reaches, hb81_reaches, hb82_reaches) %>%
+  st_transform(proj_ak)  %>%
+  st_intersection(AK_shp)
 
 # Overlay with USGS gage sites
 all_AK_sites = whatNWISdata(stateCd = "AK", 
@@ -58,18 +62,25 @@ current_sites_sf = AK_sites_sf %>% filter(end_date > "2022-01-01")
 library(rnaturalearth)
 library(ggplot2)
 
-rivers10 <- ne_download(scale = 10, type = 'rivers_lake_centerlines', category = 'physical', returnclass = c("sf"))
+rivers10 <- ne_download(scale = 10, type = 'rivers_lake_centerlines', category = 'physical', returnclass = c("sf")) %>%
+  st_transform(proj_ak) %>%
+  st_intersection(AK_shp) 
 
-AK_map = ggplot(data = AK_sites_sf) + geom_sf(data = st_geometry(AK_shp), fill = 'azure') + xlim(c(-170, -130)) + ylim(c(55,72)) + theme_bw() + 
-  theme(legend.position="top")+
-  geom_sf(data = st_geometry(NA_rivers), col = 'grey70') + 
-  geom_sf(data = st_geometry(rivers10), col = 'grey70') +
-  geom_sf(data = st_geometry(AK_SWORD_reaches), col = "lightpink") +
-  geom_sf(aes(col = end_date))+labs(x = "Longitude", y = "Latitude", colour="Gage End")+
-  geom_sf(data = st_geometry(current_sites_sf), col = "green") +
-  annotate("text", x = -139, y = 72, label = "Large AK Rivers", col = "dimgray") + 
-  annotate("text", x = -139, y = 70.8, label = "SWOT Rivers", col = "lightpink3") + 
-  annotate("text", x = -161, y = 72, label = "Active Gage", col = "green3") +
+AK_map = ggplot(data = AK_sites_sf) + 
+  geom_sf(data = AK_shp, fill = 'azure') + 
+  #xlim(c(-170, -130)) + 
+  #ylim(c(55,72))# + 
+  theme_bw() + 
+  theme(legend.position="top") +
+  geom_sf(data = NA_rivers, col = 'grey70') + 
+  geom_sf(data = rivers10, col = 'grey70') +
+  geom_sf(data = AK_SWORD_reaches, col = "lightpink") +
+  geom_sf(aes(col = end_date)) +
+  labs(x = "Longitude", y = "Latitude", colour="Gage End") +
+  geom_sf(data = current_sites_sf, col = "green") +
+  #annotate("text", x = -139, y = 72, label = "Large AK Rivers", col = "dimgray") + 
+  #annotate("text", x = -139, y = 70.8, label = "SWOT Rivers", col = "lightpink3") + 
+  #annotate("text", x = -161, y = 72, label = "Active Gage", col = "green3") +
   theme(legend.key.width=unit(1.5,"cm"))
 
 AK_map
