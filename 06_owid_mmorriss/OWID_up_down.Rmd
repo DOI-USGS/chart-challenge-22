@@ -116,10 +116,10 @@ showtext_auto(enable = TRUE)
 theme_arc <- function(){
   theme_void(base_size = 32) +
   theme(
-      text = element_text(family = font_fam),
+      text = element_text(family = font_fam, color = "white"),
         panel.background = element_rect(fill = "black", color = "black"),
         plot.background = element_rect(fill = "black", color = "black"),
-        #legend.position = "none",
+        legend.position = "none",
         # plot.title = element_markdown(size = 96),
         plot.title = element_text(colour = "white", family = font_fam, face = "bold"),
         # plot.subtitle = element_text(color = "white"),
@@ -157,10 +157,10 @@ g <- links_urban %>%
   ggraph(layout="linear") + #call the ggpraph function 
   geom_edge_arc(aes(edge_colour = group,  #three color groups, no data, data, and value highlighted
                     edge_width = width,   # line width set by number of countries with similar ages
-                    edge_alpha = group
+                    edge_alpha = group # transparency by group number...
                     ),
-                #edge_alpha = 0.2
-                ) + # transparency by group number...
+                edge_color = "darkgoldenrod1"
+                ) + 
   geom_node_text(aes(label = name),
                  repel = FALSE,
                  size = 6,
@@ -169,11 +169,10 @@ g <- links_urban %>%
                  length.out = 101))+ #add labels to the nodes, from "names" which idk where that came from in the function calls previously
   scale_edge_color_manual(values = c("black","lavender", "darkgoldenrod1")) +  #adding gray to major lines, staying green for highlight
   scale_edge_alpha_manual(values = c(0, .15, 1)) + #set group 3 to only one not transparent
-  labs(title = "Basic Safe Drinking Water",
-       subtitle = "<span style = 'color: white;'>Access to safe drinking water in</span> <span style = 'color: darkgoldenrod1;'>Urban</span> <span style = 'color: white;'>and</span> <span style = 'color: darkorchid;'>Rural</span> <span style = 'color: white;'>areas</span>"
+  labs(title = "Basic access to safe drinking water",
+       subtitle = "<span style = 'color: white;'>Comparing access to at least safe drinking water in</span> <span style = 'color: darkgoldenrod1;'>Urban</span> <span style = 'color: white;'>and</span> <span style = 'color: darkorchid;'>Rural</span> <span style = 'color: white;'>areas</span>"
        ) +
   theme_arc()
-
 g
 
 ggsave(here("Figures","Urban.pdf"), width = 16, height = 9, units = "in", dpi = 300)
@@ -182,6 +181,7 @@ ggsave(here("Figures","Urban.pdf"), width = 16, height = 9, units = "in", dpi = 
 
 Now plot the rural access to clean drinking water in eritrea
 ```{r rural, echo=FALSE}
+# prep graph data
 rural_df <- cdw_df %>%
   dplyr::filter(., grepl("Rural", variable)) %>%
   mutate(value = round(value))
@@ -205,7 +205,9 @@ g2 <- links_rural %>%
   ggraph(layout="linear") + #call the ggpraph function 
   geom_edge_arc(aes(edge_colour = group,  #three color groups, no data, data, and value highlighted
                     edge_width = width,   # line width set by number of countries with similar ages
-                    edge_alpha = group)) + # transparency by group number...
+                    edge_alpha = group),
+                edge_color = "darkorchid",
+                strength = -1) + # transparency by group number...
  geom_node_text(aes(label = name),
                  repel = FALSE,
                  size = 0,
@@ -222,32 +224,40 @@ ggsave(here("Figures","Rural.pdf"), width = 16, height = 8, units = "in", dpi = 
 ```
 
 
-Now I want to attempt to stitch the two plots together
+Stitch the two plots together
 ```{r}
+# logo
+usgs_logo <- magick::image_read('../logo/usgs_logo_dark.png') 
+  magick::image_colorize(100, "white")
+  
+plot_margin <- 0.025
+
 #setup position for frame 
 cowplot::ggdraw(xlim = c(0,1),
-                ylim = c(-1,1))+
-  #draw first plot in top of frame
-  cowplot::draw_plot(g,
-                     x = 0,
-                     y = 0,
-                     height = 1)+
+                ylim = c(0,1))+
   # draw second plot in bottom half of frame
   cowplot::draw_plot(g2,
                      x = 0,
-                     y = -1,
-                     height = 0.9)
+                     y = 0.075,
+                     height = 0.45)+
+  #draw first plot in top of frame
+  cowplot::draw_plot(g,
+                     x = 0,
+                     y = 0.5,
+                     height = 0.5) +
+  # creator
+  draw_label("Matthew Morriss, USGS\nData: OWID Water, Sanitation, and Hygiene Data Explorer, WHO/UNICEF Joint Monitoring Program for Water Supply and Sanitation", 
+             x = 1-plot_margin, 
+             y = plot_margin, 
+             fontface = "italic", 
+             color = "white",
+             size = 14, 
+             hjust = 1, vjust = 0,
+             fontfamily = font_fam,
+             lineheight = 1.1) +
+  # usgs logo
+  draw_image(usgs_logo, x = plot_margin, y = plot_margin, width = 0.1, hjust = 0, vjust = 0, halign = 0, valign = 0)
+
+  
 ggsave(here("Figures","owid_upddown.pdf"), width = 14, height = 16, units = "in", dpi = 300)
-```
-
-
-```{r}
-
-set_graph_style(plot_margin = margin(1,1,1,1))
-graph <- as_tbl_graph(highschool)
-
-
-ggraph(graph, layout = 'linear') + 
-  geom_edge_arc(aes(colour = factor(year)),
-                fold = FALSE)
 ```
