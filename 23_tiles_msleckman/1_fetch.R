@@ -22,7 +22,7 @@ p1_targets_list <- list(
     p1_FORESCE_lc_tif_download_filtered,
     p1_FORESCE_lc_tif_download %>% str_subset(
       ## we select years by filtering a regex pattern 
-      pattern = '1900|1910|1920|1930|1940|1950|1960|1970|1980|1990|2000')
+      pattern = '1900|1910|1920|1930|1940|1950|1960|1970|1980|1990')
     ),
   
   ## Get drb boundary shp 

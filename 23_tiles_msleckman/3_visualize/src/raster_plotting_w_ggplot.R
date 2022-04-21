@@ -1,3 +1,5 @@
+source('3_visualize/src/bar_plot.R')
+
 raster_ploting_w_ggplot <- function(raster_in, reach_shp, counts, legend_df, title, font_fam = "Source Sans Pro", out_folder = "3_visualize/out"){
   
   font_legend <- 'Source Sans Pro'
@@ -28,7 +30,6 @@ raster_ploting_w_ggplot <- function(raster_in, reach_shp, counts, legend_df, tit
     ) +
     coord_sf()
   
-  
   # Area through time
   nlcd_area <- counts %>% 
     # find % of total area in each category over time
@@ -41,37 +42,22 @@ raster_ploting_w_ggplot <- function(raster_in, reach_shp, counts, legend_df, tit
     ggplot(aes(year, 
                percent, 
                group = value, 
-               color = factor(value), 
+               # color = factor(value), 
                fill = factor(value))
-           ) +
-    geom_line(size = 3, alpha = 0.7) +
-    geom_point(size = 2, shape = 21, fill = "white", stroke = 1) +
-    theme_classic(base_size = 16)+
-    scale_y_continuous(
-      labels = scales::label_percent(accuracy = 1),
-      expand = c(0,0)
-    )+
-    scale_x_continuous(
-      expand = c(0,0)
-    ) +
-    labs(x="", y="") +
-    theme(
-      text = element_text(family = font_legend)
-      #legend.position = 'none',
-      #plot.background = element_blank(),
-      #panel.background = element_blank(),
-    )+
-    scale_color_manual(
-      values = legend_df$color,
-      labels = legend_df$Reclassify_description,
-      "Land cover"
-    )+
+           )+
+    ## bar plot vis
+    geom_bar(stat = 'identity', width = 4)+
     scale_fill_manual(
       values = legend_df$color,
       labels = legend_df$Reclassify_description,
-      "Land cover"
+      "Land cover type"
+    )+
+    theme_classic()+
+    scale_y_continuous(
+      labels = scales::label_percent(accuracy = 1),
+      expand = c(0,0)
     )
-  
+    
   ##compose final plot
   file_name <- stringr::str_sub(unique(raster_in$rast),-4,-1)
   
@@ -121,3 +107,35 @@ raster_ploting_w_ggplot <- function(raster_in, reach_shp, counts, legend_df, tit
   
   ggsave(sprintf('%s/nlcd_%s.png', out_folder, file_name), height = 9, width = 14)
 }
+
+
+
+### OLD colde with timeseries ggplot 
+# geom_line(size = 3, alpha = 0.7) +
+# geom_point(size = 2, shape = 21, fill = "white", stroke = 1) +
+# theme_classic(base_size = 16)+
+# scale_y_continuous(
+#   labels = scales::label_percent(accuracy = 1),
+#   expand = c(0,0)
+# )+
+# scale_x_continuous(
+#   expand = c(0,0)
+# ) +
+# labs(x="", y="") +
+# theme(
+#   text = element_text(family = font_legend)
+#   #legend.position = 'none',
+#   #plot.background = element_blank(),
+#   #panel.background = element_blank(),
+# )+
+# scale_color_manual(
+#   values = legend_df$color,
+#   labels = legend_df$Reclassify_description,
+#   "Land cover"
+# )+
+# scale_fill_manual(
+#   values = legend_df$color,
+#   labels = legend_df$Reclassify_description,
+#   "Land cover"
+# )
+# 
