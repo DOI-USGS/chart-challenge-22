@@ -1,0 +1,173 @@
+---
+title: "Maximum Daily Salinity on the Lower Connecticut River, 2011 - 2021"
+output:
+  html_document:
+    df_print: paged
+---
+
+
+```{r include = FALSE}
+library(dataRetrieval)
+library(leaflet)
+library(mapview)
+library(dplyr)
+library(lubridate)
+library(rgdal)
+library(ggplot2)
+library(cowplot)
+knitr::opts_chunk$set(echo=FALSE)
+```
+
+
+```{r include = FALSE}
+#chunk to get site info and shapefile
+
+#station numbers of monitoring sites on the Connecticut River
+sites <- c("01194750","01194796")
+INFO <- readNWISsite(sites)
+Essex <- INFO %>% filter(site_no == "01194750") %>% mutate(name = "  Essex")
+Old_Lyme <- INFO %>% filter(site_no == "01194796")%>% mutate(name = "  Old Lyme")
+
+# Get shapefile of tidal wetlands
+# #download tidal wetland shapefile at link from below, and place into the RStudio project directory https://ct-deep-gis-open-data-website-ctdeep.hub.arcgis.com/datasets/CTDEEP::tidal-wetlands-1990s/about
+path <- "Tidal_Wetlands_1990s-shp/Tidal_Wetlands_1990s.shp"
+wt <- readOGR(path,layer = "Tidal_Wetlands_1990s") 
+wt = spTransform(wt, CRS("+init=epsg:4326"))
+wt$lat = coordinates(wt)[,2]
+wt$long = coordinates(wt)[,1]
+```
+
+
+```{r message=FALSE, fig.cap = "Map showing monitoring locations on the Connecticut River, tidal wetlands are indicated by pink shading, from Connecticut Department of Environmental Protection, 2022."}
+#Generate the map in Leaflet
+Salmap <- leaflet(INFO) %>% setView(lng = -72.35, lat = 41.30, zoom=12) %>%
+  
+  addProviderTiles("Stamen.Terrain") %>%
+  
+  addScaleBar(position = c("bottomright")) %>% 
+  
+  addPolygons(data = wt, color = "#444444", weight = 0, smoothFactor = 0.5, 
+              opacity = 1.0, fillOpacity = 0.5,
+              fillColor = "#D35FB7")%>%
+ 
+  addCircleMarkers(lng = ~dec_long_va, 
+                   lat = ~dec_lat_va,  
+                   radius = 8.0,
+                   color = "black",
+                   weight = 1, 
+                   fillColor = "blue",
+                   stroke=T,
+                   fillOpacity = 1)  %>% 
+  addLabelOnlyMarkers(data = Essex,~dec_long_va, ~dec_lat_va, label =  ~name, 
+                    labelOptions =labelOptions(noHide = T, direction = 'top', 
+                    textOnly = T, style = list("font-weight" = "bold", padding = "3px 8px"), 
+                    textsize = "18px")) %>% 
+  addLabelOnlyMarkers(data = Old_Lyme,~dec_long_va, ~dec_lat_va, label =  ~name, 
+                    labelOptions =labelOptions(noHide = T, direction = 'bottom', 
+                    textOnly = T, style = list("font-weight" = "bold", padding = "3px 8px"), 
+                    textsize = "18px")) %>% 
+  addLabelOnlyMarkers(lng = -72.33, lat = 41.27, label =  "Long Island Sound", 
+                      labelOptions = labelOptions(noHide = T, direction = 'bottom', 
+                    textOnly = T,textsize = "18px")) %>% 
+  addLabelOnlyMarkers(lng = -72.402, lat = 41.395, label =  "Connecticut River", 
+                      labelOptions = labelOptions(noHide = T, direction = 'bottom', 
+                      textOnly = T, style = list("font-weight" = "normal", padding = "3px 8px"), 
+                      textsize = "18px")) 
+Salmap 
+
+#save a jpg
+mapshot(Salmap, file = "map.jpg", remove_controls = c("zoomControl"))
+```
+```{r}
+#Essex data
+#Generate some dates on a leap year to be used for plotting
+Leap <- tibble(Date_plot = seq(as.Date("2020-01-01"), as.Date("2020-12-31"), by="days"),
+                   Day = yday(Date)) #J ulian day column
+
+# Get salinity data from NWIS
+saldat <- readNWISdv("01194750", c("90860","00095"),startDate = "2011-01-01",
+                     endDate = "2021-12-31",
+                     statCd = "00001") %>%
+  mutate(Year = year(Date),
+         Day = yday(Date))
+saldat
+
+saldat$Day <- format(saldat$Date,"%j") %>% unlist
+saldat <- left_join(saldat,Leap, by = "Day") 
+saldat <- saldat %>% rename(`Top Salinity` = X_at.Essex.Island.Top_90860_00001, `Bottom Salinity` = X_at.Essex.Island.Bottom_90860_00001)
+saldat <- mutate(saldat, 
+Salinity = if_else(`Top Salinity` < 0.5, "Fresh",
+                if_else(`Top Salinity` >= 0.5 & `Top Salinity` < 5, "Oligohaline",
+                if_else(`Top Salinity` >= 5 & `Top Salinity` <= 18, "Mesohaline",
+                if_else(`Top Salinity` > 18, "Polyhaline", NULL)))))
+
+#Old_Lyme data
+saldat_ol <- readNWISdv("01194796", c("90860","00095"),startDate = "2011-01-01",
+                     endDate = "2021-12-31",
+                     statCd = "00001")
+saldat_ol <- saldat_ol %>% data.frame()
+
+saldat_ol$Year <- year(ymd(saldat_ol$Date))
+saldat_ol$Day <- format(saldat_ol$Date,"%j") %>% unlist
+saldat_ol <- left_join(saldat_ol,Leap, by = "Day") 
+
+
+saldat_ol <- saldat_ol %>% rename(`Top Salinity` = X_Top_90860_00001, `Bottom Salinity` = X_Bottom_90860_00001)
+saldat_ol <- mutate(saldat_ol, 
+                 Salinity = if_else(`Top Salinity` < 0.5, "Fresh",
+                            if_else(`Top Salinity` >= 0.5 & `Top Salinity` < 5, "Oligohaline",
+                            if_else(`Top Salinity` >= 5 & `Top Salinity` <= 18, "Mesohaline",
+                            if_else(`Top Salinity` > 18, "Polyhaline", NULL))))) 
+
+
+```
+
+```{r message=FALSE}
+#ggplots and cowplot
+cols <- c("Fresh" = "#5B85AF", "Oligohaline" = "#DBB36E", "Mesohaline" = "#CC8550", "Polyhaline" = "#D05700")
+
+
+
+plot <- ggplot(saldat, aes(x = Date_plot, y = Year)) + 
+  geom_tile(aes(fill = Salinity), width=1, height=0.8) + scale_fill_manual(values = cols) +
+  scale_y_reverse(breaks=seq(2011,2021,1)) + 
+  scale_x_date(date_breaks = "2 month",date_labels = "%B") +
+  theme(axis.title.y = element_blank()) + theme_classic()+
+  xlab(NULL) + 
+  ggtitle("Upstream, Essex, CT (01194750)") +
+  theme(plot.title = element_text(size = 12)) +
+  theme(legend.position = "none") 
+
+plot_ol <- ggplot(saldat_ol, aes(x = Date_plot, y = Year)) + 
+  geom_tile(aes(fill = Salinity), width=1, height=0.8) + scale_fill_manual(values = cols) +
+  scale_y_reverse(breaks=seq(2011,2021,1)) + 
+  scale_x_date(date_breaks = "2 month",date_labels = "%B") +
+  theme(axis.title.y = element_blank()) + theme_classic()+
+  xlab(NULL) +  
+  ggtitle("Downstream, Old Lyme, CT (01194796)") + 
+  theme(plot.title = element_text(size = 12), plot.caption = element_text(hjust = 0, face = "italic")) +
+  theme(legend.position = "none") 
+
+plots <- plot_grid(
+  plot, plot_ol, 
+  labels = NULL, ncol = 1)
+legend <- get_legend(
+  plot +
+    guides(color = guide_legend(nrow = 1)) +
+    theme(legend.position = "bottom")) 
+
+combined <- plot_grid(plots, legend,ncol=1,rel_heights = c(1, .1))
+combined 
+ggsave("30DayChart.pdf")
+
+
+```
+$~$
+$~$
+$~$
+
+
+`r paste("Salinity categories in practical salinity units (PSU): fresh, <0.5;
+                     oligohaline, \u22650.5 to < 5; mesohaline, \u22655 to \u226418; polyhaline, > 18.")`
+
+
