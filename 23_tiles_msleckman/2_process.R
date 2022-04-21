@@ -1,8 +1,9 @@
 source('2_process/src/read_in_reclassify.R')
+source('2_process/src/downsampling.R')
 
 p2_targets_list<- list(
   
-  ## Reclassified and return in folder where new rasters are found
+  ## Reclassified and return reclassified tifs to specified 'reclassified' where new rasters are found
   ## reclassification for the FORESCE backcasting tif files. This needs cropping to the correct polygon boundary
   tar_target(
     p2_write_reclassified_rasters_FOR, 
@@ -36,7 +37,7 @@ p2_targets_list<- list(
     append(p2_write_reclassified_rasters_FOR, p2_write_reclassified_rasters_NLCD)
   ),
   
-  # read in rasters from `2_process/out/reclassified`.
+  # Read in rasters from `2_process/out/reclassified`.
   tar_target(
     p2_reclassified_raster_list,
     {lapply(
@@ -59,7 +60,7 @@ p2_targets_list<- list(
   # this is over-reduced - gg developed areas notably different from levelplot
   tar_target(
    p2_downsamp_raster_list,
-     downsamp_cat(p2_reclassified_raster_list[[1]], down_fact = 10)%>% 
+     downsamp_cat(p2_reclassified_raster_list[[1]], down_fact = 8)%>% 
      mutate(rast = names(p2_reclassified_raster_list[[1]])),
    pattern = map(p2_reclassified_raster_list)
   )

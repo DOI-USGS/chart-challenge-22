@@ -1,5 +1,12 @@
 produce_lc_levelplot <- function(raster_in, raster_frame, legend_df, out_folder = "3_visualize/out/", reach_shp = NULL){
   
+  #' @description produce base plot map of drb raster 
+  #' @raster_in  raster item to load in 
+  #' @raster_frame
+  #' @legend_df
+  #' @out_folder
+  #' @reach_shp
+
   #  raster_in <- gif_frames$raster[3]
   # raster_frame <- gif_frames$seq[3]
   

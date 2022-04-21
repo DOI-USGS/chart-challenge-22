@@ -40,6 +40,6 @@ ggplot(nlcd_area, aes(x = year, y = percent,
   #   text = element_text(family = font_legend))
 
   file_name <- paste0(out_folder, 'bar_plot_',selected_year,'.png')
-  ggsave(file_name, height = 9, width = 14)
+  ggsave(file_name, height = 9, width = 7)
   # return(file_name)
 }

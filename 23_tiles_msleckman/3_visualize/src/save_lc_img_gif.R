@@ -1,4 +1,3 @@
-
 ## from https://github.com/USGS-VIZLAB/lake-temp-timeseries/blob/77d06c4e2f21b36b7e8619c84108f0a842d03e30/src/plot_utils.R#L101-L109
 animate_frames_gif <- function(frames, out_file, reduce = TRUE, frame_delay_cs, frame_rate){
   
