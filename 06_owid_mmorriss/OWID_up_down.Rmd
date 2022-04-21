@@ -170,7 +170,7 @@ g <- links_urban %>%
   scale_edge_color_manual(values = c("black","lavender", "darkgoldenrod1")) +  #adding gray to major lines, staying green for highlight
   scale_edge_alpha_manual(values = c(0, .15, 1)) + #set group 3 to only one not transparent
   labs(title = "Basic access to safe drinking water",
-       subtitle = "<span style = 'color: white;'>Comparing access to at least safe drinking water in</span> <span style = 'color: darkgoldenrod1;'>Urban</span> <span style = 'color: white;'>and</span> <span style = 'color: darkorchid;'>Rural</span> <span style = 'color: white;'>areas</span>"
+       subtitle = "<span style = 'color: white;'>Comparing access to safe drinking water in</span> <span style = 'color: darkgoldenrod1;'>Urban</span> <span style = 'color: white;'>and</span> <span style = 'color: darkorchid;'>Rural</span> <span style = 'color: white;'>areas around the world</span>"
        ) +
   theme_arc()
 g
@@ -275,5 +275,5 @@ cowplot::ggdraw(xlim = c(0,1),
              lineheight = 1.1) 
 
   
-ggsave(here("Figures","owid_upddown.pdf"), width = 14, height = 16, units = "in", dpi = 300)
+ggsave(here("Figures","owid_upddown.png"), width = 14, height = 16, units = "in", dpi = 300)
 ```
