@@ -1,0 +1,266 @@
+---
+title: "OWID_up_down"
+author: "Matthew Morriss"
+date: '2022-04-15'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(owidR)
+library(here)
+library(lubridate)
+library(reshape2)
+library(ggraph)
+library(tidygraph)
+library(igraph)
+library(showtext)
+library(ggtext)
+library(cowplot)
+
+```
+
+## download data
+
+This is a markdown document to download water qualtiy data from OWID and look to make a curvy arc plot of it URBan vs rural
+
+```{r cars}
+#determine what data to download
+
+basic_water <-  as.data.frame(owid_search("water"))
+
+dw_df <- owid(chart_id = basic_water$chart_id[56])
+
+```
+
+## Clean up OWID df
+
+These data are pretty messy. Need to do some significant cleaning to see:
+1) what years have the most data for countries
+2) remove non-nonsensical years
+3) look at last 10 years of data
+```{r clean data, echo=FALSE}
+cyr <- 2022
+
+cdw_df <- dw_df %>%
+  filter(year > (cyr - 10))
+
+
+#look at how many years have good data for drinking water in the rural areas
+cdw_df %>%
+  group_by(year) %>%
+  summarise(unique = n_distinct(`Drinking water - At least basic - Rural - Percent`))
+
+
+#look at how many years have good data for drinking water in the urban areas
+
+cdw_df %>%
+  group_by(year) %>%
+  summarise(unique = n_distinct(`Drinking water - At least basic - Urban - Percent`))
+
+```
+
+Based on my simple analysis above, we want to examine data in 2013 as there are ~155 data points for different countries Urban vs Rural. 
+
+```{r,results='hide', echo=FALSE}
+#filter to year 2013, remove NA rows 
+cdw_df <- cdw_df %>%
+  filter(., year == 2013) %>%
+  drop_na(`Drinking water - At least basic - Rural - Percent`, `Drinking water - At least basic - Urban - Percent`)
+
+
+cdw_df <- cdw_df %>%
+  select(entity,
+         year,
+         `Drinking water - At least basic - Rural - Percent`,
+         `Drinking water - At least basic - Urban - Percent`) %>%
+  reshape2::melt(id = c("entity","year"))
+
+
+
+```
+Now I have a clean dataset for ~173 entities drinking water access in urban/rural areas for 2013. Time to start looking into the up-down curve plot.
+
+Following along with the coding example below. Want to find country with largest difference between urban and Rural
+```{r, echo=FALSE}
+cdw_df %>%
+  group_by(entity, year) %>%
+  arrange(entity, year) %>%
+  mutate(diff = value - lag(value)) %>%
+  ungroup() %>%
+  # filter(., entity == "United States")
+  # slice_max(diff, n = 1)
+  filter(.,entity == "Eritrea")
+
+
+cdw_df %>%
+  group_by(entity, year) %>%
+  arrange(entity, year) %>%
+  mutate(diff = value - lag(value)) %>%
+  ungroup() %>%
+  # filter(., entity == "United States")
+  # slice_max(diff, n = 1)
+  filter(.,entity == "United States")
+
+
+```
+Eritrea has the largest difference between rural and urban areas in terms of basic water access.
+
+# Plotting
+My next steps will be to separate out the Urban and rural and start to build my arc diagrams. 
+
+```{r urban, echo=FALSE}
+urban_df <- cdw_df %>%
+  dplyr::filter(., grepl("Urban", variable)) %>%
+  mutate(value = round(value))
+
+urban_df %>%
+  summarize(ncountries = n_distinct(entity),
+            max_urban = max(value))
+
+links_urban <- data.frame(source = 0,
+                         value = c(1:100))
+
+
+links <- links_urban %>%
+  left_join(urban_df, by = "value") %>%
+  mutate(country = if_else(is.na(entity),"",entity),
+         group = factor(case_when(is.na(entity) ~ 1,
+                                  value == 66 ~3,
+                                  # value == 100 ~ 4,
+                                  TRUE ~ 2))) %>%
+  select(source,
+         destination = value, 
+         group)%>%
+  group_by(destination) %>%
+  mutate(width = n())
+  
+
+# graph <- graph_from_data_frame(links)
+
+
+
+g <- links %>%
+  graph_from_data_frame() %>%
+  ggraph(layout="linear") + #call the ggpraph function 
+  geom_edge_arc(aes(edge_colour = group,  #three color groups, no data, data, and value highlighted
+                    edge_width = width,   # line width set by number of countries with similar ages
+                    edge_alpha = group)) + # transparency by group number...
+  geom_node_text(aes(label = name),
+                 repel = FALSE,
+                 size = 6,
+                 nudge_y = -1,
+                 color = rep(c("white", NA, NA, NA, NA, NA),
+                 length.out = 101))+ #add labels to the nodes, from "names" which idk where that came from in the function calls previously
+  scale_edge_color_manual(values = c("black","lavender", "darkgoldenrod1")) +  #adding gray to major lines, staying green for highlight
+  scale_edge_alpha_manual(values = c(0, .15, 1)) + #set group 3 to only one not transparent
+  labs(title = "Basic Safe Drinking Water",
+       subtitle = "<span style = 'color: white;'>The Rate of access to at least safe drinking water in</span> <span style = 'color: darkgoldenrod1;'>Urban</span> <span style = 'color: white;'>and</span> <span style = 'color: darkorchid;'>Rural</span> <span style = 'color: white;'>areas</span>"
+       ) +
+  theme_void() +
+  theme(
+    # plot.margin = margin(t = 40, r = 50, b = 0, l = 50),
+        panel.background = element_rect(fill = "black", color = "black"),
+        plot.background = element_rect(fill = "black", color = "black"),
+        legend.position = "none",
+        # plot.title = element_markdown(size = 96),
+        plot.title = element_text(colour = "white"),
+        # plot.subtitle = element_text(color = "white"),
+        plot.subtitle = element_markdown())
+
+g
+
+
+ggsave(here("Figures","Urban.pdf"), width = 16.5, height = 11.7, units = "in", dpi = 320)
+```
+
+
+Now plot the rural access to clean drinking water in eritrea
+```{r rural, echo=FALSE}
+rural_df <- cdw_df %>%
+  dplyr::filter(., grepl("Rural", variable)) %>%
+  mutate(value = round(value))
+
+rural_df %>%
+  summarize(ncountries = n_distinct(entity),
+            max_rural = max(value))
+
+links_rural <- data.frame(source = 0,
+                         value = c(1:100))
+
+
+links <- links_rural %>%
+  left_join(rural_df, by = "value") %>%
+  mutate(country = if_else(is.na(entity),"",entity),
+         group = factor(case_when(is.na(entity) ~ 1,
+                                  value == 6 ~3,
+                                  TRUE ~ 2))) %>%
+  select(source,
+         destination = value, 
+         group)%>%
+  group_by(destination) %>%
+  mutate(width = n())
+  
+
+graph <- graph_from_data_frame(links)
+
+
+
+g2 <- ggraph(graph, layout="linear") + #call the ggpraph function 
+  geom_edge_arc(aes(edge_colour = group,  #three color groups, no data, data, and value highlighted
+                    edge_width = width,   # line width set by number of countries with similar ages
+                    edge_alpha = group)) + # transparency by group number...
+ geom_node_text(aes(label = name),
+                 repel = FALSE,
+                 size = 6,
+                 nudge_y = -1,
+                 color = rep(c("white", NA, NA, NA, NA, NA),
+                 length.out = 101))+
+  scale_edge_color_manual(values = c("black","lavender", "darkorchid")) +  #adding gray to major lines, staying green for highlight
+  scale_edge_alpha_manual(values = c(0, .15, 1)) + #set group 3 to only one not transparent
+  # labs(title = "Rate of access to at least basic safe drinking water in Rural areas") +
+  theme_void() +
+  theme(
+    # plot.margin = margin(t = 40, r = 50, b = 0, l = 50),
+        panel.background = element_rect(fill = "black", color = "black"),
+        plot.background = element_rect(fill = "black", color = "black"),
+        legend.position = "none")
+        # plot.title = element_text(colour = "#7F3D17"))+
+  # scale_y_continuous(trans = "reverse")+
+  # scale_y_reverse()
+
+g2
+
+ggsave(here("Figures","Rural.pdf"), width = 16.5, height = 11.7, units = "in", dpi = 320)
+```
+
+
+Now I want to attempt to stitch the two plots together
+```{r}
+#setup position for frame 
+cowplot::ggdraw(xlim = c(0,0.97),
+                ylim = c(-1,1.25))+
+  #draw first plot in top of frame
+  cowplot::draw_plot(g,
+                     x = 0,
+                     y = 0)+
+  # draw second plot in bottom half of frame
+  cowplot::draw_plot(g2,
+                     x = 0,
+                     y = -1)
+
+
+```
+
+
+```{r}
+
+set_graph_style(plot_margin = margin(1,1,1,1))
+graph <- as_tbl_graph(highschool)
+
+
+ggraph(graph, layout = 'linear') + 
+  geom_edge_arc(aes(colour = factor(year)),
+                fold = FALSE)
+```
