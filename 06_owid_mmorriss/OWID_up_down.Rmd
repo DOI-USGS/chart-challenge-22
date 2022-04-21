@@ -226,37 +226,53 @@ ggsave(here("Figures","Rural.pdf"), width = 16, height = 8, units = "in", dpi = 
 
 Stitch the two plots together
 ```{r}
-# logo
-usgs_logo <- magick::image_read('../logo/usgs_logo_dark.png') 
-  magick::image_colorize(100, "white")
-  
+
 plot_margin <- 0.025
+
+# black bar for bottom of plot
+box_black <- grid::rectGrob(
+  x = 0, y = 0, 
+  width = 16, height = 2,
+  gp = grid::gpar(fill = "black", alpha = 1, col = 'black')
+)
+canvas <- grid::rectGrob(
+  x = 0, y = 0, 
+  width = 16, height = 9,
+  gp = grid::gpar(fill = "black", alpha = 1, col = 'black')
+)
 
 #setup position for frame 
 cowplot::ggdraw(xlim = c(0,1),
-                ylim = c(0,1))+
+                ylim = c(0.1,1))+
+  # black background
+  draw_grob(canvas,
+            x = 0, y = 1,
+            height = 9, width = 16,
+            hjust = 0, vjust = 1)+
   # draw second plot in bottom half of frame
   cowplot::draw_plot(g2,
                      x = 0,
-                     y = 0.075,
+                     y = 0.125,
                      height = 0.45)+
   #draw first plot in top of frame
   cowplot::draw_plot(g,
                      x = 0,
                      y = 0.5,
                      height = 0.5) +
+  draw_grob(box_black,
+            x = 0, y = 0.1,
+            height = 1, width = 16,
+            hjust = 0, vjust = 1)+
   # creator
-  draw_label("Matthew Morriss, USGS\nData: OWID Water, Sanitation, and Hygiene Data Explorer, WHO/UNICEF Joint Monitoring Program for Water Supply and Sanitation", 
+  draw_label("Matthew Morriss, USGS\nData: OWID Water, Sanitation, and Hygiene Data Explorer,WHO/UNICEF Joint Monitoring Program for Water Supply and Sanitation", 
              x = 1-plot_margin, 
-             y = plot_margin, 
+             y = 0.12, 
              fontface = "italic", 
              color = "white",
-             size = 14, 
+             size = 16, 
              hjust = 1, vjust = 0,
              fontfamily = font_fam,
-             lineheight = 1.1) +
-  # usgs logo
-  draw_image(usgs_logo, x = plot_margin, y = plot_margin, width = 0.1, hjust = 0, vjust = 0, halign = 0, valign = 0)
+             lineheight = 1.1) 
 
   
 ggsave(here("Figures","owid_upddown.pdf"), width = 14, height = 16, units = "in", dpi = 300)
