@@ -174,11 +174,24 @@ usgs_logo <- magick::image_read('../logo/usgs_logo_white.png') %>%
   magick::image_colorize(100, "black")
 
 # map
-ct_map <- magick::image_read('CTRiver_map.png')
+ct_map <- magick::image_read('CTRiver_map.png') # not saving?
+
+# legend
+p_leg <- get_legend(plot_es + 
+                      theme_minimal(base_size = 18)+
+                      theme(legend.position = "right", 
+                            text = element_text(family = font_fam),
+                            legend.title = element_text(size = 22),
+                            legend.spacing.y = unit(4, 'pt'))+
+                      guides(fill = guide_legend(
+                        title = "Salinity levels"
+                      )))
 
 # add font
 font_fam <- 'Roboto'
 font_add_google(font_fam, regular.wt = 300, bold.wt = 700) 
+
+# using a second font to numbers that is monospaced 
 font_num <- 'Source Sans Pro'
 font_add_google(font_num, regular.wt = 300, bold.wt = 700) 
 showtext_opts(dpi = 300)
@@ -191,8 +204,6 @@ canvas <- rectGrob(
   width = 16, height = 9,
   gp = gpar(fill = "white", alpha = 1, col = 'white')
 )
-cale_y_reverse(breaks=seq(2011,2021,1)) + 
-  scale_x_date(date_breaks = "2 month",date_labels = "%B")
 
 # combine plot elements
 ggdraw(ylim = c(0,1), xlim = c(0,1)) +
@@ -230,10 +241,10 @@ ggdraw(ylim = c(0,1), xlim = c(0,1)) +
  # draw_plot(ct_map,
  #           x = 0.65, height = 0.75, width = 0.4-plot_margin)+
   # shared legend
-  draw_plot(legend,
-            y = 0.1, x = 0.7,
-            width = 1, height =1 ,
-            hjust = 0, vjust = 0) +
+  draw_plot(p_leg,
+            y = 0.675, x = 0.63,
+            hjust = 0,
+            width = 0.2, height = 0.3) +
   # title
   draw_label("Maximum Daily Salinity on the Lower Connectivut River, 2011-2021", 
              x = plot_margin, y = 1-plot_margin, 
