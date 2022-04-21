@@ -112,28 +112,6 @@ font_add_google(font_fam, regular.wt = 300, bold.wt = 700)
 showtext_opts(dpi = 300)
 showtext_auto(enable = TRUE)
 
-# Prep data for plotting
-urban_df <- cdw_df %>%
-  dplyr::filter(., grepl("Urban", variable)) %>%
-  mutate(value = round(value))
-
-# create link data for graph
-links_urban <- data.frame(source = 0,
-                         value = c(1:100))
-links <- links_urban %>%
-  left_join(urban_df, by = "value") %>%
-  mutate(country = if_else(is.na(entity),"",entity),
-         group = factor(case_when(is.na(entity) ~ 1,
-                                  value == 66 ~3,
-                                  # value == 100 ~ 4,
-                                  TRUE ~ 2))) %>%
-  select(source,
-         destination = value, 
-         group)%>%
-  group_by(destination) %>%
-  mutate(width = n())
-
-
 # common theme for both plots
 theme_arc <- function(){
   theme_void(base_size = 32) +
@@ -148,14 +126,38 @@ theme_arc <- function(){
         plot.subtitle = element_markdown())
 }
 
+```
+
+```{r}
+
+# Prep data for plotting
+urban_df <- cdw_df %>%
+  dplyr::filter(., grepl("Urban", variable)) %>%
+  mutate(value = round(value))
+
+# create link data for graph
+links_urban <- data.frame(source = 0,
+                         value = c(1:100)) %>%
+  left_join(urban_df, by = "value") %>%
+  mutate(country = if_else(is.na(entity),"",entity),
+         group = factor(case_when(is.na(entity) ~ 1,
+                                  value == 66 ~3,
+                                  # value == 100 ~ 4,
+                                  TRUE ~ 2))) %>%
+  select(source,
+         destination = value, 
+         group)%>%
+  group_by(destination) %>%
+  mutate(width = n())
+
 
 # plot urban graph
-g <- links %>%
+g <- links_urban %>%
   graph_from_data_frame() %>%
   ggraph(layout="linear") + #call the ggpraph function 
   geom_edge_arc(aes(edge_colour = group,  #three color groups, no data, data, and value highlighted
                     edge_width = width,   # line width set by number of countries with similar ages
-                    edge_alpha = width
+                    edge_alpha = group
                     ),
                 #edge_alpha = 0.2
                 ) + # transparency by group number...
@@ -174,7 +176,7 @@ g <- links %>%
 
 g
 
-ggsave(here("Figures","Urban.pdf"), width = 16.5, height = 9, units = "in", dpi = 320)
+ggsave(here("Figures","Urban.pdf"), width = 16, height = 9, units = "in", dpi = 300)
 ```
 
 
@@ -185,9 +187,7 @@ rural_df <- cdw_df %>%
   mutate(value = round(value))
 
 links_rural <- data.frame(source = 0,
-                         value = c(1:100))
-
-links <- links_rural %>%
+                         value = c(1:100)) %>%
   left_join(rural_df, by = "value") %>%
   mutate(country = if_else(is.na(entity),"",entity),
          group = factor(case_when(is.na(entity) ~ 1,
@@ -200,15 +200,15 @@ links <- links_rural %>%
   mutate(width = n())
 
 # make rural graph
-graph <- graph_from_data_frame(links)
-
-g2 <- ggraph(graph, layout="linear") + #call the ggpraph function 
+g2 <- links_rural %>% 
+  graph_from_data_frame() %>%
+  ggraph(layout="linear") + #call the ggpraph function 
   geom_edge_arc(aes(edge_colour = group,  #three color groups, no data, data, and value highlighted
                     edge_width = width,   # line width set by number of countries with similar ages
                     edge_alpha = group)) + # transparency by group number...
  geom_node_text(aes(label = name),
                  repel = FALSE,
-                 size = 6,
+                 size = 0,
                  nudge_y = -1,
                  color = rep(c("white", NA, NA, NA, NA, NA),
                  length.out = 101))+
@@ -218,24 +218,26 @@ g2 <- ggraph(graph, layout="linear") + #call the ggpraph function
 
 g2
 
-ggsave(here("Figures","Rural.pdf"), width = 16.5, height = 10, units = "in", dpi = 320)
+ggsave(here("Figures","Rural.pdf"), width = 16, height = 8, units = "in", dpi = 300)
 ```
 
 
 Now I want to attempt to stitch the two plots together
 ```{r}
 #setup position for frame 
-cowplot::ggdraw(xlim = c(0,0.97),
-                ylim = c(-1,1.25))+
+cowplot::ggdraw(xlim = c(0,1),
+                ylim = c(-1,1))+
   #draw first plot in top of frame
   cowplot::draw_plot(g,
                      x = 0,
-                     y = 0)+
+                     y = 0,
+                     height = 1)+
   # draw second plot in bottom half of frame
   cowplot::draw_plot(g2,
                      x = 0,
-                     y = -1)
-
+                     y = -1,
+                     height = 0.9)
+ggsave(here("Figures","owid_upddown.pdf"), width = 14, height = 16, units = "in", dpi = 300)
 ```
 
 
