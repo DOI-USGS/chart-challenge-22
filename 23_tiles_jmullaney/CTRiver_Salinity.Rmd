@@ -79,46 +79,39 @@ Salmap
 mapshot(Salmap, file = "map.jpg", remove_controls = c("zoomControl"))
 ```
 ```{r}
-#Essex data
+# Get salinity data from NWIS
+
 #Generate some dates on a leap year to be used for plotting
 Leap <- tibble(Date_plot = seq(as.Date("2020-01-01"), as.Date("2020-12-31"), by="days"),
-                   Day = yday(Date)) #J ulian day column
+                   Day = yday(Date_plot)) # Julian day column
 
-# Get salinity data from NWIS
-saldat <- readNWISdv("01194750", c("90860","00095"),startDate = "2011-01-01",
+#Essex data
+saldat <- readNWISdv("01194750", c("90860","00095"),
+                     startDate = "2011-01-01",
                      endDate = "2021-12-31",
                      statCd = "00001") %>%
   mutate(Year = year(Date),
-         Day = yday(Date))
-saldat
-
-saldat$Day <- format(saldat$Date,"%j") %>% unlist
-saldat <- left_join(saldat,Leap, by = "Day") 
-saldat <- saldat %>% rename(`Top Salinity` = X_at.Essex.Island.Top_90860_00001, `Bottom Salinity` = X_at.Essex.Island.Bottom_90860_00001)
-saldat <- mutate(saldat, 
-Salinity = if_else(`Top Salinity` < 0.5, "Fresh",
+         Day = yday(Date)) %>% 
+  left_join(Leap) %>% 
+  rename(`Top Salinity` = X_at.Essex.Island.Top_90860_00001, `Bottom Salinity` = X_at.Essex.Island.Bottom_90860_00001) %>%
+  mutate(Salinity = if_else(`Top Salinity` < 0.5, "Fresh",
                 if_else(`Top Salinity` >= 0.5 & `Top Salinity` < 5, "Oligohaline",
                 if_else(`Top Salinity` >= 5 & `Top Salinity` <= 18, "Mesohaline",
                 if_else(`Top Salinity` > 18, "Polyhaline", NULL)))))
 
 #Old_Lyme data
-saldat_ol <- readNWISdv("01194796", c("90860","00095"),startDate = "2011-01-01",
+saldat_ol <- readNWISdv("01194796", c("90860","00095"),
+                        startDate = "2011-01-01",
                      endDate = "2021-12-31",
-                     statCd = "00001")
-saldat_ol <- saldat_ol %>% data.frame()
-
-saldat_ol$Year <- year(ymd(saldat_ol$Date))
-saldat_ol$Day <- format(saldat_ol$Date,"%j") %>% unlist
-saldat_ol <- left_join(saldat_ol,Leap, by = "Day") 
-
-
-saldat_ol <- saldat_ol %>% rename(`Top Salinity` = X_Top_90860_00001, `Bottom Salinity` = X_Bottom_90860_00001)
-saldat_ol <- mutate(saldat_ol, 
-                 Salinity = if_else(`Top Salinity` < 0.5, "Fresh",
-                            if_else(`Top Salinity` >= 0.5 & `Top Salinity` < 5, "Oligohaline",
-                            if_else(`Top Salinity` >= 5 & `Top Salinity` <= 18, "Mesohaline",
-                            if_else(`Top Salinity` > 18, "Polyhaline", NULL))))) 
-
+                     statCd = "00001") %>% 
+    mutate(Year = year(Date),
+         Day = yday(Date)) %>% 
+  left_join(Leap) %>%  
+  rename(`Top Salinity` = X_Top_90860_00001, `Bottom Salinity` = X_Bottom_90860_00001) %>%
+  mutate(Salinity = if_else(`Top Salinity` < 0.5, "Fresh",
+                if_else(`Top Salinity` >= 0.5 & `Top Salinity` < 5, "Oligohaline",
+                if_else(`Top Salinity` >= 5 & `Top Salinity` <= 18, "Mesohaline",
+                if_else(`Top Salinity` > 18, "Polyhaline", NULL)))))
 
 ```
 
