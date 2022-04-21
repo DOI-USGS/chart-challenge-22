@@ -55,7 +55,7 @@ Salmap <- leaflet(INFO) %>% setView(lng = -72.35, lat = 41.30, zoom=12) %>%
                    radius = 8.0,
                    color = "black",
                    weight = 1, 
-                   fillColor = "blue",
+                   fillColor = NA,
                    stroke=T,
                    fillOpacity = 1)  %>% 
   addLabelOnlyMarkers(data = Essex,~dec_long_va, ~dec_lat_va, label =  ~name, 
@@ -76,7 +76,9 @@ Salmap <- leaflet(INFO) %>% setView(lng = -72.35, lat = 41.30, zoom=12) %>%
 Salmap 
 
 #save a jpg
-mapshot(Salmap, file = "map.jpg", remove_controls = c("zoomControl"))
+mapshot(Salmap, file = "CTRiver_map.png", remove_controls = c("zoomControl"))
+
+
 ```
 ```{r}
 # Get salinity data from NWIS
@@ -119,39 +121,140 @@ saldat_ol <- readNWISdv("01194796", c("90860","00095"),
 #ggplots and cowplot
 cols <- c("Fresh" = "#5B85AF", "Oligohaline" = "#DBB36E", "Mesohaline" = "#CC8550", "Polyhaline" = "#D05700")
 
-
-
-plot <- ggplot(saldat, aes(x = Date_plot, y = Year)) + 
-  geom_tile(aes(fill = Salinity), width=1, height=0.8) + scale_fill_manual(values = cols) +
+plot_es <- ggplot(saldat, aes(x = Date_plot, y = Year)) + 
+  geom_tile(aes(fill = Salinity), width=1, height=0.8) + 
+  scale_fill_manual(values = cols) +
   scale_y_reverse(breaks=seq(2011,2021,1)) + 
   scale_x_date(date_breaks = "2 month",date_labels = "%B") +
-  theme(axis.title.y = element_blank()) + theme_classic()+
+  theme(axis.title.y = element_blank()) + 
+  theme_classic()+
   xlab(NULL) + 
   ggtitle("Upstream, Essex, CT (01194750)") +
   theme(plot.title = element_text(size = 12)) +
   theme(legend.position = "none") 
 
 plot_ol <- ggplot(saldat_ol, aes(x = Date_plot, y = Year)) + 
-  geom_tile(aes(fill = Salinity), width=1, height=0.8) + scale_fill_manual(values = cols) +
+  geom_tile(aes(fill = Salinity), width=1, height=0.8) + 
+  scale_fill_manual(values = cols) +
   scale_y_reverse(breaks=seq(2011,2021,1)) + 
   scale_x_date(date_breaks = "2 month",date_labels = "%B") +
-  theme(axis.title.y = element_blank()) + theme_classic()+
+  theme(axis.title.y = element_blank()) + 
+  theme_classic()+
   xlab(NULL) +  
   ggtitle("Downstream, Old Lyme, CT (01194796)") + 
   theme(plot.title = element_text(size = 12), plot.caption = element_text(hjust = 0, face = "italic")) +
   theme(legend.position = "none") 
 
 plots <- plot_grid(
-  plot, plot_ol, 
+  plot_es, plot_ol, 
   labels = NULL, ncol = 1)
+
 legend <- get_legend(
-  plot +
+  plot_es +
     guides(color = guide_legend(nrow = 1)) +
     theme(legend.position = "bottom")) 
 
 combined <- plot_grid(plots, legend,ncol=1,rel_heights = c(1, .1))
 combined 
-ggsave("30DayChart.pdf")
+
+ggsave("30DayChart.pdf", width = 8, height = 8, dpi = 300)
+
+```
+
+```{r, fig.height = 9, fig.width = 16}
+## compose final plot
+library(showtext)
+library(magick)
+library(cowplot)
+library(grid)
+
+# logo
+usgs_logo <- magick::image_read('../logo/usgs_logo_white.png') %>%
+  magick::image_resize('x100') %>%
+  magick::image_colorize(100, "black")
+
+# map
+ct_map <- magick::image_read('CTRiver_map.png')
+
+# add font
+font_fam <- 'Roboto'
+font_add_google(font_fam, regular.wt = 300, bold.wt = 700) 
+font_num <- 'Source Sans Pro'
+font_add_google(font_num, regular.wt = 300, bold.wt = 700) 
+showtext_opts(dpi = 300)
+showtext_auto(enable = TRUE)
+
+plot_margin <- 0.025
+
+canvas <- rectGrob(
+  x = 0, y = 0, 
+  width = 16, height = 9,
+  gp = gpar(fill = "white", alpha = 1, col = 'white')
+)
+cale_y_reverse(breaks=seq(2011,2021,1)) + 
+  scale_x_date(date_breaks = "2 month",date_labels = "%B")
+
+# combine plot elements
+ggdraw(ylim = c(0,1), xlim = c(0,1)) +
+  # a white background
+  draw_grob(canvas,
+          x = 0, y = 1,
+          height = 9, width = 16,
+          hjust = 0, vjust = 1)+
+  # essex plot
+  draw_plot(plot_es + theme(legend.position = "none",
+                            axis.title = element_blank(),
+                            text = element_text(family = font_fam),
+                            axis.text = element_text(size = 16, hjust = 0.5, family = font_num),
+                            plot.title = element_text(size = 20)) +
+              scale_x_date(expand = c(0,0),
+                           date_breaks = "2 month",date_labels = "%B")+
+              scale_y_continuous(expand = c(0,0),
+                                 breaks=seq(2011,2021,1),
+                                 trans  = "reverse"),
+            y = 0.5+plot_margin, x = 0+plot_margin,
+            height = 0.375, width = 0.6) +
+  # old lyme plot
+  draw_plot(plot_ol + theme(legend.position = "none",
+                            axis.title = element_blank(),
+                            text = element_text(family = font_fam),
+                            axis.text = element_text(size = 16, hjust = 0.5, family = font_num),
+                            plot.title = element_text(size = 20))+
+              scale_x_date(expand = c(0,0),
+                           date_breaks = "2 month",date_labels = "%B")+
+              scale_y_continuous(expand = c(0,0),
+                                 breaks=seq(2011,2021,1),
+                                 trans  = "reverse"),
+            y = 0.1+plot_margin, x = 0+plot_margin,
+            height = 0.375, width = 0.6) +
+ # draw_plot(ct_map,
+ #           x = 0.65, height = 0.75, width = 0.4-plot_margin)+
+  # shared legend
+  draw_plot(legend,
+            y = 0.1, x = 0.7,
+            width = 1, height =1 ,
+            hjust = 0, vjust = 0) +
+  # title
+  draw_label("Maximum Daily Salinity on the Lower Connectivut River, 2011-2021", 
+             x = plot_margin, y = 1-plot_margin, 
+             fontface = "bold", 
+             size = 36, 
+             hjust = 0, 
+             vjust = 1,
+             fontfamily = font_fam,
+             lineheight = 1.1) +
+  # creator
+  draw_label("John Mullaney, USGS\nData: NWIS", 
+             x = 1-plot_margin, y = plot_margin, 
+             fontface = "italic", 
+             size = 14, 
+             hjust = 1, vjust = 0,
+             fontfamily = font_fam,
+             lineheight = 1.1) +
+  # usgs logo
+  draw_image(usgs_logo, x = plot_margin, y = plot_margin, width = 0.1, hjust = 0, vjust = 0, halign = 0, valign = 0)
+
+ggsave('CTRiver_salinity.png',height = 9, width = 16)
 
 
 ```
