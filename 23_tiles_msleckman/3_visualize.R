@@ -28,13 +28,10 @@ p3_targets_list<- list(
   ## Produce bar_plots as alternative to lined graphic
   tar_target(
     p3_save_barplot_frames,
-    lapply(x = all_years,
-           function(x)
-             stacked_bar_plot(counts = p2_raster_cell_count,
+    {lapply(X = all_years, FUN = function(x) stacked_bar_plot(counts = p2_raster_cell_count,
                               selected_year = x,
                               legend_df = legend_df, 
-                              out_folder = '3_visualize/out/barplot/'),
-           format = 'file'
+                              out_folder = '3_visualize/out/barplot/'))}
   ),
   
   tar_target(
@@ -57,14 +54,15 @@ p3_targets_list<- list(
                        out_file = paste0('3_visualize/out/levelplot/levelplot_gif_',today(),'.gif'),
                        reduce = FALSE, frame_delay_cs = 100, frame_rate = 60),
     format = 'file'
-  ),
-  
-  # animate levelplot maps
-  tar_target(
-    p3_animate_barplot_frames_gif,
-    animate_frames_gif(frames = p3_save_barplot_frames,
-                       out_file = paste0('3_visualize/out/barplot/barplot_gif_',today(),'.gif'),
-                       reduce = FALSE, frame_delay_cs = 100, frame_rate = 60),
-    format = 'file'
   )
+  # ,
+  # 
+  # # animate barplot maps
+  # tar_target(
+  #   p3_animate_barplot_frames_gif,
+  #   animate_frames_gif(frames = p3_save_barplot_frames,
+  #                      out_file = paste0('3_visualize/out/barplot/barplot_gif_',today(),'.gif'),
+  #                      reduce = FALSE, frame_delay_cs = 100, frame_rate = 60),
+  #   format = 'file'
+  # )
 )

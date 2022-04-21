@@ -35,7 +35,7 @@ raster_ploting_w_ggplot <- function(raster_in, reach_shp, counts, legend_df, tit
     left_join(counts %>% 
                 group_by(rast)%>%
                 summarize(total_cells = sum(count))) %>%
-    mutate(year = as.numeric(stringr::word(rast, 4, 4, sep ='_')),
+    mutate(year = as.numeric(stringr::str_sub(rast,-4,-1)),
            percent = count/total_cells) %>%
     filter(value != 0) %>% 
     ggplot(aes(year, 
@@ -73,7 +73,7 @@ raster_ploting_w_ggplot <- function(raster_in, reach_shp, counts, legend_df, tit
     )
   
   ##compose final plot
-  file_name <- stringr::word(unique(raster_in$rast), 4, 4, sep = '_')
+  file_name <- stringr::str_sub(unique(raster_in$rast),-4,-1)
   
   # legend
   p_legend <- get_legend(nlcd_map)

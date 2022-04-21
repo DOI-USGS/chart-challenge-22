@@ -1,22 +1,22 @@
 FORESCE_value,FORESCE_description,Reclassify_match,Reclassify_description,color
 0,NA,NA,NA,NA
-1,Hay / alfalfa,3,Cultivated Crops,#E2E2C1
-2,Corn,3,Cultivated Crops,#BAD8EA
-3,Soybeans,3,Cultivated Crops,#DDC9C9
-4,Fallow/Idle,2,Pasture/Hay,#B5C98E
-5,Wheat,3,Cultivated Crops,#A58C30
-6,Fruits / Vegetables,3,Cultivated Crops,#AA0000
-7,Tobacco,3,Cultivated Crops,#B2ADA3
-8,Other Crops,3,Cultivated Crops,#C9C977
+1,Hay / alfalfa,2,Agriculture,#E2E2C1
+2,Corn,2,Agriculture,#E2E2C1
+3,Soybeans,2,Agriculture,#E2E2C1
+4,Fallow/Idle,2,Agriculture,#E2E2C1
+5,Wheat,2,Agriculture,#E2E2C1
+6,Fruits / Vegetables,2,Agriculture,#E2E2C1
+7,Tobacco,2,Agriculture,#E2E2C1
+8,Other Crops,2,Agriculture,#E2E2C1
 9,Open Water,1,Water,#476BA0
-10,Developed Low Intensity,4,Developed Areas - Low Intensity,#D89382
-11,Developed Med-High Intensity,5,Developed Areas - Med-High Intensity,#ED0000
-12,Barren,6,Barren,#AA7028
-13,Deciduous Forest,7,Forest,#1C6330
-14,Evergreen Forest,7,Forest,#68AA63
-15,Mixed Forest,7,Forest,#99C147
-16,Shrubland,8,Shrub,#CCBA7C
-17,Grassland / Pasture,9,Grassland,#DBD83D
-18,Woody Wetlands,10,Wetlands,#D1DDF9
-19,Herbaceous Wetlands,10,Wetlands,#70A3BA
-20,"Perennial grasses - Representing switchgrass, miscanthus, prairie grasses, or other heavily managed grass crops used for cellulosic biofuel feedstock ",2,Pasture/Hay,#77AD93
+10,Developed Low Intensity,3,Developed Areas - Low Intensity,#D89382
+11,Developed Med-High Intensity,4,Developed Areas - Med-High Intensity,#ED0000
+12,Barren,5,Barren,#AA7028
+13,Deciduous Forest,6,Forest,#1C6330
+14,Evergreen Forest,6,Forest,#1C6330
+15,Mixed Forest,6,Forest,#1C6330
+16,Shrubland,7,Grassland,#CCBA7C
+17,Grassland / Pasture,7,Grassland,#CCBA7C
+18,Woody Wetlands,8,Wetlands,#D1DDF9
+19,Herbaceous Wetlands,8,Wetlands,#D1DDF9
+20,"Perennial grasses - Representing switchgrass, miscanthus, prairie grasses, or other heavily managed grass crops used for cellulosic biofuel feedstock ",2,Agriculture,#77AD93
