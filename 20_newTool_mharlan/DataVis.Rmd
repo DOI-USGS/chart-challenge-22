@@ -202,8 +202,6 @@ showtext_opts(dpi = 300)
 showtext_auto(enable = TRUE)
 plot_margin <- 0.025
 
-t = textGrob(paste0("Many large rivers in Alaska are still either unmonitored \n or are no longer being monitored. A future tool that could \n help us estimate river discharge is satellite imagery!"), gp=gpar(fontsize=14, fontface="bold", lineheight=0.8))
-
 canvas <- rectGrob(
   x = 0, y = 0, 
   width = 16, height = 9,
@@ -240,19 +238,6 @@ ggdraw() +
              fontface = "bold", size = 30,
              fontfamily = font_fam,
              hjust = 0, vjust = 1)+
-  draw_label("SWOT observed reaches", 
-             x = 1-plot_margin, y = 0.625,
-             color = "royalblue",
-             fontfamily = font_fam,
-             hjust = 1, vjust = 1) +
-  #draw_label("Major rivers", 
-  #           x = 1-plot_margin, y = 0.65,
-  #           color = "grey70",
-  #           hjust = 1, vjust = 1) +
-  draw_label("Active streamgages", 
-             x = 1-plot_margin, y = 0.6,
-             color = "orangered",
-             hjust = 1, vjust = 1) +
   draw_grob(box_white,
             x = 0.9, y = 0.9,
             height = 1, width = 1,
