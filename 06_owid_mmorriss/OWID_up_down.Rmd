@@ -67,15 +67,12 @@ cdw_df <- cdw_df %>%
   filter(., year == 2013) %>%
   drop_na(`Drinking water - At least basic - Rural - Percent`, `Drinking water - At least basic - Urban - Percent`)
 
-
 cdw_df <- cdw_df %>%
   select(entity,
          year,
          `Drinking water - At least basic - Rural - Percent`,
          `Drinking water - At least basic - Urban - Percent`) %>%
   reshape2::melt(id = c("entity","year"))
-
-
 
 ```
 Now I have a clean dataset for ~173 entities drinking water access in urban/rural areas for 2013. Time to start looking into the up-down curve plot.
@@ -91,7 +88,6 @@ cdw_df %>%
   # slice_max(diff, n = 1)
   filter(.,entity == "Eritrea")
 
-
 cdw_df %>%
   group_by(entity, year) %>%
   arrange(entity, year) %>%
@@ -101,7 +97,6 @@ cdw_df %>%
   # slice_max(diff, n = 1)
   filter(.,entity == "United States")
 
-
 ```
 Eritrea has the largest difference between rural and urban areas in terms of basic water access.
 
@@ -109,18 +104,22 @@ Eritrea has the largest difference between rural and urban areas in terms of bas
 My next steps will be to separate out the Urban and rural and start to build my arc diagrams. 
 
 ```{r urban, echo=FALSE}
+library(showtext)
+
+# add font
+font_fam = "Source Sans Pro"
+font_add_google(font_fam, regular.wt = 300, bold.wt = 700) 
+showtext_opts(dpi = 300)
+showtext_auto(enable = TRUE)
+
+# Prep data for plotting
 urban_df <- cdw_df %>%
   dplyr::filter(., grepl("Urban", variable)) %>%
   mutate(value = round(value))
 
-urban_df %>%
-  summarize(ncountries = n_distinct(entity),
-            max_urban = max(value))
-
+# create link data for graph
 links_urban <- data.frame(source = 0,
                          value = c(1:100))
-
-
 links <- links_urban %>%
   left_join(urban_df, by = "value") %>%
   mutate(country = if_else(is.na(entity),"",entity),
@@ -133,18 +132,33 @@ links <- links_urban %>%
          group)%>%
   group_by(destination) %>%
   mutate(width = n())
-  
 
-# graph <- graph_from_data_frame(links)
 
-links
+# common theme for both plots
+theme_arc <- function(){
+  theme_void(base_size = 32) +
+  theme(
+      text = element_text(family = font_fam),
+        panel.background = element_rect(fill = "black", color = "black"),
+        plot.background = element_rect(fill = "black", color = "black"),
+        #legend.position = "none",
+        # plot.title = element_markdown(size = 96),
+        plot.title = element_text(colour = "white", family = font_fam, face = "bold"),
+        # plot.subtitle = element_text(color = "white"),
+        plot.subtitle = element_markdown())
+}
 
+
+# plot urban graph
 g <- links %>%
   graph_from_data_frame() %>%
   ggraph(layout="linear") + #call the ggpraph function 
   geom_edge_arc(aes(edge_colour = group,  #three color groups, no data, data, and value highlighted
                     edge_width = width,   # line width set by number of countries with similar ages
-                    edge_alpha = group)) + # transparency by group number...
+                    edge_alpha = width
+                    ),
+                #edge_alpha = 0.2
+                ) + # transparency by group number...
   geom_node_text(aes(label = name),
                  repel = FALSE,
                  size = 6,
@@ -154,23 +168,13 @@ g <- links %>%
   scale_edge_color_manual(values = c("black","lavender", "darkgoldenrod1")) +  #adding gray to major lines, staying green for highlight
   scale_edge_alpha_manual(values = c(0, .15, 1)) + #set group 3 to only one not transparent
   labs(title = "Basic Safe Drinking Water",
-       subtitle = "<span style = 'color: white;'>The Rate of access to at least safe drinking water in</span> <span style = 'color: darkgoldenrod1;'>Urban</span> <span style = 'color: white;'>and</span> <span style = 'color: darkorchid;'>Rural</span> <span style = 'color: white;'>areas</span>"
+       subtitle = "<span style = 'color: white;'>Access to safe drinking water in</span> <span style = 'color: darkgoldenrod1;'>Urban</span> <span style = 'color: white;'>and</span> <span style = 'color: darkorchid;'>Rural</span> <span style = 'color: white;'>areas</span>"
        ) +
-  theme_void() +
-  theme(
-    # plot.margin = margin(t = 40, r = 50, b = 0, l = 50),
-        panel.background = element_rect(fill = "black", color = "black"),
-        plot.background = element_rect(fill = "black", color = "black"),
-        legend.position = "none",
-        # plot.title = element_markdown(size = 96),
-        plot.title = element_text(colour = "white"),
-        # plot.subtitle = element_text(color = "white"),
-        plot.subtitle = element_markdown())
+  theme_arc()
 
 g
 
-
-ggsave(here("Figures","Urban.pdf"), width = 16.5, height = 11.7, units = "in", dpi = 320)
+ggsave(here("Figures","Urban.pdf"), width = 16.5, height = 9, units = "in", dpi = 320)
 ```
 
 
@@ -180,13 +184,8 @@ rural_df <- cdw_df %>%
   dplyr::filter(., grepl("Rural", variable)) %>%
   mutate(value = round(value))
 
-rural_df %>%
-  summarize(ncountries = n_distinct(entity),
-            max_rural = max(value))
-
 links_rural <- data.frame(source = 0,
                          value = c(1:100))
-
 
 links <- links_rural %>%
   left_join(rural_df, by = "value") %>%
@@ -199,11 +198,9 @@ links <- links_rural %>%
          group)%>%
   group_by(destination) %>%
   mutate(width = n())
-  
 
+# make rural graph
 graph <- graph_from_data_frame(links)
-
-
 
 g2 <- ggraph(graph, layout="linear") + #call the ggpraph function 
   geom_edge_arc(aes(edge_colour = group,  #three color groups, no data, data, and value highlighted
@@ -217,20 +214,11 @@ g2 <- ggraph(graph, layout="linear") + #call the ggpraph function
                  length.out = 101))+
   scale_edge_color_manual(values = c("black","lavender", "darkorchid")) +  #adding gray to major lines, staying green for highlight
   scale_edge_alpha_manual(values = c(0, .15, 1)) + #set group 3 to only one not transparent
-  # labs(title = "Rate of access to at least basic safe drinking water in Rural areas") +
-  theme_void() +
-  theme(
-    # plot.margin = margin(t = 40, r = 50, b = 0, l = 50),
-        panel.background = element_rect(fill = "black", color = "black"),
-        plot.background = element_rect(fill = "black", color = "black"),
-        legend.position = "none")
-        # plot.title = element_text(colour = "#7F3D17"))+
-  # scale_y_continuous(trans = "reverse")+
-  # scale_y_reverse()
+  theme_arc()
 
 g2
 
-ggsave(here("Figures","Rural.pdf"), width = 16.5, height = 11.7, units = "in", dpi = 320)
+ggsave(here("Figures","Rural.pdf"), width = 16.5, height = 10, units = "in", dpi = 320)
 ```
 
 
@@ -247,7 +235,6 @@ cowplot::ggdraw(xlim = c(0,0.97),
   cowplot::draw_plot(g2,
                      x = 0,
                      y = -1)
-
 
 ```
 
