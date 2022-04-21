@@ -179,7 +179,7 @@ ct_map <- magick::image_read('CTRiver_map.png') # not saving?
 # legend
 p_leg <- get_legend(plot_es + 
                       theme_minimal(base_size = 18)+
-                      theme(legend.position = "right", 
+                      theme(legend.position = "bottom", 
                             text = element_text(family = font_fam),
                             legend.title = element_text(size = 22),
                             legend.spacing.y = unit(4, 'pt'))+
@@ -223,8 +223,8 @@ ggdraw(ylim = c(0,1), xlim = c(0,1)) +
               scale_y_continuous(expand = c(0,0),
                                  breaks=seq(2011,2021,1),
                                  trans  = "reverse"),
-            y = 0.5+plot_margin, x = 0+plot_margin,
-            height = 0.375, width = 0.6) +
+            y = 0.55+plot_margin, x = 0+plot_margin,
+            height = 0.325, width = 0.6) +
   # old lyme plot
   draw_plot(plot_ol + theme(legend.position = "none",
                             axis.title = element_blank(),
@@ -236,17 +236,17 @@ ggdraw(ylim = c(0,1), xlim = c(0,1)) +
               scale_y_continuous(expand = c(0,0),
                                  breaks=seq(2011,2021,1),
                                  trans  = "reverse"),
-            y = 0.1+plot_margin, x = 0+plot_margin,
-            height = 0.375, width = 0.6) +
+            y = 0.2+plot_margin, x = 0+plot_margin,
+            height = 0.325, width = 0.6) +
  # draw_plot(ct_map,
  #           x = 0.65, height = 0.75, width = 0.4-plot_margin)+
   # shared legend
   draw_plot(p_leg,
-            y = 0.675, x = 0.63,
+            y = 0.03, x = 0.21,
             hjust = 0,
             width = 0.2, height = 0.3) +
   # title
-  draw_label("Maximum Daily Salinity on the Lower Connectivut River, 2011-2021", 
+  draw_label("Maximum Daily Salinity on the Lower Connecticut River, 2011-2021", 
              x = plot_margin, y = 1-plot_margin, 
              fontface = "bold", 
              size = 36, 
