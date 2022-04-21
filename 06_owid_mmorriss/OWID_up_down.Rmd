@@ -23,7 +23,7 @@ library(cowplot)
 
 ## download data
 
-This is a markdown document to download water qualtiy data from OWID and look to make a curvy arc plot of it URBan vs rural
+This is a markdown document to download water quality data from OWID and look to make a curvy arc plot of it URBan vs rural
 
 ```{r cars}
 #determine what data to download
@@ -46,7 +46,6 @@ cyr <- 2022
 cdw_df <- dw_df %>%
   filter(year > (cyr - 10))
 
-
 #look at how many years have good data for drinking water in the rural areas
 cdw_df %>%
   group_by(year) %>%
@@ -54,7 +53,6 @@ cdw_df %>%
 
 
 #look at how many years have good data for drinking water in the urban areas
-
 cdw_df %>%
   group_by(year) %>%
   summarise(unique = n_distinct(`Drinking water - At least basic - Urban - Percent`))
@@ -139,7 +137,7 @@ links <- links_urban %>%
 
 # graph <- graph_from_data_frame(links)
 
-
+links
 
 g <- links %>%
   graph_from_data_frame() %>%
