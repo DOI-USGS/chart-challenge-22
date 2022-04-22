@@ -6,6 +6,9 @@ library(lubridate)
 library(rgdal)
 library(ggplot2)
 library(cowplot)
+library(showtext)
+library(magick)
+library(grid)
 
 #chunk to get site info and shapefile
 #station numbers of monitoring sites on the Connecticut River
@@ -117,23 +120,6 @@ plot_ol <- ggplot(saldat_ol, aes(x = Date_plot, y = Year)) +
   theme(plot.title = element_text(size = 12), plot.caption = element_text(hjust = 0, face = "italic")) +
   theme(legend.position = "none") 
 
-plots <- plot_grid(
-  plot_es, plot_ol, 
-  labels = NULL, ncol = 1)
-
-legend <- get_legend(
-  plot_es +
-    guides(color = guide_legend(nrow = 1)) +
-    theme(legend.position = "bottom")) 
-combined <- plot_grid(plots, legend,ncol=1,rel_heights = c(1, .1))
-
-#save out tiles separately 
-ggsave("30DayChart.pdf", width = 8, height = 8, dpi = 300)
-
-library(showtext)
-library(magick)
-library(cowplot)
-library(grid)
 
 # logo
 usgs_logo <- magick::image_read('../logo/usgs_logo_white.png') %>%
