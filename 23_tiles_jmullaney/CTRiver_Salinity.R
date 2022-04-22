@@ -62,6 +62,8 @@ mapshot(Salmap, file = "CTRiver_map.png", remove_controls = c("zoomControl"))
 #Generate some dates on a leap year to be used for plotting
 Leap <- tibble(Date_plot = seq(as.Date("2020-01-01"), as.Date("2020-12-31"), by="days"),
                Day = yday(Date_plot)) # Julian day column
+Leap
+
 #Essex data
 saldat <- readNWISdv("01194750", c("90860","00095"),
                      startDate = "2011-01-01",
