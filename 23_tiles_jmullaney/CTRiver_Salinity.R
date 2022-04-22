@@ -1,12 +1,3 @@
----
-title: "Maximum Daily Salinity on the Lower Connecticut River, 2011 - 2021"
-output:
-  html_document:
-    df_print: paged
----
-
-
-```{r include = FALSE}
 library(dataRetrieval)
 library(leaflet)
 library(mapview)
@@ -15,19 +6,16 @@ library(lubridate)
 library(rgdal)
 library(ggplot2)
 library(cowplot)
-knitr::opts_chunk$set(echo=FALSE)
-```
+library(showtext)
+library(magick)
+library(grid)
 
-
-```{r include = FALSE}
 #chunk to get site info and shapefile
-
 #station numbers of monitoring sites on the Connecticut River
 sites <- c("01194750","01194796")
 INFO <- readNWISsite(sites)
 Essex <- INFO %>% filter(site_no == "01194750") %>% mutate(name = "  Essex")
 Old_Lyme <- INFO %>% filter(site_no == "01194796")%>% mutate(name = "  Old Lyme")
-
 # Get shapefile of tidal wetlands
 # #download tidal wetland shapefile at link from below, and place into the RStudio project directory https://ct-deep-gis-open-data-website-ctdeep.hub.arcgis.com/datasets/CTDEEP::tidal-wetlands-1990s/about
 path <- "Tidal_Wetlands_1990s-shp/Tidal_Wetlands_1990s.shp"
@@ -35,11 +23,7 @@ wt <- readOGR(path,layer = "Tidal_Wetlands_1990s")
 wt = spTransform(wt, CRS("+init=epsg:4326"))
 wt$lat = coordinates(wt)[,2]
 wt$long = coordinates(wt)[,1]
-```
 
-
-```{r message=FALSE, fig.cap = "Map showing monitoring locations on the Connecticut River, tidal wetlands are indicated by pink shading, from Connecticut Department of Environmental Protection, 2022."}
-#Generate the map in Leaflet
 Salmap <- leaflet(INFO) %>% setView(lng = -72.35, lat = 41.30, zoom=12) %>%
   
   addProviderTiles("Stamen.Terrain") %>%
@@ -49,7 +33,7 @@ Salmap <- leaflet(INFO) %>% setView(lng = -72.35, lat = 41.30, zoom=12) %>%
   addPolygons(data = wt, color = "#444444", weight = 0, smoothFactor = 0.5, 
               opacity = 1.0, fillOpacity = 0.5,
               fillColor = "#D35FB7")%>%
- 
+  
   addCircleMarkers(lng = ~dec_long_va, 
                    lat = ~dec_lat_va,  
                    radius = 8.0,
@@ -59,33 +43,29 @@ Salmap <- leaflet(INFO) %>% setView(lng = -72.35, lat = 41.30, zoom=12) %>%
                    stroke=T,
                    fillOpacity = 1)  %>% 
   addLabelOnlyMarkers(data = Essex,~dec_long_va, ~dec_lat_va, label =  ~name, 
-                    labelOptions =labelOptions(noHide = T, direction = 'top', 
-                    textOnly = T, style = list("font-weight" = "bold", padding = "3px 8px"), 
-                    textsize = "18px")) %>% 
+                      labelOptions =labelOptions(noHide = T, direction = 'top', 
+                                                 textOnly = T, style = list("font-weight" = "bold", padding = "3px 8px"), 
+                                                 textsize = "18px")) %>% 
   addLabelOnlyMarkers(data = Old_Lyme,~dec_long_va, ~dec_lat_va, label =  ~name, 
-                    labelOptions =labelOptions(noHide = T, direction = 'bottom', 
-                    textOnly = T, style = list("font-weight" = "bold", padding = "3px 8px"), 
-                    textsize = "18px")) %>% 
+                      labelOptions =labelOptions(noHide = T, direction = 'bottom', 
+                                                 textOnly = T, style = list("font-weight" = "bold", padding = "3px 8px"), 
+                                                 textsize = "18px")) %>% 
   addLabelOnlyMarkers(lng = -72.33, lat = 41.27, label =  "Long Island Sound", 
                       labelOptions = labelOptions(noHide = T, direction = 'bottom', 
-                    textOnly = T,textsize = "18px")) %>% 
+                                                  textOnly = T,textsize = "18px")) %>% 
   addLabelOnlyMarkers(lng = -72.402, lat = 41.395, label =  "Connecticut River", 
                       labelOptions = labelOptions(noHide = T, direction = 'bottom', 
-                      textOnly = T, style = list("font-weight" = "normal", padding = "3px 8px"), 
-                      textsize = "18px")) 
-Salmap 
+                                                  textOnly = T, style = list("font-weight" = "normal", padding = "3px 8px"), 
+                                                  textsize = "18px")) 
+Salmap
 
 #save a jpg
 mapshot(Salmap, file = "CTRiver_map.png", remove_controls = c("zoomControl"))
 
-
-```
-```{r}
-# Get salinity data from NWIS
-
 #Generate some dates on a leap year to be used for plotting
 Leap <- tibble(Date_plot = seq(as.Date("2020-01-01"), as.Date("2020-12-31"), by="days"),
-                   Day = yday(Date_plot)) # Julian day column
+               Day = yday(Date_plot)) # Julian day column
+Leap
 
 #Essex data
 saldat <- readNWISdv("01194750", c("90860","00095"),
@@ -97,27 +77,22 @@ saldat <- readNWISdv("01194750", c("90860","00095"),
   left_join(Leap) %>% 
   rename(`Top Salinity` = X_at.Essex.Island.Top_90860_00001, `Bottom Salinity` = X_at.Essex.Island.Bottom_90860_00001) %>%
   mutate(Salinity = if_else(`Top Salinity` < 0.5, "Fresh",
-                if_else(`Top Salinity` >= 0.5 & `Top Salinity` < 5, "Oligohaline",
-                if_else(`Top Salinity` >= 5 & `Top Salinity` <= 18, "Mesohaline",
-                if_else(`Top Salinity` > 18, "Polyhaline", NULL)))))
-
+                            if_else(`Top Salinity` >= 0.5 & `Top Salinity` < 5, "Oligohaline",
+                                    if_else(`Top Salinity` >= 5 & `Top Salinity` <= 18, "Mesohaline",
+                                            if_else(`Top Salinity` > 18, "Polyhaline", NULL)))))
 #Old_Lyme data
 saldat_ol <- readNWISdv("01194796", c("90860","00095"),
                         startDate = "2011-01-01",
-                     endDate = "2021-12-31",
-                     statCd = "00001") %>% 
-    mutate(Year = year(Date),
+                        endDate = "2021-12-31",
+                        statCd = "00001") %>% 
+  mutate(Year = year(Date),
          Day = yday(Date)) %>% 
   left_join(Leap) %>%  
   rename(`Top Salinity` = X_Top_90860_00001, `Bottom Salinity` = X_Bottom_90860_00001) %>%
   mutate(Salinity = if_else(`Top Salinity` < 0.5, "Fresh",
-                if_else(`Top Salinity` >= 0.5 & `Top Salinity` < 5, "Oligohaline",
-                if_else(`Top Salinity` >= 5 & `Top Salinity` <= 18, "Mesohaline",
-                if_else(`Top Salinity` > 18, "Polyhaline", NULL)))))
-
-```
-
-```{r message=FALSE}
+                            if_else(`Top Salinity` >= 0.5 & `Top Salinity` < 5, "Oligohaline",
+                                    if_else(`Top Salinity` >= 5 & `Top Salinity` <= 18, "Mesohaline",
+                                            if_else(`Top Salinity` > 18, "Polyhaline", NULL)))))
 #ggplots and cowplot
 cols <- c("Fresh" = "#5B85AF", "Oligohaline" = "#DBB36E", "Mesohaline" = "#CC8550", "Polyhaline" = "#D05700")
 
@@ -145,28 +120,6 @@ plot_ol <- ggplot(saldat_ol, aes(x = Date_plot, y = Year)) +
   theme(plot.title = element_text(size = 12), plot.caption = element_text(hjust = 0, face = "italic")) +
   theme(legend.position = "none") 
 
-plots <- plot_grid(
-  plot_es, plot_ol, 
-  labels = NULL, ncol = 1)
-
-legend <- get_legend(
-  plot_es +
-    guides(color = guide_legend(nrow = 1)) +
-    theme(legend.position = "bottom")) 
-
-combined <- plot_grid(plots, legend,ncol=1,rel_heights = c(1, .1))
-combined 
-
-ggsave("30DayChart.pdf", width = 8, height = 8, dpi = 300)
-
-```
-
-```{r, fig.height = 9, fig.width = 16}
-## compose final plot
-library(showtext)
-library(magick)
-library(cowplot)
-library(grid)
 
 # logo
 usgs_logo <- magick::image_read('../logo/usgs_logo_white.png') %>%
@@ -175,6 +128,16 @@ usgs_logo <- magick::image_read('../logo/usgs_logo_white.png') %>%
 
 # map
 ct_map <- magick::image_read('CTRiver_map.png') # not saving?
+
+# add font
+font_fam <- 'Roboto'
+font_add_google(font_fam, regular.wt = 300, bold.wt = 700) 
+
+# using a second font to numbers that is monospaced 
+font_num <- 'Source Sans Pro'
+font_add_google(font_num, regular.wt = 300, bold.wt = 700) 
+showtext_opts(dpi = 300)
+showtext_auto(enable = TRUE)
 
 # legend
 p_leg <- get_legend(plot_es + 
@@ -187,15 +150,6 @@ p_leg <- get_legend(plot_es +
                         title = "Salinity levels"
                       )))
 
-# add font
-font_fam <- 'Roboto'
-font_add_google(font_fam, regular.wt = 300, bold.wt = 700) 
-
-# using a second font to numbers that is monospaced 
-font_num <- 'Source Sans Pro'
-font_add_google(font_num, regular.wt = 300, bold.wt = 700) 
-showtext_opts(dpi = 300)
-showtext_auto(enable = TRUE)
 
 plot_margin <- 0.025
 
@@ -209,9 +163,9 @@ canvas <- rectGrob(
 ggdraw(ylim = c(0,1), xlim = c(0,1)) +
   # a white background
   draw_grob(canvas,
-          x = 0, y = 1,
-          height = 9, width = 16,
-          hjust = 0, vjust = 1)+
+            x = 0, y = 1,
+            height = 9, width = 16,
+            hjust = 0, vjust = 1)+
   # essex plot
   draw_plot(plot_es + theme(legend.position = "none",
                             axis.title = element_blank(),
@@ -238,8 +192,11 @@ ggdraw(ylim = c(0,1), xlim = c(0,1)) +
                                  trans  = "reverse"),
             y = 0.2+plot_margin, x = 0+plot_margin,
             height = 0.325, width = 0.6) +
- # draw_plot(ct_map,
- #           x = 0.65, height = 0.75, width = 0.4-plot_margin)+
+  #  add map panel
+  draw_image(ct_map,
+            x = 0.65, y = 0.2+plot_margin,
+            height = 0.75, width = 0.3,
+            ) +
   # shared legend
   draw_plot(p_leg,
             y = 0.03, x = 0.21,
@@ -266,15 +223,3 @@ ggdraw(ylim = c(0,1), xlim = c(0,1)) +
   draw_image(usgs_logo, x = plot_margin, y = plot_margin, width = 0.1, hjust = 0, vjust = 0, halign = 0, valign = 0)
 
 ggsave('CTRiver_salinity.png',height = 9, width = 16)
-
-
-```
-$~$
-$~$
-$~$
-
-
-`r paste("Salinity categories in practical salinity units (PSU): fresh, <0.5;
-                     oligohaline, \u22650.5 to < 5; mesohaline, \u22655 to \u226418; polyhaline, > 18.")`
-
-
