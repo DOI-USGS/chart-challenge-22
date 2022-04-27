@@ -77,20 +77,34 @@ raster_ploting_w_ggplot <- function(raster_in, reach_shp,
   showtext_auto(enable = TRUE)
 
   plot_margin <- 0.025
+  canvas <- rectGrob(
+    x = 0, y = 0, 
+    width = 16, height = 9,
+    gp = gpar(fill = "white", alpha = 1, col = 'white')
+  )
   
   # combine plot elements
   ggdraw(ylim = c(0,1), xlim = c(0,1)) +
+    # a white background
+    draw_grob(canvas,
+              x = 0, y = 1,
+              height = 9, width = 16,
+              hjust = 0, vjust = 1) +
+    # draw map
     draw_plot(nlcd_map + theme(legend.position = "none"),
               y = 0.1, x = 0.3-plot_margin,
               height = 0.8, width = 0.35) +
+    # draw area chart
     draw_plot(nlcd_area + theme(legend.position = "none"),
               y = 0.1, x = 0.65-plot_margin,
               height = 0.8, width = 0.35) +
+    # draw legend
     draw_plot(p_legend,
               y = 0.8, x = 0, 
               width = 0.3, height = 0.5,
               hjust = 0, vjust = 1,
               halign = 0, valign = 1) +
+    # draw title
     draw_label(title, 
                x = plot_margin, y = 1-plot_margin, 
                fontface = "bold", 
@@ -98,7 +112,8 @@ raster_ploting_w_ggplot <- function(raster_in, reach_shp,
                hjust = 0, 
                vjust = 1,
                fontfamily = font_fam,
-               lineheight = 1.1) +
+               lineheight = 1.1) +ß
+    # add author
     draw_label("Margaux Sleckman, USGS\nData: NLCD", 
                x = 1-plot_margin, y = plot_margin, 
                fontface = "italic", 
@@ -106,6 +121,7 @@ raster_ploting_w_ggplot <- function(raster_in, reach_shp,
                hjust = 1, vjust = 0,
                fontfamily = font_legend,
                lineheight = 1.1) +
+    # add logoß
     draw_image(usgs_logo, x = plot_margin, y = plot_margin, width = 0.1, hjust = 0, vjust = 0, halign = 0, valign = 0)
   
   ggsave(sprintf('%s/nlcd_%s.png', out_folder, file_name), height = 9, width = 14, device = 'png')
