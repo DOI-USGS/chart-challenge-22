@@ -14,4 +14,8 @@ The first step of data processing required using R to convert the data from an R
 
 The majority of the code was performed in jupyter notebooks with a python kernel using libraries such as pandas, numpy, matplotlib, and scipy (for clean KDE distribution curves). This is found in the notebook `notebooks/figure_creation-ExtraContext.ipynb`
 
-Initial gif creation used the Windows version of ImageMagick.
+Initial gif creation used the Windows version of ImageMagick:
+![forecast_comparison](https://user-images.githubusercontent.com/54007288/165587014-524f43b0-2d7a-4e3b-b128-7924813a4175.gif)
+
+The gif was then further customized in Adobe Illustrator and Adobe Photoshop:
+![Jeremy_gif_revised](https://user-images.githubusercontent.com/54007288/165586531-6c0836e4-edf3-4fcd-9f38-1aa2a62e20d8.gif)
