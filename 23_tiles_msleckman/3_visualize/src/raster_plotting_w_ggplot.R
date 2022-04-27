@@ -74,7 +74,7 @@ raster_ploting_w_ggplot <- function(raster_in, reach_shp, counts, legend_df, tit
   
   
   ##compose final plot
-  file_name <- stringr::word(unique(raster_in$rast), 4, 4, sep = '_')
+  file_name <- stringr::word(unique(raster_in$rast), -4, -1)
   
   # legend
   p_legend <- get_legend(nlcd_map)

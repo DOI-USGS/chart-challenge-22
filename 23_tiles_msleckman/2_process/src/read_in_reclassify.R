@@ -61,7 +61,7 @@ downsamp_cat <- function(raster, down_fact){
     filter(value > 0, name != 0) %>%
     group_by(x,y) %>%
     arrange(desc(value)) %>%
-    slice_max(1)
+    slice_max(value, n = 1)
   return(rast_down_df)
 }
 ## OLD CODE
