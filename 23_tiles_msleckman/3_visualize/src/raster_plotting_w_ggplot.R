@@ -1,6 +1,7 @@
-source('3_visualize/src/bar_plot.R')
-
-raster_ploting_w_ggplot <- function(raster_in, reach_shp, counts, legend_df, title, font_fam = "Source Sans Pro", out_folder = "3_visualize/out"){
+raster_ploting_w_ggplot <- function(raster_in, reach_shp,
+                                    counts, legend_df, title, chart_year, 
+                                    font_fam = "Source Sans Pro",
+                                    out_folder = "3_visualize/out"){
   
   font_legend <- 'Source Sans Pro'
   
@@ -38,7 +39,7 @@ raster_ploting_w_ggplot <- function(raster_in, reach_shp, counts, legend_df, tit
                 summarize(total_cells = sum(count))) %>%
     mutate(year = as.numeric(stringr::str_sub(rast,-4,-1)),
            percent = count/total_cells) %>%
-    filter(value != 0) %>% 
+    filter(value != 0, year == chart_year) %>% 
     ggplot(aes(year, 
                percent, 
                group = value, 
@@ -59,7 +60,7 @@ raster_ploting_w_ggplot <- function(raster_in, reach_shp, counts, legend_df, tit
     )
     
   ##compose final plot
-  file_name <- stringr::str_sub(unique(raster_in$rast),-4,-1)
+  file_name <- stringr::str_sub(unique(counts$rast),-4,-1)
   
   # legend
   p_legend <- get_legend(nlcd_map)
@@ -73,6 +74,7 @@ raster_ploting_w_ggplot <- function(raster_in, reach_shp, counts, legend_df, tit
   font_add_google(font_fam, regular.wt = 300, bold.wt = 700) 
   showtext_opts(dpi = 300)
   showtext_auto(enable = TRUE)
+
   plot_margin <- 0.025
   
   # combine plot elements
@@ -105,12 +107,10 @@ raster_ploting_w_ggplot <- function(raster_in, reach_shp, counts, legend_df, tit
                lineheight = 1.1) +
     draw_image(usgs_logo, x = plot_margin, y = plot_margin, width = 0.1, hjust = 0, vjust = 0, halign = 0, valign = 0)
   
-  ggsave(sprintf('%s/nlcd_%s.png', out_folder, file_name), height = 9, width = 14)
+  ggsave(sprintf('%s/nlcd_%s.png', out_folder, file_name), height = 9, width = 14, device = 'png')
+  
 }
 
-
-
-### OLD colde with timeseries ggplot 
 # geom_line(size = 3, alpha = 0.7) +
 # geom_point(size = 2, shape = 21, fill = "white", stroke = 1) +
 # theme_classic(base_size = 16)+
@@ -137,5 +137,5 @@ raster_ploting_w_ggplot <- function(raster_in, reach_shp, counts, legend_df, tit
 #   values = legend_df$color,
 #   labels = legend_df$Reclassify_description,
 #   "Land cover"
-# )
 # 
+# )

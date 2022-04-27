@@ -2,8 +2,6 @@ downsamp_cat <- function(raster, down_fact){
   #' @param raster input raster
   #' @param down_fact factor to downsample by in x and y direction
   
-  targets::tar_load(p2_reclassified_raster_list)
-  raster <- p2_reclassified_raster_list[[1]]
   rast <- terra::rast(raster[[1]]) # convert to Spat
   rast_seg <- terra::segregate(rast) # split categorical data
   rast_down <- terra::aggregate(rast_seg, fact = down_fact,  sum) # downsample

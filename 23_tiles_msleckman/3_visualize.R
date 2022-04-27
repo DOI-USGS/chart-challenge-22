@@ -35,6 +35,11 @@ p3_targets_list<- list(
                               out_folder = '3_visualize/out/barplot/'))}
   ),
   
+  tar_target(
+    p3_gif_years,
+    c('1900','1910','1920','1930','1940','1950','1960','1970','1980','1990','2001','2011','2019')
+  ),
+  
   ## create ggplot visual - Cee inspo!!! 
   tar_target(
     p3_save_map_frames_ggplot,
@@ -44,11 +49,12 @@ p3_targets_list<- list(
       counts = p2_raster_cell_count,
       legend_df = legend_df,
       title = "NLCD in the DRB",
-      font_fam = "Dongle", out_folder = '3_visualize/out/ggplots/'),
-    pattern = map(p2_downsamp_raster_list),
+      chart_year = p3_gif_years,
+      font_fam = "Dongle",
+      out_folder = '3_visualize/out/ggplots/'),
+    pattern = map(p2_downsamp_raster_list, p3_gif_years),
   format = "file",
   ),
-  
   
   # Animations
   ## animate levelplot maps
