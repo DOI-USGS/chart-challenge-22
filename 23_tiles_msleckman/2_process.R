@@ -60,8 +60,8 @@ p2_targets_list<- list(
   # this is over-reduced - gg developed areas notably different from levelplot
   tar_target(
    p2_downsamp_raster_list,
-     downsamp_cat(p2_reclassified_raster_list, down_fact = 8)%>% 
-     mutate(rast = names(p2_reclassified_raster_list)),
+     downsamp_cat(p2_reclassified_raster_list[[1]], down_fact = 8) %>% 
+     mutate(rast = names(p2_reclassified_raster_list[[1]])),
    pattern = map(p2_reclassified_raster_list)
   )
 )
