@@ -28,8 +28,6 @@ dir.create("3_visualize/out/levelplot/", showWarnings = FALSE)
 dir.create("3_visualize/out/ggplots/", showWarnings = FALSE)
 dir.create("3_visualize/out/gifs/", showWarnings = FALSE)
 
-
-
 ## all years of interest for this visual
 all_years <- c('1900','1910','1920','1930','1940','1950',
                '1960','1970','1980','1990','2000','2001','2011','2019'
@@ -52,6 +50,7 @@ legend_df <- reclassify_df_FOR %>%
   arrange(Reclassify_match) %>% 
   dplyr::select(-c(FORESCE_value, FORESCE_description, color_name)) %>%
   distinct()
+
 
 # Returning the complete list of targets
 c(p1_targets_list, p2_targets_list, p3_targets_list)

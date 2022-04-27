@@ -58,12 +58,11 @@ p1_targets_list <- list(
     p1_drb_huc8,
     nhdplusTools::get_huc8(AOI = p1_drb_boundary)
     ),
-  
   tar_target(
     p1_drb_flines,
     nhdplusTools::get_nhdplus(AOI = p1_drb_huc8, realization = 'flowline')
   ),
-  
+
   tar_target(
     p1_streams_polylines_drb,
     p1_drb_flines %>%

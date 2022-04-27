@@ -30,7 +30,7 @@ p2_targets_list<- list(
                                          out_folder = '2_process/out/reclassified/'))
     }
   ),
-  
+
   ## Combine all paths to tif files
   tar_target(
     p2_all_reclassified_rasters,
@@ -45,6 +45,7 @@ p2_targets_list<- list(
       raster)
       }
   ),
+
   # count the number of cells for each nlcd category
   # could be used for a paired plot showing area change through time
   tar_target(
