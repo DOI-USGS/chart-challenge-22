@@ -21,7 +21,8 @@ p1_targets_list <- list(
   tar_target(
     p1_FORESCE_lc_tif_download_filtered,
     p1_FORESCE_lc_tif_download %>% str_subset(
-      pattern = '1900|1910|1920|1930|1940|1950|1960|1970|1980|1990|2000')
+      ## we select years by filtering a regex pattern 
+      pattern = '1900|1910|1920|1930|1940|1950|1960|1970|1980|1990')
     ),
   
   ## Get drb boundary shp 
@@ -48,7 +49,7 @@ p1_targets_list <- list(
       group_by(Source) %>%
       summarize() %>% 
       mutate(region = 'drb') 
-      ## keeping the project of this file - projection
+      ## keeping the projection of this file
       ), 
   
   # use DRB boundary to get flowlines from NHD
@@ -61,6 +62,7 @@ p1_targets_list <- list(
     p1_drb_flines,
     nhdplusTools::get_nhdplus(AOI = p1_drb_huc8, realization = 'flowline')
   ),
+
   tar_target(
     p1_streams_polylines_drb,
     p1_drb_flines %>%
@@ -70,7 +72,7 @@ p1_targets_list <- list(
       st_intersection(p1_drb_boundary)
   ),
   
-  ## Get nlcd data usign the FedData packages and the get_nlcd() function 
+  ## Get nlcd data using the FedData package and the get_nlcd() function 
   ## This process includes fetching + masking raster to aoi (drb aoi in our case) 
   tar_target(
     p1_fetch_nlcd_all_years, 

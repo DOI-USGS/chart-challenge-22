@@ -1,4 +1,7 @@
-raster_ploting_w_ggplot <- function(raster_in, reach_shp, counts, legend_df, title, font_fam = "Source Sans Pro", out_folder = "3_visualize/out/"){
+raster_ploting_w_ggplot <- function(raster_in, reach_shp,
+                                    counts, legend_df, title, chart_year, 
+                                    font_fam = "Source Sans Pro",
+                                    out_folder = "3_visualize/out"){
   
   font_legend <- 'Source Sans Pro'
   
@@ -28,53 +31,37 @@ raster_ploting_w_ggplot <- function(raster_in, reach_shp, counts, legend_df, tit
     ) +
     coord_sf()
   
-  
-  # area through time
+  # Area through time
   nlcd_area <- counts %>% 
     # find % of total area in each category over time
     left_join(counts %>% 
                 group_by(rast)%>%
                 summarize(total_cells = sum(count))) %>%
-    mutate(year = as.numeric(stringr::word(rast, 4, 4, sep ='_')),
+    mutate(year = as.numeric(stringr::str_sub(rast,-4,-1)),
            percent = count/total_cells) %>%
-    filter(value != 0) %>% 
+    filter(value != 0, year == chart_year) %>% 
     ggplot(aes(year, 
                percent, 
                group = value, 
-               color = factor(value), 
+               # color = factor(value), 
                fill = factor(value))
-           ) +
-    geom_line(size = 3, alpha = 0.7) +
-    geom_point(size = 2, shape = 21, fill = "white", stroke = 1) +
-    theme_classic(base_size = 16)+
-    scale_y_continuous(
-      labels = scales::label_percent(accuracy = 1),
-      expand = c(0,0)
-    )+
-    scale_x_continuous(
-      expand = c(0,0)
-    ) +
-    labs(x="", y="") +
-    theme(
-      text = element_text(family = font_legend)
-      #legend.position = 'none',
-      #plot.background = element_blank(),
-      #panel.background = element_blank(),
-    )+
-    scale_color_manual(
-      values = legend_df$color,
-      labels = legend_df$Reclassify_description,
-      "Land cover"
-    )+
+           )+
+    ## bar plot vis
+    geom_bar(stat = 'identity', width = 4)+
     scale_fill_manual(
       values = legend_df$color,
       labels = legend_df$Reclassify_description,
-      "Land cover"
+      "Land cover type"
+    )+
+    theme_classic()+
+    scale_y_continuous(
+      labels = scales::label_percent(accuracy = 1),
+      expand = c(0,0)
     )
-  
-  
+    
   ##compose final plot
-  file_name <- stringr::word(unique(raster_in$rast), -4, -1)
+  file_name <- stringr::str_sub(unique(raster_in$rast),-4,-1)
+
   
   # legend
   p_legend <- get_legend(nlcd_map)
@@ -88,6 +75,7 @@ raster_ploting_w_ggplot <- function(raster_in, reach_shp, counts, legend_df, tit
   font_add_google(font_fam, regular.wt = 300, bold.wt = 700) 
   showtext_opts(dpi = 300)
   showtext_auto(enable = TRUE)
+
   plot_margin <- 0.025
   
   # combine plot elements
@@ -120,5 +108,35 @@ raster_ploting_w_ggplot <- function(raster_in, reach_shp, counts, legend_df, tit
                lineheight = 1.1) +
     draw_image(usgs_logo, x = plot_margin, y = plot_margin, width = 0.1, hjust = 0, vjust = 0, halign = 0, valign = 0)
   
-  ggsave(sprintf('%s/nlcd_%s.png', out_folder, file_name), height = 9, width = 14)
+  ggsave(sprintf('%s/nlcd_%s.png', out_folder, file_name), height = 9, width = 14, device = 'png')
+  
 }
+
+# geom_line(size = 3, alpha = 0.7) +
+# geom_point(size = 2, shape = 21, fill = "white", stroke = 1) +
+# theme_classic(base_size = 16)+
+# scale_y_continuous(
+#   labels = scales::label_percent(accuracy = 1),
+#   expand = c(0,0)
+# )+
+# scale_x_continuous(
+#   expand = c(0,0)
+# ) +
+# labs(x="", y="") +
+# theme(
+#   text = element_text(family = font_legend)
+#   #legend.position = 'none',
+#   #plot.background = element_blank(),
+#   #panel.background = element_blank(),
+# )+
+# scale_color_manual(
+#   values = legend_df$color,
+#   labels = legend_df$Reclassify_description,
+#   "Land cover"
+# )+
+# scale_fill_manual(
+#   values = legend_df$color,
+#   labels = legend_df$Reclassify_description,
+#   "Land cover"
+# 
+# )
