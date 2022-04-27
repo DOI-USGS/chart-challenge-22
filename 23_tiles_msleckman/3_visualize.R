@@ -31,6 +31,7 @@ p3_targets_list<- list(
     pattern = map(p2_downsamp_raster_list),
   format = "file",
   ),
+
   # animate
   tar_target(
     p3_animate_frames_gif,

@@ -23,7 +23,13 @@ dir.create("2_process/out/", showWarnings = FALSE)
 dir.create('2_process/out/reclassified/', showWarnings = FALSE)
 dir.create("3_visualize/out/", showWarnings = FALSE)
 
-nlcd_years <- list('2001','2004','2006','2011','2013','2016', '2019')
+nlcd_years <- list('2001',
+                   # '2004',
+                   # '2006',
+                   '2011',
+                   # '2013',
+                   # '2016',
+                   '2019')
 
 # defining reclassify_df for 
 reclassify_df_FOR <- read.delim('1_fetch/in/legend_color_map_FORESCE.csv', sep = ',') %>% filter(Reclassify_match != 'NA')

@@ -1,6 +1,6 @@
 produce_lc_img <- function(raster_in, raster_frame, legend_df, out_folder = "3_visualize/out/", reach_shp = NULL){
   
-  # raster_in <- gif_frames$raster
+  #raster_in <- gif_frames$raster[3]
   # raster_frame <- gif_frames$seq[3]
 
   raster_in <- raster_in[[1]]

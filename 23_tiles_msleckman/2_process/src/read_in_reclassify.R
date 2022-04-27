@@ -14,6 +14,11 @@ read_in_reclassify <- function(lc_tif_path, reclassify_legend,
   if(!is.null(aoi_for_crop)){
     raster <- raster(lc_tif_path) %>% mask(., aoi_for_crop)}
   else{raster <- raster(lc_tif_path)}
+  
+  ## RM zero values 
+  print(paste('old min:', raster@data@min))
+  raster[raster == 0] <- NA
+  print(paste('new min:',raster@data@min))
 
   ## Read in legend file - option if reclassify_legend is a file path or a df already
   if(is.data.frame(reclassify_legend)){
@@ -34,8 +39,7 @@ read_in_reclassify <- function(lc_tif_path, reclassify_legend,
   reclassified_raster <- raster::reclassify(raster, reclassify_matrix, filename = file.path(out_folder,name),format="GTiff", overwrite=TRUE)
   # reclassified_raster <- raster::reclassify(raster, reclassify_matrix)
   
-  ## RM zero values 
-  reclassified_raster[reclassified_raster == 0] <- NA
+
   
   end_time <- Sys.time()
   print(end_time - start_time)
