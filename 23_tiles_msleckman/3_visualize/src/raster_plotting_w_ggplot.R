@@ -77,10 +77,10 @@ raster_ploting_w_ggplot <- function(raster_in, reach_shp,
   showtext_auto(enable = TRUE)
 
   plot_margin <- 0.025
-  canvas <- rectGrob(
+  canvas <- grid::rectGrob(
     x = 0, y = 0, 
     width = 16, height = 9,
-    gp = gpar(fill = "white", alpha = 1, col = 'white')
+    gp = grid::gpar(fill = "white", alpha = 1, col = 'white')
   )
   
   # combine plot elements
@@ -112,7 +112,7 @@ raster_ploting_w_ggplot <- function(raster_in, reach_shp,
                hjust = 0, 
                vjust = 1,
                fontfamily = font_fam,
-               lineheight = 1.1) +ß
+               lineheight = 1.1) +
     # add author
     draw_label("Margaux Sleckman, USGS\nData: NLCD", 
                x = 1-plot_margin, y = plot_margin, 
@@ -121,7 +121,7 @@ raster_ploting_w_ggplot <- function(raster_in, reach_shp,
                hjust = 1, vjust = 0,
                fontfamily = font_legend,
                lineheight = 1.1) +
-    # add logoß
+    # add logo
     draw_image(usgs_logo, x = plot_margin, y = plot_margin, width = 0.1, hjust = 0, vjust = 0, halign = 0, valign = 0)
   
   ggsave(sprintf('%s/nlcd_%s.png', out_folder, file_name), height = 9, width = 14, device = 'png')
