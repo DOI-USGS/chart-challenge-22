@@ -1,5 +1,6 @@
 raster_ploting_w_ggplot <- function(raster_in, reach_shp,
-                                    counts, legend_df, title, chart_year, 
+                                    counts, legend_df, title, 
+                                    years, chart_year, 
                                     font_fam = "Source Sans Pro",
                                     out_folder = "3_visualize/out"){
   
@@ -30,6 +31,7 @@ raster_ploting_w_ggplot <- function(raster_in, reach_shp,
       "Land cover"
     ) +
     coord_sf()
+
   
   # Area through time
   nlcd_area <- counts %>% 
@@ -39,7 +41,8 @@ raster_ploting_w_ggplot <- function(raster_in, reach_shp,
                 summarize(total_cells = sum(count))) %>%
     mutate(year = as.numeric(stringr::str_sub(rast,-4,-1)),
            percent = count/total_cells) %>%
-    filter(value != 0, year == chart_year) %>% 
+    # filter to current year or earlier for bars to accumulate
+    filter(value != 0, year <= chart_year) %>% 
     ggplot(aes(year, 
                percent, 
                group = value, 
@@ -57,6 +60,10 @@ raster_ploting_w_ggplot <- function(raster_in, reach_shp,
     scale_y_continuous(
       labels = scales::label_percent(accuracy = 1),
       expand = c(0,0)
+    ) +
+    scale_x_continuous(
+      breaks = as.numeric(years),
+      limits = c(min(as.numeric(years)), max(as.numeric(years)))
     )
     
   ##compose final plot
@@ -77,6 +84,7 @@ raster_ploting_w_ggplot <- function(raster_in, reach_shp,
   showtext_auto(enable = TRUE)
 
   plot_margin <- 0.025
+  
   canvas <- grid::rectGrob(
     x = 0, y = 0, 
     width = 16, height = 9,
@@ -105,7 +113,7 @@ raster_ploting_w_ggplot <- function(raster_in, reach_shp,
               hjust = 0, vjust = 1,
               halign = 0, valign = 1) +
     # draw title
-    draw_label(title, 
+    draw_label(title,
                x = plot_margin, y = 1-plot_margin, 
                fontface = "bold", 
                size = 40, 

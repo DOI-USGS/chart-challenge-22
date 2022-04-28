@@ -38,7 +38,12 @@ p3_targets_list<- list(
     p3_gif_years,
     c('1900','1910','1920','1930','1940','1950','1960','1970','1980','1990','2001','2011','2019')
   ),
-  
+  tar_target(
+    # this seems sort of weird, it's to be able to set the x-axis limits for the stacked bar without getting mapped
+    p3_all_years, 
+    p3_gif_years
+  )
+  ,
   ## create ggplot visual - Cee inspo!!! 
 
   tar_target(
@@ -49,6 +54,7 @@ p3_targets_list<- list(
       counts = p2_raster_cell_count,
       legend_df = legend_df,
       title = "NLCD in the DRB",
+      years = p3_all_years, 
       chart_year = p3_gif_years,
       font_fam = "Dongle",
       out_folder = '3_visualize/out/ggplots/'),
