@@ -6,7 +6,7 @@ Alison Appling, Salme Cook, Galen Gorski, Amelia Snyder, Theodore Thompson
 Salme Cook, John Warner
 
 ###Contributors
-Hayley Corson-Dosch
+Hayley Corson-Dosch, Cee Nell
 
 # Messaging
 
