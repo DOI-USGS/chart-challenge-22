@@ -1,12 +1,12 @@
 
 ### Project Members
-Alison Appling, Salme Cook, Galen Gorski, Amelia Snyder, Theodore Thompson
+Alison Appling, Salme Cook, Galen Gorski, Jared Smith, Amelia Snyder & Theodore Thompson
 
 ### Collaborators
-Salme Cook, John Warner
+Salme Cook & John Warner
 
-### Contributors
-Hayley Corson-Dosch, Cee Nell
+### Charts/Notebook Contributors
+Salme Cook, Hayley Corson-Dosch & Theodore Thompson
 
 # Messaging
 
@@ -42,4 +42,4 @@ The polar plots where created in a Jupyter Notebook. It takes approximately 30 m
 Currently water scientist at the USGS are working to improve the accuracy of the modelled salt front location by isolating the dominant factors
 affecting the salt front. These figures are just one part of an ongoing project reaching that goal. The figures were created from modelled outputs
 containing data about the daily river mile location of the salt front. To run the notebook, you must have Jupyter Lab installed with the listed libraries.
-It is suggested that you create a new environment when running this notebook. Instructions here.
+It is suggested that you create a new environment when running this notebook. Instructions [here](https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#creating-an-environment-with-commands).
