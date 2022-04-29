@@ -23,7 +23,7 @@ library(cowplot)
 
 ## download data
 
-This is a markdown document to download water quality data from OWID and look to make a curvy arc plot of it URBan vs rural
+This is a markdown document to download water quality data from OWID and look to make a curvy arc plot of it - urban vs rural
 
 ```{r cars}
 #determine what data to download
@@ -38,7 +38,7 @@ dw_df <- owid(chart_id = basic_water$chart_id[56])
 
 These data are pretty messy. Need to do some significant cleaning to see:
 1) what years have the most data for countries
-2) remove non-nonsensical years
+2) remove nonsensical years
 3) look at last 10 years of data
 ```{r clean data, echo=FALSE}
 cyr <- 2022
@@ -77,28 +77,17 @@ cdw_df <- cdw_df %>%
 ```
 Now I have a clean dataset for ~173 entities drinking water access in urban/rural areas for 2013. Time to start looking into the up-down curve plot.
 
-Following along with the coding example below. Want to find country with largest difference between urban and Rural
+Following along with the coding example below. Want to find global average difference between urban and Rural
 ```{r, echo=FALSE}
 cdw_df %>%
   group_by(entity, year) %>%
   arrange(entity, year) %>%
   mutate(diff = value - lag(value)) %>%
   ungroup() %>%
-  # filter(., entity == "United States")
-  # slice_max(diff, n = 1)
-  filter(.,entity == "Eritrea")
-
-cdw_df %>%
-  group_by(entity, year) %>%
-  arrange(entity, year) %>%
-  mutate(diff = value - lag(value)) %>%
-  ungroup() %>%
-  # filter(., entity == "United States")
-  # slice_max(diff, n = 1)
-  filter(.,entity == "United States")
+  filter(.,entity == "World")
 
 ```
-Eritrea has the largest difference between rural and urban areas in terms of basic water access.
+The global difference between rural and urban areas (in terms of basic water access) in 2013 was 16.5%.
 
 # Plotting
 My next steps will be to separate out the Urban and rural and start to build my arc diagrams. 
@@ -120,10 +109,8 @@ theme_arc <- function(){
         panel.background = element_rect(fill = "black", color = "black"),
         plot.background = element_rect(fill = "black", color = "black"),
         legend.position = "none",
-        # plot.title = element_markdown(size = 96),
         plot.title = element_text(colour = "white", family = font_fam, face = "bold"),
-        # plot.subtitle = element_text(color = "white"),
-        plot.subtitle = element_markdown())
+        plot.subtitle = element_text(color = "white", size=30))
 }
 
 ```
@@ -141,15 +128,13 @@ links_urban <- data.frame(source = 0,
   left_join(urban_df, by = "value") %>%
   mutate(country = if_else(is.na(entity),"",entity),
          group = factor(case_when(is.na(entity) ~ 1,
-                                  value == 66 ~3,
-                                  # value == 100 ~ 4,
+                                  entity == 'World' ~ 3,
                                   TRUE ~ 2))) %>%
   select(source,
          destination = value, 
          group)%>%
   group_by(destination) %>%
   mutate(width = n())
-
 
 # plot urban graph
 g <- links_urban %>%
@@ -158,24 +143,22 @@ g <- links_urban %>%
   geom_edge_arc(aes(edge_colour = group,  #three color groups, no data, data, and value highlighted
                     edge_width = width,   # line width set by number of countries with similar ages
                     edge_alpha = group # transparency by group number...
-                    ),
-                edge_color = "darkgoldenrod1"
+                    )
                 ) + 
   geom_node_text(aes(label = name),
                  repel = FALSE,
                  size = 6,
                  nudge_y = -1,
-                 color = rep(c("white", NA, NA, NA, NA, NA),
+                 color = rep(c("white", NA, NA, NA, NA, NA, NA, NA, NA, NA),
                  length.out = 101))+ #add labels to the nodes, from "names" which idk where that came from in the function calls previously
-  scale_edge_color_manual(values = c("black","lavender", "darkgoldenrod1")) +  #adding gray to major lines, staying green for highlight
-  scale_edge_alpha_manual(values = c(0, .15, 1)) + #set group 3 to only one not transparent
+  scale_edge_color_manual(values = c("black","darkgoldenrod1", "white")) +  
+  scale_edge_alpha_manual(values = c(0, 1, 1)) + #set groups 2 and 3 to not transparent, set group 1 (entity==NA) to fully transparent
   labs(title = "Basic access to safe drinking water",
-       subtitle = "<span style = 'color: white;'>Comparing access to safe drinking water in</span> <span style = 'color: darkgoldenrod1;'>Urban</span> <span style = 'color: white;'>and</span> <span style = 'color: darkorchid;'>Rural</span> <span style = 'color: white;'>areas around the world</span>"
-       ) +
+       subtitle = "Comparing access to safe drinking water in urban and rural areas around the world") +
   theme_arc()
 g
 
-ggsave(here("Figures","Urban.pdf"), width = 16, height = 9, units = "in", dpi = 300)
+ggsave("Figures/Urban.png", width = 16, height = 9, units = "in", dpi = 300)
 ```
 
 
@@ -191,7 +174,7 @@ links_rural <- data.frame(source = 0,
   left_join(rural_df, by = "value") %>%
   mutate(country = if_else(is.na(entity),"",entity),
          group = factor(case_when(is.na(entity) ~ 1,
-                                  value == 6 ~3,
+                                  entity == 'World' ~ 3,
                                   TRUE ~ 2))) %>%
   select(source,
          destination = value, 
@@ -206,21 +189,20 @@ g2 <- links_rural %>%
   geom_edge_arc(aes(edge_colour = group,  #three color groups, no data, data, and value highlighted
                     edge_width = width,   # line width set by number of countries with similar ages
                     edge_alpha = group),
-                edge_color = "darkorchid",
                 strength = -1) + # transparency by group number...
  geom_node_text(aes(label = name),
                  repel = FALSE,
                  size = 0,
                  nudge_y = -1,
-                 color = rep(c("white", NA, NA, NA, NA, NA),
+                 color = rep(c("white", NA, NA, NA, NA, NA, NA, NA, NA, NA),
                  length.out = 101))+
-  scale_edge_color_manual(values = c("black","lavender", "darkorchid")) +  #adding gray to major lines, staying green for highlight
-  scale_edge_alpha_manual(values = c(0, .15, 1)) + #set group 3 to only one not transparent
+  scale_edge_color_manual(values = c("black","darkorchid", "white")) +  
+  scale_edge_alpha_manual(values = c(0, 1, 1)) + #set groups 2 and 3 to not transparent, set group 1 (entity==NA) to fully transparent
   theme_arc()
 
 g2
 
-ggsave(here("Figures","Rural.pdf"), width = 16, height = 8, units = "in", dpi = 300)
+ggsave("Figures/Rural.png", width = 16, height = 8, units = "in", dpi = 300)
 ```
 
 
@@ -275,5 +257,5 @@ cowplot::ggdraw(xlim = c(0,1),
              lineheight = 1.1) 
 
   
-ggsave(here("Figures","owid_upddown.png"), width = 14, height = 16, units = "in", dpi = 300)
+ggsave("Figures/owid_upddown.png", width = 14, height = 16, units = "in", dpi = 300)
 ```
