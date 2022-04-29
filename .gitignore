@@ -33,6 +33,7 @@
 11_circular_csimeone/data_in/NWIS_data/*.csv
 11_circular_csimeone/README.html
 19_shamshaw/data/*
+20_newTool_mharlan/data/*
 
 # Spatial
 *.cpg
