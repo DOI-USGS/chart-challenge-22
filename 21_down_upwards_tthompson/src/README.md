@@ -1,4 +1,6 @@
 
+![Ted_figure_main-01](https://user-images.githubusercontent.com/54007288/165996045-a1c58305-5ca9-4ded-94df-01fff4b97a7d.png)
+
 ### Project Members
 Alison Appling, Salme Cook, Galen Gorski, Jared Smith, Amelia Snyder & Theodore Thompson
 
