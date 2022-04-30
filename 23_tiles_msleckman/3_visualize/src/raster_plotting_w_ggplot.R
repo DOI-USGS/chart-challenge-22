@@ -50,7 +50,7 @@ plot_lc_chart <- function(counts,
     arrange(Reclassify_match)
 
  plot_count_df %>%
-  ggplot(aes(as.numeric(year), 
+  ggplot(aes(as.character(year), 
              percent, 
              group = lc_order, 
              fill = lc_order)
@@ -68,10 +68,9 @@ plot_lc_chart <- function(counts,
      labels = scales::label_percent(accuracy = 1),
      expand = c(0,0)
    ) +
-   scale_x_continuous(
-     breaks = as.numeric(years),
-     limits = c(NA, max(as.numeric(years)))#,
-     #expand = c(0,0.5)
+   scale_x_discrete(
+     breaks = years,
+     limits = years
    ) +
    theme(legend.position = 'none') +
    labs(x = NULL, y = NULL)
