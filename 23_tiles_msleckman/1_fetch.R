@@ -25,7 +25,7 @@ p1_targets_list <- list(
       pattern = '1900|1910|1920|1930|1940|1950|1960|1970|1980|1990')
     ),
   
-  ## Get drb boundary shp 
+  ## Get drb boundary shp, unzip and aggregate to region
   ## https://www.sciencebase.gov/catalog/item/5d94949de4b0c4f70d0db64f
   tar_target(
     p1_drb_boundary_zip,
@@ -35,32 +35,25 @@ p1_targets_list <- list(
                                 overwrite_file = TRUE),
     format = 'file'
     ),
-  
   tar_target(
     p1_drb_boundary_unzip,
     unzip(p1_drb_boundary_zip, exdir = '1_fetch/out/physiographic_regions_DRB', overwrite = TRUE),
     format = 'file'
   ),
-  
   tar_target(
     p1_drb_boundary,
     st_read(p1_drb_boundary_unzip %>% str_subset('.shp$')) %>%
-      # head(5) %>% 
       group_by(Source) %>%
       summarize() %>% 
       mutate(region = 'drb') 
-      ## keeping the projection of this file
+      ## keep the projection of this file
       ), 
   
   # use DRB boundary to get flowlines from NHD
-  # using this method to be able to get straemorder for plotting
-  tar_target(
-    p1_drb_huc8,
-    nhdplusTools::get_huc8(AOI = p1_drb_boundary)
-    ),
+  # NHD has streamorder for mapping stream width to later on
   tar_target(
     p1_drb_flines,
-    nhdplusTools::get_nhdplus(AOI = p1_drb_huc8, realization = 'flowline')
+    get_nhdplus(AOI = p1_drb_boundary, realization = 'flowline')
   ),
 
   tar_target(
