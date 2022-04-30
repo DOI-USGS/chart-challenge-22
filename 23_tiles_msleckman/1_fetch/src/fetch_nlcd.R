@@ -21,5 +21,5 @@ get_nlcd_aoi <- function(aoi, aoi_label = 'drb', nlcd_dataset = 'landcover',
   end_time <- Sys.time()
   print(end_time - start_time)
   
-  return(path)
+  return(file.path(out_folder, file_name))
 }
