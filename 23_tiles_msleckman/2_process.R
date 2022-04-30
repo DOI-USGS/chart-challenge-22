@@ -3,17 +3,18 @@ source('2_process/src/downsampling.R')
 source('2_process/src/get_pixel_change.R')
 
 p2_targets_list<- list(
-  # simplify stream geometries for easier plotting
+  # Simplify stream geometries for easier plotting
   tar_target(
     p1_streams_polylines_drb,
     p1_drb_flines %>%
       group_by(streamorde) %>%
       summarize() %>%
       rmapshaper::ms_simplify() %>%
-      st_intersection(p1_drb_boundary)
+      st_intersection(p1_drb_boundary) %>%
+      filter(streamorde > 2)
   ),
   
-  ## Reclassified and return reclassified tifs to specified 'reclassified' where new rasters are found
+  ## Reclassify land cover rasters to use the same
   ## reclassification for the FORESCE backcasting tif files. This needs cropping to the correct polygon boundary
   tar_target(
     p2_write_reclassified_rasters_FOR, 

@@ -9,8 +9,7 @@ raster_ploting_w_ggplot <- function(raster_in, reach_shp,
   nlcd_map <- ggplot()+
     geom_raster(data = raster_in, 
                 aes(x=x, y=y, fill = factor(name))) +
-    geom_sf(data = reach_shp %>%
-              filter(streamorde > 2), 
+    geom_sf(data = reach_shp , 
             color = "white", 
             aes(size = streamorde)) +
     theme_void() +
