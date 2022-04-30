@@ -8,7 +8,7 @@ p2_targets_list<- list(
   ## reclassification for the FORESCE backcasting tif files. This needs cropping to the correct polygon boundary
   tar_target(
     p2_write_reclassified_rasters_FOR, 
-    {purrr::map(.x = p1_FORESCE_lc_tif_download_filtered, #[1:2], # using just the first 2 tif images for now
+    {purrr::map(.x = p1_FORESCE_lc_tif_download_filtered, 
                 .f = ~read_in_reclassify(lc_tif_path = .x,
                                          reclassify_legend = reclassify_df_FOR,
                                          value_cols = c('FORESCE_value','Reclassify_match'),
@@ -35,14 +35,14 @@ p2_targets_list<- list(
   ## Combine all paths to tif files
   tar_target(
     p2_all_reclassified_rasters,
-    append(p2_write_reclassified_rasters_FOR, p2_write_reclassified_rasters_NLCD)
+    c(p2_write_reclassified_rasters_FOR, p2_write_reclassified_rasters_NLCD)
   ),
   
   # Read in rasters from `2_process/out/reclassified`.
   tar_target(
     p2_reclassified_raster_list,
     raster(p2_all_reclassified_rasters),
-    pattern = mapp2_all_reclassified_rasters()
+    pattern = map(p2_all_reclassified_rasters)
   ),
 
   # count the number of cells for each nlcd category
@@ -61,11 +61,7 @@ p2_targets_list<- list(
    p2_downsamp_raster_list,
      downsamp_cat(p2_reclassified_raster_list[[1]], down_fact = 8) %>% 
      mutate(rast = names(p2_reclassified_raster_list[[1]])),
-   pattern = map(p2_reclassified_raster_list)
-  ),
-  tar_target(
-    rast_years,
-    c('1900','1910','1920','1930','1940','1950','1960','1970','1980','1990','2001','2011','2019')
+   pattern = map(p2_reclassified_raster_list) 
   ),
   tar_target(
     # picking last raster to use as base grid for resampling
@@ -79,7 +75,7 @@ p2_targets_list<- list(
     p2_resamp,
     resample_cat_raster(raster = terra::rast(p2_reclassified_raster_list[[1]]),
                raster_grid = terra::rast(rast_grid),
-               year = rast_years,
+               year = all_years,
                down_fact = 8
                ),
     pattern = map(p2_reclassified_raster_list, rast_years)
