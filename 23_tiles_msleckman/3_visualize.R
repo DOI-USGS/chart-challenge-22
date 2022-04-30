@@ -27,24 +27,39 @@ p3_targets_list<- list(
     p3_gif_years
   )
   ,
-  ## create ggplot visual - Cee inspo!!! 
-
+  # Plot land cover through time  # Land cover maps
   tar_target(
-    p3_save_map_frames,
-    raster_ploting_w_ggplot(
+    p3_lc_map_fp,
+    plot_raster_map(
+      year = p3_gif_years,
       raster_df = p2_lc_df_list,
       reach_shp = p1_streams_polylines_drb,
+      legend_df = legend_df,
+      out_folder = '3_visualize/out/map/'),
+    pattern = map(p2_lc_df_list, p3_gif_years),
+    format = "file",
+  ),
+  # Land cover chart
+  tar_target(
+    p3_lc_chart,
+    plot_lc_chart(
       counts = p2_raster_cell_count,
       legend_df = legend_df,
-      title = "NLCD in the DRB",
       years = p3_all_years, 
-      chart_year = p3_gif_years,
-      font_fam = "Dongle",
-      out_folder = '3_visualize/out/ggplots/'),
-    pattern = map(p2_lc_df_list, p3_gif_years),
-  format = "file",
+      chart_year = p3_gif_years),
+    pattern = map(p2_lc_df_list, p3_gif_years)
   ),
-  
+  # Combine chart elements
+  #tar_target(
+  #  p3_compose_chart,
+  #  compse_lc_frames(lc_map = p3_lc_map_fp,
+  #  lc_chart = p3_lc_chart,
+  #  frame_year = p3_gif_years,
+  #  font_fam = "Dongle",
+  #  ),
+  #  pattern = map(p3_lc_map_fp, p3_lc_chart, p3_gif_years),
+  #  format = 'file
+  #),
   # Animations
   ## animate levelplot maps
   tar_target(
