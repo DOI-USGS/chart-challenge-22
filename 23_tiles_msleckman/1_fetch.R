@@ -52,15 +52,20 @@ p1_targets_list <- list(
   ## Get more recent nlcd data using the FedData package and the get_nlcd() function 
   ## This process includes fetching + masking raster to aoi (drb aoi in our case) 
   tar_target(
+    nlcd_years,
+    list('2001', '2011', '2019')
+  ),
+  tar_target(
     p1_fetch_nlcd_all_years, 
-    {lapply(nlcd_years, function(x) 
-      get_nlcd_aoi(aoi = p1_drb_boundary,
-                   aoi_label = 'drb',
-                   nlcd_dataset = 'landcover',
-                   nlcd_year = x,
-                   file_name = paste0('nlcd_', x, '.tif'),
-                   out_folder = '1_fetch/out/nlcd'))
-    }),
+    get_nlcd_aoi(aoi = p1_drb_boundary,
+                 aoi_label = 'drb',
+                 nlcd_dataset = 'landcover',
+                 nlcd_year = nlcd_years,
+                 file_name = paste0('nlcd_', nlcd_years, '.tif'),
+                 out_folder = '1_fetch/out/nlcd'),
+    pattern = map(nlcd_years),
+    format = 'file'
+  ),
   
   # use DRB boundary to get flowlines from NHD
   # NHD has streamorder for mapping stream width to later on
