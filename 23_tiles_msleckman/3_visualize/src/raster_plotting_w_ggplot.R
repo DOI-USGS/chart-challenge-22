@@ -38,50 +38,47 @@ plot_lc_chart <- function(counts,
 
   # Plot area through time
   plot_count_df <- counts %>% 
-    # find % of total area in each category over time
-    left_join(counts %>% 
-                group_by(year)%>%
-                summarize(total_cells = sum(count))) %>%
-    mutate(percent = count/total_cells) %>%
-    # order lc by mean % area to stack bars
-    mutate(lc_order = forcats::fct_reorder(factor(value), percent, .fun = mean)) %>%
     transform(year = as.numeric(year)) %>%
     # filter to current year or earlier for bars to accumulate
-    filter(value != 0, year <= chart_year) 
+    filter(year <= as.numeric(chart_year))
   
-  # ORder land cover categories for legend
+  # Order land cover categories for legend
   legend_df <- legend_df %>%
-    # order lc by mean % area to stack bars
-    transform(Reclassify_match = factor(Reclassify_match, ordered = TRUE, levels = levels(plot_count_df$lc_order)))
+    transform(Reclassify_match = factor(Reclassify_match, 
+                                        ordered = TRUE, 
+                                        levels = levels(counts$lc_order))) %>%
+    arrange(Reclassify_match)
+
+ plot_count_df %>%
+  ggplot(aes(as.numeric(year), 
+             percent, 
+             group = lc_order, 
+             fill = lc_order)
+  )+
+  ## stacked bar plot
+  geom_bar(stat = 'identity')+
+  scale_fill_manual(
+    values = legend_df$color_hex,
+    labels = legend_df$Reclassify_description,
+    "Land cover"
+  ) +
+  theme_classic(base_size = 18) +
+   scale_y_continuous(
+     breaks = c(0, 1),
+     labels = scales::label_percent(accuracy = 1),
+     expand = c(0,0)
+   ) +
+   scale_x_continuous(
+     breaks = as.numeric(years),
+     limits = c(NA, max(as.numeric(years)))#,
+     #expand = c(0,0.5)
+   ) +
+   theme(legend.position = 'none') +
+   labs(x = NULL, y = NULL)
+ 
+ ggsave(sprintf('%s/nlcd_chart_%s.png', out_folder, chart_year), height = 9, width = 8, device = 'png', dpi = 300)
+ return(sprintf('%s/nlcd_chart_%s.png', out_folder, chart_year))
   
-  plot_count_df %>%
-    ggplot(aes(year, 
-               percent, 
-               group = lc_order, 
-               fill = factor(lc_order))
-    )+
-    ## stacked bar plot
-    geom_bar(stat = 'identity')+
-    scale_fill_manual(
-      values = legend_df$color_hex,
-      labels = legend_df$Reclassify_description,
-      "Land cover type"
-    ) +
-    theme_classic(base_size = 18)+
-    scale_y_continuous(
-      breaks = c(0, 1),
-      labels = scales::label_percent(accuracy = 1),
-      expand = c(0,0)
-    ) +
-    scale_x_continuous(
-      breaks = as.numeric(years),
-      limits = c(NA, max(as.numeric(years))),
-      expand = c(0,0)
-    ) +
-    theme(legend.position = 'none') +
-    labs(x = NULL, y = NULL)
-  
-  ggsave(sprintf('%s/nlcd_chart_%s.png', out_folder, year), height = 9, width = 8, device = 'png', dpi = 300)
 }
 compose_lc_frames <- function(lc_map_fp,
                               lc_chart,
