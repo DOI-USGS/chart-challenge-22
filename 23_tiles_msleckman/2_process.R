@@ -31,8 +31,8 @@ p2_targets_list<- list(
   tar_target(
     p2_write_reclassified_rasters_NLCD, 
     read_in_reclassify(lc_tif_path = p1_fetch_nlcd_all_years,
-                       reclassify_legend = reclassify_df_FOR,
-                       value_cols = c('FORESCE_value','Reclassify_match'),
+                       reclassify_legend = reclassify_df_nlcd,
+                       value_cols = c('NLCD_value','Reclassify_match'),
                        aoi_for_crop = p1_drb_boundary,
                        legend_file_sep = ',',
                        out_folder = '2_process/out/reclassified/'),
@@ -41,24 +41,17 @@ p2_targets_list<- list(
   ),
   ## Combine all paths to tif files
   tar_target(
-    p2_all_reclassified_rasters,
+    p2_reclassified_raster_list,
     c(p2_write_reclassified_rasters_FOR, p2_write_reclassified_rasters_NLCD)
   ),
   
-  # create list of rasters from `2_process/out/reclassified`.
-  tar_target(
-    p2_reclassified_raster_list,
-    raster(p2_all_reclassified_rasters),
-    pattern = map(p2_all_reclassified_rasters)
-  ),
-
-  # count the number of cells for each nlcd category
-  # could be used for a paired plot showing area change through time
+  # Look at area change in land cover through time
+  ## Count the number of cells for each category 
   tar_target(
     p2_raster_cell_count,
-    terra::freq(p2_reclassified_raster_list[[1]]) %>% 
+    terra::freq(rast(p2_reclassified_raster_list)) %>% 
       as_tibble() %>% 
-      mutate(rast = names(p2_reclassified_raster_list[[1]])) %>% 
+      mutate(year = str_sub(names(rast(p2_reclassified_raster_list)), -4, -1)) %>%
       drop_na(),
     pattern = map(p2_reclassified_raster_list)
   ),
@@ -66,28 +59,11 @@ p2_targets_list<- list(
   # this is over-reduced - gg developed areas notably different from levelplot
   tar_target(
    p2_downsamp_raster_list,
-     downsamp_cat(p2_reclassified_raster_list[[1]], down_fact = 8) %>% 
-     mutate(rast = names(p2_reclassified_raster_list[[1]])),
+     downsamp_cat(p2_reclassified_raster_list, down_fact = 8) %>% 
+     mutate(rast = names(p2_reclassified_raster_list)),
    pattern = map(p2_reclassified_raster_list) 
   ),
-  tar_target(
-    # picking last raster to use as base grid for resampling
-    rast_grid,
-    p2_reclassified_raster_list[[13]]
-  ),
-  ## resample backcasted nlcd to match current dimensions (lower res)
-  ## this makes consistent across data sources
-  tar_target(
-    # resample to same dimensions
-    p2_resamp,
-    resample_cat_raster(raster = terra::rast(p2_reclassified_raster_list[[1]]),
-               raster_grid = terra::rast(rast_grid),
-               year = all_years,
-               down_fact = 8
-               ),
-    pattern = map(p2_reclassified_raster_list, rast_years)
-    
-  ),
+ 
   # for each year, calculate difference with next
   tar_target(
     p2_diff,
