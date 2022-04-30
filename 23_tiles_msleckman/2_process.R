@@ -13,42 +13,39 @@ p2_targets_list<- list(
       st_intersection(p1_drb_boundary) %>%
       filter(streamorde > 2)
   ),
-  
-  ## Reclassify land cover rasters to use the same
+
+  # Crop rasters to DRB and reclassify to fewer, and consistent land cover categories
   ## reclassification for the FORESCE backcasting tif files. This needs cropping to the correct polygon boundary
   tar_target(
-    p2_write_reclassified_rasters_FOR, 
-    {purrr::map(.x = p1_FORESCE_lc_tif_download_filtered, 
-                .f = ~read_in_reclassify(lc_tif_path = .x,
-                                         reclassify_legend = reclassify_df_FOR,
-                                         value_cols = c('FORESCE_value','Reclassify_match'),
-                                         aoi_for_crop = p1_drb_boundary,
-                                         legend_file_sep = ',',
-                                         out_folder = '2_process/out/reclassified/'))
-      },
-    ),
-
-  ## Reclassified and return in folder where new rasters are found
-  ## reclassification for the nlcd tif files found in the 1_fetch/nlcd/ folder. Already cropped to the correct boundary 
+    p2_write_reclassified_rasters_FOR,
+    read_in_reclassify(lc_tif_path = p1_FORESCE_lc_tif_download_filtered,
+                       reclassify_legend = reclassify_df_FOR,
+                       value_cols = c('FORESCE_value','Reclassify_match'),
+                       aoi_for_crop = p1_drb_boundary,
+                       legend_file_sep = ',',
+                       out_folder = '2_process/out/reclassified/'),
+    pattern = map(p1_FORESCE_lc_tif_download_filtered),
+    format = 'file'
+  ),
+  ## Do same for NLCD rasters
   tar_target(
     p2_write_reclassified_rasters_NLCD, 
-    {purrr::map(.x = p1_fetch_nlcd_all_years,
-                .f = ~read_in_reclassify(lc_tif_path = .x,
-                                         reclassify_legend = reclassify_df_nlcd,
-                                         value_cols = c('NLCD_value','Reclassify_match'),
-                                         aoi_for_crop = p1_drb_boundary,
-                                         legend_file_sep = ',',
-                                         out_folder = '2_process/out/reclassified/'))
-    }
+    read_in_reclassify(lc_tif_path = p1_fetch_nlcd_all_years,
+                       reclassify_legend = reclassify_df_FOR,
+                       value_cols = c('FORESCE_value','Reclassify_match'),
+                       aoi_for_crop = p1_drb_boundary,
+                       legend_file_sep = ',',
+                       out_folder = '2_process/out/reclassified/'),
+    pattern = map(p1_fetch_nlcd_all_years),
+    format = 'file'
   ),
-
   ## Combine all paths to tif files
   tar_target(
     p2_all_reclassified_rasters,
     c(p2_write_reclassified_rasters_FOR, p2_write_reclassified_rasters_NLCD)
   ),
   
-  # Read in rasters from `2_process/out/reclassified`.
+  # create list of rasters from `2_process/out/reclassified`.
   tar_target(
     p2_reclassified_raster_list,
     raster(p2_all_reclassified_rasters),
