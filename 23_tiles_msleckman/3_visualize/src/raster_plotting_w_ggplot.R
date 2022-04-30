@@ -1,10 +1,14 @@
 plot_raster_map <- function(year,
-                            raster_df = p2_lc_df_list,
-                            reach_shp = p1_streams_polylines_drb,
-                            legend_df = legend_df,
+                            raster_df,
+                            reach_shp,
+                            extent_map,
+                            legend_df,
                             out_folder = '3_visualize/out/map/'){
   
   ggplot()+
+   # geom_sf(data = extent_map,
+   #         fill = NA,
+   #         color = "lightgrey") +
     geom_raster(data = raster_df, 
                 aes(x=x, y=y, fill = factor(lc))) +
     geom_sf(data = reach_shp , 
@@ -26,13 +30,14 @@ plot_raster_map <- function(year,
   
   ggsave(sprintf('%s/nlcd_map_%s.png', out_folder, year), height = 9, width = 5, device = 'png', dpi = 300)
 }
-plot_lc_chart <- function(counts = p2_raster_cell_count,
-                          legend_df = legend_df,
-                          years = p3_all_years, 
-                          chart_year = p3_gif_years){
-  
+plot_lc_chart <- function(counts,
+                          legend_df,
+                          years, 
+                          chart_year,
+                          out_folder){
+  chart_year = 1910
   # Area through time
-  counts %>% 
+  counts %>% filter(year %in% c('1900','1910')) %>%
     # find % of total area in each category over time
     left_join(counts %>% 
                 group_by(year)%>%
@@ -40,31 +45,35 @@ plot_lc_chart <- function(counts = p2_raster_cell_count,
     mutate(percent = count/total_cells) %>%
     transform(year = as.numeric(year)) %>%
     # filter to current year or earlier for bars to accumulate
-    filter(value != 0, year <= chart_year) %>% 
+    filter(value != 0, year <= chart_year) %>%
     ggplot(aes(year, 
                percent, 
                group = value, 
                fill = factor(value))
     )+
     ## stacked bar plot
-    geom_bar(stat = 'identity', width = 4)+
+    geom_bar(stat = 'identity')+
     scale_fill_manual(
       values = legend_df$color,
       labels = legend_df$Reclassify_description,
       "Land cover type"
-    )+
+    ) +
     theme_classic()+
     scale_y_continuous(
       labels = scales::label_percent(accuracy = 1),
       expand = c(0,0)
     ) +
-    scale_x_discrete(
+    scale_x_continuous(
       breaks = as.numeric(years),
-      limits = c(min(as.numeric(years)), max(as.numeric(years)))
-    )
+      limits = c(NA, max(as.numeric(years))),
+      expand = c(0,0)
+    ) +
+    theme(legend.position = 'none') +
+    labs(x = NULL, y = NULL)
   
+  ggsave(sprintf('%s/nlcd_chart_%s.png', out_folder, year), height = 9, width = 8, device = 'png', dpi = 300)
 }
-compose_lc_frames <- function(lc_map,
+compose_lc_frames <- function(lc_map_fp,
                               lc_chart,
                               frame_year,
                               font_fam = "Dongle"){
@@ -77,7 +86,7 @@ compose_lc_frames <- function(lc_map,
   showtext_auto(enable = TRUE)
 
   # legend
-  p_legend <- get_legend(nlcd_map)
+  p_legend <- get_legend(lc_chart)
   
   # logo
   usgs_logo <- magick::image_read('../logo/usgs_logo_white.png') %>%
@@ -93,6 +102,9 @@ compose_lc_frames <- function(lc_map,
     gp = grid::gpar(fill = "white", alpha = 1, col = 'white')
   )
   
+  # map
+  lc_map <- magick::image_read(lc_map_fp)
+  
   # combine plot elements
   ggdraw(ylim = c(0,1), xlim = c(0,1)) +
     # a white background
@@ -101,7 +113,7 @@ compose_lc_frames <- function(lc_map,
               height = 9, width = 16,
               hjust = 0, vjust = 1) +
     # draw map
-    draw_plot(nlcd_map + theme(legend.position = "none"),
+    draw_image(lc_map ,
               y = 0.1, x = 0.3-plot_margin,
               height = 0.8, width = 0.35) +
     # draw area chart
