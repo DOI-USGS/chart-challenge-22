@@ -6,26 +6,9 @@ source('3_visualize/src/bar_plot.R')
 p3_targets_list<- list(
   
   # Create output images for each year - tibble for p3_save_levelplot_map_frames target
-  tar_target(
-    gif_frames,
-    tibble(raster = p2_reclassified_raster_list,
-           seq = seq(1, length(p2_reclassified_raster_list))) # the sequence of the frames
-  ),
-  
-  # Plotting
-  ## Produce levelplot
-  tar_target(
-    p3_save_levelplot_map_frames,
-    produce_lc_levelplot(raster_in = gif_frames$raster,
-                   raster_frame = gif_frames$seq,
-                   legend_df = legend_df,
-                   reach_shp = NULL,
-                   out_folder = "3_visualize/out/levelplot/"),
-    pattern = map(gif_frames),
-    format = 'file'
-    ),
 
-  ## Produce bar_plots as alternative to lined graphic
+  # Plotting
+  ## Produce bar plot of area through time
   tar_target(
     p3_save_barplot_frames,
     {lapply(X = all_years, FUN = function(x) stacked_bar_plot(counts = p2_raster_cell_count,
@@ -47,9 +30,9 @@ p3_targets_list<- list(
   ## create ggplot visual - Cee inspo!!! 
 
   tar_target(
-    p3_save_map_frames_ggplot,
+    p3_save_map_frames,
     raster_ploting_w_ggplot(
-      raster_in = p2_downsamp_raster_list,
+      raster_df = p2_lc_df_list,
       reach_shp = p1_streams_polylines_drb,
       counts = p2_raster_cell_count,
       legend_df = legend_df,
@@ -58,7 +41,7 @@ p3_targets_list<- list(
       chart_year = p3_gif_years,
       font_fam = "Dongle",
       out_folder = '3_visualize/out/ggplots/'),
-    pattern = map(p2_downsamp_raster_list, p3_gif_years),
+    pattern = map(p2_lc_df_list, p3_gif_years),
   format = "file",
   ),
   
@@ -88,5 +71,9 @@ p3_targets_list<- list(
                        out_file = paste0('3_visualize/out/gifs/ggplot_gif_',today(),'.gif'),
                        reduce = FALSE, frame_delay_cs = 100, frame_rate = 60),
     format = 'file'
+  ),
+  tar_target(
+    p3_sankey,
+    plot_sankey(p2_long_sankey)
   )
 )

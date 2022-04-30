@@ -1,4 +1,4 @@
-raster_ploting_w_ggplot <- function(raster_in, reach_shp,
+raster_ploting_w_ggplot <- function(raster_df, reach_shp,
                                     counts, legend_df, title, 
                                     years, chart_year, 
                                     font_fam = "Source Sans Pro",
@@ -7,8 +7,8 @@ raster_ploting_w_ggplot <- function(raster_in, reach_shp,
   font_legend <- 'Source Sans Pro'
   
   nlcd_map <- ggplot()+
-    geom_raster(data = raster_in, 
-                aes(x=x, y=y, fill = factor(name))) +
+    geom_raster(data = raster_df, 
+                aes(x=x, y=y, fill = factor(lc))) +
     geom_sf(data = reach_shp , 
             color = "white", 
             aes(size = streamorde)) +
@@ -36,16 +36,15 @@ raster_ploting_w_ggplot <- function(raster_in, reach_shp,
   nlcd_area <- counts %>% 
     # find % of total area in each category over time
     left_join(counts %>% 
-                group_by(rast)%>%
+                group_by(year)%>%
                 summarize(total_cells = sum(count))) %>%
-    mutate(year = as.numeric(stringr::str_sub(rast,-4,-1)),
-           percent = count/total_cells) %>%
+    mutate(percent = count/total_cells) %>%
+    transform(year = as.numeric(year)) %>%
     # filter to current year or earlier for bars to accumulate
     filter(value != 0, year <= chart_year) %>% 
     ggplot(aes(year, 
                percent, 
                group = value, 
-               # color = factor(value), 
                fill = factor(value))
            )+
     ## bar plot vis
@@ -60,15 +59,13 @@ raster_ploting_w_ggplot <- function(raster_in, reach_shp,
       labels = scales::label_percent(accuracy = 1),
       expand = c(0,0)
     ) +
-    scale_x_continuous(
+    scale_x_discrete(
       breaks = as.numeric(years),
       limits = c(min(as.numeric(years)), max(as.numeric(years)))
     )
     
   ##compose final plot
-  file_name <- stringr::str_sub(unique(raster_in$rast),-4,-1)
 
-  
   # legend
   p_legend <- get_legend(nlcd_map)
   
@@ -131,7 +128,7 @@ raster_ploting_w_ggplot <- function(raster_in, reach_shp,
     # add logo
     draw_image(usgs_logo, x = plot_margin, y = plot_margin, width = 0.1, hjust = 0, vjust = 0, halign = 0, valign = 0)
   
-  ggsave(sprintf('%s/nlcd_%s.png', out_folder, file_name), height = 9, width = 14, device = 'png')
+  ggsave(sprintf('%s/nlcd_%s.png', out_folder, chart_year), height = 9, width = 14, device = 'png')
   
 }
 
