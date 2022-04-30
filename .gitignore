@@ -24,7 +24,8 @@
 05_slope_mmorriss/Data/
 05_slope_mmorriss/figures/*.eps
 05_slope_mmorriss/figures/*.svg
-06_owid_mmorriss/data/*.csv
+06_owid_mmorriss/Data/*.csv
+06_owid_mmorriss/Figures/*.png
 07_physical_distributions_stopp/data_in/*
 08_mountains_khopkins/in
 09_statistics_soliver/in_dat/*.rds
