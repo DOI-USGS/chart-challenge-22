@@ -26,6 +26,12 @@ p1_targets_list <- list(
       mutate(region = 'drb') 
     ## keep the projection of this file
   ), 
+  tar_target(
+    p1_drb_extent,
+    spData::us_states %>%
+      st_transform(st_crs(p1_drb_boundary)) %>%
+      st_crop(st_bbox(p1_drb_boundary %>% st_buffer(50000)))
+  ),
   
   ## Download all historical FORESCE data available for DRB for 1640  - 2010
   ## https://www.sciencebase.gov/catalog/item/605c987fd34ec5fa65eb6a74
@@ -45,7 +51,7 @@ p1_targets_list <- list(
   tar_target(
     p1_FORESCE_lc_tif_download_filtered,
     p1_FORESCE_lc_tif_download %>% str_subset(
-      ## we select years by filtering a regex pattern 
+      ## select years by filtering a regex pattern 
       pattern = '1900|1910|1920|1930|1940|1950|1960|1970|1980|1990')
     ),
   
