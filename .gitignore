@@ -34,9 +34,9 @@
 11_circular_csimeone/data_in/NWIS_data/*.csv
 11_circular_csimeone/README.html
 19_shamshaw/data/*
+20_newTool_mharlan/data/*
 21_down_upwards_tthompson/out/*.png
 21_down_upwards_tthompson/src/*.csv
-
 
 # Spatial
 *.cpg
