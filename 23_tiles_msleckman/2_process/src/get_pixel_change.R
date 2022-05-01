@@ -1,6 +1,7 @@
 get_pixel_change <- function(rast_in){
   
   rast_cat <- rast_in %>% 
+    dplyr::select(-x, -y) %>%
     data.table::melt(id.vars = c('cell_id','year')) %>%
     filter(value > 0) %>% 
     group_by(cell_id, year) %>%

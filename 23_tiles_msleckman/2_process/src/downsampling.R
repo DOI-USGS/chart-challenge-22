@@ -1,21 +1,22 @@
-downsamp_cat <- function(raster, down_fact){
-  #' @param raster input raster
+downsamp_cat <- function(raster_path, down_fact, out_folder){
+  #' @param raster_path file path for input raster
   #' @param down_fact factor to downsample by in x and y direction
+
+  raster <- terra::rast(raster_path) # convert to Spat
+  year <- str_sub(names(raster), -4, -1)
+                  
+  # split into separate layers for each category
+  rast_seg <- terra::segregate(raster)
   
-  rast <- terra::rast(raster[[1]]) # convert to Spat
-  rast_seg <- terra::segregate(rast) # split categorical data
-  rast_down <- terra::aggregate(rast_seg, fact = down_fact,  sum) # downsample
+  # Aggregate each layer to new resolution
+  rast_down <- terra::aggregate(rast_seg, fact = down_fact,  sum) 
   
-  # convert to dataframe to plot wtih ggplot
-  ## find the mode for each aggregated cell
-  rast_down_df <- as.data.frame(rast_down, xy = TRUE) %>%
-    pivot_longer(!c(x,y)) %>%
-    filter(value > 0, name != 0) %>%
-    group_by(x,y) %>%
-    arrange(desc(value)) %>%
-    slice_max(value, n=1)
-  return(rast_down_df)
+  # save as tif
+  file_out <- sprintf('%s/drb_lc_downsampled_%s.tif', out_folder, year)
+  terra::writeRaster(rast_down, filename = file_out, overwrite = TRUE)
+  return(file_out)
 }
+
 resample_cat_raster <- function(raster, raster_grid, year, down_fact){
 
   # split into separate layers for each category

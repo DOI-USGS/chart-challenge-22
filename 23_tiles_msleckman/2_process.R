@@ -44,6 +44,18 @@ p2_targets_list<- list(
     p2_reclassified_raster_list,
     c(p2_write_reclassified_rasters_FOR, p2_write_reclassified_rasters_NLCD)
   ),
+  ## convert raster to df for plotting with ggplot2
+  tar_target(
+    p2_lc_df_list,
+    {
+      year <- str_sub(p2_reclassified_raster_list, -8, -5)
+      as.data.frame(rast(p2_reclassified_raster_list), xy = TRUE) %>%
+        rowid_to_column('cell_id') %>% 
+        rename(lc = 4) %>% # 4th col are raster values
+        mutate(year = year)
+    },
+    pattern = map(p2_reclassified_raster_list)
+  ),
   
   # Look at area change in land cover through time
   ## Count the number of cells for each category 
@@ -55,19 +67,22 @@ p2_targets_list<- list(
       drop_na(),
     pattern = map(p2_reclassified_raster_list)
   ),
-  # downsample raster to plot more easily
-  # this is over-reduced - gg developed areas notably different from levelplot
   tar_target(
-   p2_downsamp_raster_list,
-     downsamp_cat(p2_reclassified_raster_list, down_fact = 8) %>% 
-     mutate(rast = names(p2_reclassified_raster_list)),
-   pattern = map(p2_reclassified_raster_list) 
+    p2_count_ordered,
+    p2_raster_cell_count %>% 
+      # find % of total area in each category over time
+      left_join(p2_raster_cell_count %>% 
+                  group_by(year)%>%
+                  summarize(total_cells = sum(count))) %>%
+      mutate(percent = count/total_cells) %>%
+      # order lc by mean % area to stack bars
+      mutate(lc_order = forcats::fct_reorder(factor(value), percent, .fun = mean))
   ),
- 
-  # for each year, calculate difference with next
+  
+  # Find cell-level changes in land cover through time
   tar_target(
     p2_diff,
-    get_pixel_change(p2_resamp)
+    get_pixel_change(p2_lc_df_list)
   ),
   tar_target(
     p2_long_sankey,

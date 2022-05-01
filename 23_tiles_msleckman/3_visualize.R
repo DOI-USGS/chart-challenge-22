@@ -42,14 +42,15 @@ p3_targets_list<- list(
   ),
   # Combine chart elements
   tar_target(
-    p3_compose_chart,
+    p3_compose_frames,
     compose_lc_frames(
       lc_map_fp = p3_lc_map_fp,
       lc_chart = p3_lc_chart,
       frame_year = p3_gif_years,
       font_fam = "Dongle",
       out_folder = '3_visualize/out/frames/',
-      title = sprintf("Land cover in the Delaware River Basin\n%s", p3_gif_years)
+      title = "Land cover change in the Delaware River Basin",
+      legend_df
       ),
     pattern = map(p3_lc_map_fp, p3_lc_chart, p3_gif_years),
     format = 'file'
@@ -58,10 +59,10 @@ p3_targets_list<- list(
   # Animation
   ## create gif
   tar_target(
-    p3_animate_ggplots_frames_gif,
-    animate_frames_gif(frames = list.files('3_visualize/out/ggplots', full.names = TRUE, pattern = '.png$'),
-                       out_file = paste0('3_visualize/out/gifs/ggplot_gif_',today(),'.gif'),
-                       reduce = FALSE, frame_delay_cs = 100, frame_rate = 60),
+    p3_land_cover_gif,
+    animate_frames_gif(frames = p3_compose_frames,
+                       out_file = paste0('3_visualize/out/gifs/drb_land_cover.gif'),
+                       reduce = FALSE, frame_delay_cs = 100),
     format = 'file'
   ),
   tar_target(

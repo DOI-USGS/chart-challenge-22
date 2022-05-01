@@ -8,7 +8,7 @@ tar_option_set(packages = c("tidyverse", "lubridate",
                             "dataRetrieval","sf",
                             "purrr", "sbtools", "terra",
                             'nhdplusTools','raster',
-                            'FedData', 'RColorBrewer','lattice',
+                            'FedData', 'lattice',
                             'rasterVis', 'magick', 'stringr',
                             'FedData', 'cowplot', 'showtext',
                             'ggsankey')
@@ -23,10 +23,10 @@ dir.create("1_fetch/out/", showWarnings = FALSE)
 dir.create('1_fetch/out/nlcd/', showWarnings = FALSE)
 dir.create("2_process/out/", showWarnings = FALSE)
 dir.create('2_process/out/reclassified/', showWarnings = FALSE)
+dir.create('2_process/out/downsampled/', showWarnings = FALSE)
 dir.create("3_visualize/out/", showWarnings = FALSE)
-dir.create("3_visualize/out/barplot/", showWarnings = FALSE)
-dir.create("3_visualize/out/levelplot/", showWarnings = FALSE)
-dir.create("3_visualize/out/ggplots/", showWarnings = FALSE)
+dir.create("3_visualize/out/map/", showWarnings = FALSE)
+dir.create("3_visualize/out/frames/", showWarnings = FALSE)
 dir.create("3_visualize/out/gifs/", showWarnings = FALSE)
 
 ## all years of interest for this visual

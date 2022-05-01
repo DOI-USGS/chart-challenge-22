@@ -18,7 +18,7 @@ plot_raster_map <- function(year,
     theme(legend.position = 'none') +
     scale_size(
       breaks = c(5, 6, 7),
-      range = c(0.2, 0.8),
+      range = c(0.3, 1),
       guide = "none"
     ) +
     scale_fill_manual(
@@ -59,8 +59,8 @@ plot_lc_chart <- function(counts,
    geom_text(aes(label = year, y = 0),
              angle = 90,
              color = "white", 
-             hjust = -0.05,
-             size = 7)+
+             hjust = -0.1,
+             size = 6)+
   scale_fill_manual(
     values = legend_df$color_hex,
     labels = legend_df$Reclassify_description,
@@ -84,23 +84,30 @@ compose_lc_frames <- function(lc_map_fp,
                               lc_chart,
                               frame_year,
                               font_fam = "Dongle",
-                              out_folder, title){
+                              out_folder, title,
+                              legend_df){
   
   # import fonts
   font_legend <- 'Source Sans Pro'
-  font_add_google(font_legend, regular.wt = 300, bold.wt = 700) 
+  font_add_google(font_legend, regular.wt = 400, bold.wt = 700) 
   font_add_google(font_fam, regular.wt = 300, bold.wt = 700) 
   showtext_opts(dpi = 300)
   showtext_auto(enable = TRUE)
 
   # legend
-  p_legend <- get_legend(lc_chart+
+  p_legend <- get_legend(lc_chart +
+                           # reorder keys 
+                           scale_fill_manual(
+                             values = legend_df$color_hex,
+                             labels = legend_df$Reclassify_description,
+                             "Land cover"
+                           )+
                            guides(fill=guide_legend(
-                             title = '')))
+                             title = '',
+                             label.theme = element_text(family = font_legend, size = 18))))
   
   # logo
   usgs_logo <- magick::image_read('../logo/usgs_logo_white.png') %>%
-    magick::image_resize('x100') %>%
     magick::image_colorize(100, "black")
   
   plot_margin <- 0.025
@@ -124,33 +131,43 @@ compose_lc_frames <- function(lc_map_fp,
               hjust = 0, vjust = 1) +
     # draw map
     draw_image(lc_map,
-              y = 0.05, x = 0.5+plot_margin,
+              y = plot_margin, x = 0.5+plot_margin,
               height = 0.95, width = 0.5) +
     # draw area chart
     draw_plot(lc_chart + 
                 theme(legend.position = "none",
+                      text = element_text(family = font_legend, size = 18),
+                      axis.text.y = element_text(family = font_legend, size = 18, color = 'black'),
                       axis.text.x = element_blank(),
                       axis.ticks.x = element_blank(),
                       axis.line.x = element_blank()),
-              y = 0.1, x = plot_margin,
+              y = 0.1, x = plot_margin*2,
               height = 0.45, width = 0.5) +
     # draw legend
     draw_plot(p_legend,
-              y = 0.85, x = plot_margin, 
-              width = 0.5, height = 0.3,
+              y = 0.875, x = plot_margin*2, 
+              width = 0.5, height = 0.35,
               hjust = 0, vjust = 1,
               halign = 0, valign = 1) +
     # draw title
     draw_label(title,
                x = plot_margin, y = 1-plot_margin, 
                fontface = "bold", 
-               size = 50, 
+               size = 45, 
                hjust = 0, 
                vjust = 1,
                fontfamily = font_fam,
+               lineheight = 1) +
+    # add some explanation
+    draw_label('100 Year timeseries based on backcasted data\nfrom X for years #-# and\nNLCD data from fedData for 2001, 2011, and 2019.',
+               x = plot_margin*2, y = 0.9, 
+               size = 18, 
+               hjust = 0, 
+               vjust = 1,
+               fontfamily = font_legend,
                lineheight = 1.1) +
     # add author
-    draw_label("Margaux Sleckman, USGS\nData: NLCD", 
+    draw_label("Margaux Sleckman, USGS\nData: USGS National Land Cover Database", 
                x = 1-plot_margin, y = plot_margin, 
                fontface = "italic", 
                size = 14, 
@@ -158,7 +175,7 @@ compose_lc_frames <- function(lc_map_fp,
                fontfamily = font_legend,
                lineheight = 1.1) +
     # add logo
-    draw_image(usgs_logo, x = plot_margin, y = plot_margin, width = 0.1, hjust = 0, vjust = 0, halign = 0, valign = 0)
+    draw_image(usgs_logo, x = plot_margin, y = plot_margin, width = 0.15, hjust = 0, vjust = 0, halign = 0, valign = 0)
   
   ggsave(sprintf('%s/nlcd_frame_%s.png', out_folder, frame_year), height = 10, width = 10, device = 'png', dpi = 300)
   return(sprintf('%s/nlcd_frame_%s.png', out_folder, frame_year))
