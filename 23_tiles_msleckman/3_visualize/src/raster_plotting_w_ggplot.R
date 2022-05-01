@@ -33,8 +33,7 @@ plot_raster_map <- function(year,
 plot_lc_chart <- function(counts,
                           legend_df,
                           years, 
-                          chart_year,
-                          out_folder){
+                          chart_year){
 
   # Plot area through time
   plot_count_df <- counts %>% 
@@ -57,6 +56,11 @@ plot_lc_chart <- function(counts,
   )+
   ## stacked bar plot
   geom_bar(stat = 'identity')+
+   geom_text(aes(label = year, y = 0),
+             angle = 90,
+             color = "white", 
+             hjust = -0.05,
+             size = 7)+
   scale_fill_manual(
     values = legend_df$color_hex,
     labels = legend_df$Reclassify_description,
@@ -72,17 +76,15 @@ plot_lc_chart <- function(counts,
      breaks = years,
      limits = years
    ) +
-   theme(legend.position = 'none') +
+   #theme(legend.position = 'none') +
    labs(x = NULL, y = NULL)
- 
- ggsave(sprintf('%s/nlcd_chart_%s.png', out_folder, chart_year), height = 9, width = 8, device = 'png', dpi = 300)
- return(sprintf('%s/nlcd_chart_%s.png', out_folder, chart_year))
   
 }
 compose_lc_frames <- function(lc_map_fp,
                               lc_chart,
                               frame_year,
-                              font_fam = "Dongle"){
+                              font_fam = "Dongle",
+                              out_folder, title){
   
   # import fonts
   font_legend <- 'Source Sans Pro'
@@ -92,7 +94,9 @@ compose_lc_frames <- function(lc_map_fp,
   showtext_auto(enable = TRUE)
 
   # legend
-  p_legend <- get_legend(lc_chart)
+  p_legend <- get_legend(lc_chart+
+                           guides(fill=guide_legend(
+                             title = '')))
   
   # logo
   usgs_logo <- magick::image_read('../logo/usgs_logo_white.png') %>%
@@ -119,24 +123,28 @@ compose_lc_frames <- function(lc_map_fp,
               height = 9, width = 16,
               hjust = 0, vjust = 1) +
     # draw map
-    draw_image(lc_map ,
-              y = 0.1, x = 0.3-plot_margin,
-              height = 0.8, width = 0.35) +
+    draw_image(lc_map,
+              y = 0.05, x = 0.5+plot_margin,
+              height = 0.95, width = 0.5) +
     # draw area chart
-    draw_plot(nlcd_area + theme(legend.position = "none"),
-              y = 0.1, x = 0.65-plot_margin,
-              height = 0.8, width = 0.35) +
+    draw_plot(lc_chart + 
+                theme(legend.position = "none",
+                      axis.text.x = element_blank(),
+                      axis.ticks.x = element_blank(),
+                      axis.line.x = element_blank()),
+              y = 0.1, x = plot_margin,
+              height = 0.45, width = 0.5) +
     # draw legend
     draw_plot(p_legend,
-              y = 0.8, x = 0, 
-              width = 0.3, height = 0.5,
+              y = 0.85, x = plot_margin, 
+              width = 0.5, height = 0.3,
               hjust = 0, vjust = 1,
               halign = 0, valign = 1) +
     # draw title
     draw_label(title,
                x = plot_margin, y = 1-plot_margin, 
                fontface = "bold", 
-               size = 40, 
+               size = 50, 
                hjust = 0, 
                vjust = 1,
                fontfamily = font_fam,
@@ -152,7 +160,8 @@ compose_lc_frames <- function(lc_map_fp,
     # add logo
     draw_image(usgs_logo, x = plot_margin, y = plot_margin, width = 0.1, hjust = 0, vjust = 0, halign = 0, valign = 0)
   
-  ggsave(sprintf('%s/nlcd_frame_%s.png', out_folder, chart_year), height = 1200, width = 675, device = 'png', dpi = 300)
+  ggsave(sprintf('%s/nlcd_frame_%s.png', out_folder, frame_year), height = 10, width = 10, device = 'png', dpi = 300)
+  return(sprintf('%s/nlcd_frame_%s.png', out_folder, frame_year))
   
 }
 
