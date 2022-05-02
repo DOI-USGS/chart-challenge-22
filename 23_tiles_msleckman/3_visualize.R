@@ -64,9 +64,5 @@ p3_targets_list<- list(
                        out_file = paste0('3_visualize/out/gifs/drb_land_cover.gif'),
                        reduce = FALSE, frame_delay_cs = 100),
     format = 'file'
-  ),
-  tar_target(
-    p3_sankey,
-    plot_sankey(p2_long_sankey)
   )
 )

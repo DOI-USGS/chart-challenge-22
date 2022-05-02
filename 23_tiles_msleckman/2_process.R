@@ -77,22 +77,6 @@ p2_targets_list<- list(
       mutate(percent = count/total_cells) %>%
       # order lc by mean % area to stack bars
       mutate(lc_order = forcats::fct_reorder(factor(value), percent, .fun = mean))
-  ),
-  
-  # Find cell-level changes in land cover through time
-  tar_target(
-    p2_diff,
-    get_pixel_change(p2_lc_df_list)
-  ),
-  tar_target(
-    p2_long_sankey,
-    p2_diff %>% ggsankey::make_long('1900','1910','1920','1930','1940','1950','1960','1970','1980','1990','2001','2011','2019')
-  ),
-  tar_target(
-    p2_bump_df, 
-    p2_diff %>% 
-      group_by(year, variable) %>%
-      summarize(cells = length(cell_id))
   )
 )
 

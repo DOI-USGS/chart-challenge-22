@@ -6,12 +6,11 @@ options(tidyverse.quiet = TRUE)
 
 tar_option_set(packages = c("tidyverse", "lubridate",
                             "dataRetrieval","sf",
-                            "purrr", "sbtools", "terra",
+                            "sbtools", "terra",
                             'nhdplusTools','raster',
-                            'FedData', 'lattice',
-                            'rasterVis', 'magick', 'stringr',
-                            'FedData', 'cowplot', 'showtext',
-                            'ggsankey')
+                            'FedData', 
+                            'magick', 
+                            'FedData', 'cowplot', 'showtext')
                )
 
 source("1_fetch.R")
@@ -23,7 +22,6 @@ dir.create("1_fetch/out/", showWarnings = FALSE)
 dir.create('1_fetch/out/nlcd/', showWarnings = FALSE)
 dir.create("2_process/out/", showWarnings = FALSE)
 dir.create('2_process/out/reclassified/', showWarnings = FALSE)
-dir.create('2_process/out/downsampled/', showWarnings = FALSE)
 dir.create("3_visualize/out/", showWarnings = FALSE)
 dir.create("3_visualize/out/map/", showWarnings = FALSE)
 dir.create("3_visualize/out/frames/", showWarnings = FALSE)
