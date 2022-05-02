@@ -23,14 +23,14 @@ p1_targets_list <- list(
     st_read(p1_drb_boundary_unzip %>% str_subset('.shp$')) %>%
       group_by(Source) %>%
       summarize() %>% 
-      mutate(region = 'drb') 
-    ## keep the projection of this file
+      mutate(region = 'drb') #%>%
+      #st_transform('+proj=aea +lat_1=39.9 +lat_2=41.2 +lat_0=40.6 +lon_0=-75.5 +x_0=0 +y_0=0 +ellps=GRS80 +units=m +no_defs')
   ), 
   tar_target(
     p1_drb_extent,
     spData::us_states %>%
-      st_transform(st_crs(p1_drb_boundary)) %>%
-      st_crop(st_bbox(p1_drb_boundary %>% st_buffer(50000)))
+      sf::st_crop(c(xmin=-80, xmax=-65, ymin=47, ymax=33)) %>%
+      st_transform(st_crs(p1_drb_boundary))
   ),
   
   ## Download all historical FORESCE data available for DRB for 1640  - 2010

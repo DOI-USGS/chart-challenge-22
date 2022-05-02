@@ -1,14 +1,10 @@
 plot_raster_map <- function(year,
                             raster_df,
                             reach_shp,
-                            extent_map,
                             legend_df,
                             out_folder = '3_visualize/out/map/'){
   
   ggplot()+
-    # geom_sf(data = extent_map,
-    #         fill = NA,
-    #         color = "lightgrey") +
     geom_raster(data = raster_df, 
                 aes(x=x, y=y, fill = factor(lc))) +
     geom_sf(data = reach_shp , 
@@ -51,8 +47,8 @@ plot_lc_chart <- function(counts,
   plot_count_df %>%
     ggplot(aes(as.character(year), 
                percent, 
-               group = lc_order, 
-               fill = lc_order)
+               group = bar_order, 
+               fill = bar_order)
     )+
     ## stacked bar plot
     geom_bar(stat = 'identity')+
@@ -93,7 +89,7 @@ compose_lc_frames <- function(lc_map_fp,
   ## Adding extent map
   extent_map <- ggplot() + 
     geom_sf(data = extent_map, fill = "white", color = alpha('grey', 0.5)) + 
-    geom_sf(data = drb_boundary, fill = NA, color = "red") +
+    geom_sf(data = drb_boundary, fill = "black") +
     theme_void()+
     ggspatial::annotation_north_arrow(
       location = "tl", which_north = "true",
@@ -171,8 +167,8 @@ compose_lc_frames <- function(lc_map_fp,
               height = 0.45, width = 0.55) +
     # draw legend
     draw_plot(p_legend,
-              y = 0.89, x = plot_margin*3.5, 
-              width = 0.5, height = 0.35,
+              y = 0.89, x = plot_margin*1.5, 
+              width = 0.45, height = 0.35,
               hjust = 0, vjust = 1,
               halign = 0, valign = 1) +
     # draw title
@@ -186,8 +182,10 @@ compose_lc_frames <- function(lc_map_fp,
                lineheight = 1) +
     # extent map
     draw_plot(extent_map,
-              y = 0.1, x = 0,
-              height = 0.4, width = 0.5) +
+              y = 0.89, x = 0.425,
+              height = 0.35, width = 0.3,
+              hjust = 0, 
+              vjust = 1) +
     # add some explanation
     draw_label(sub_text,
                x = plot_margin, y = 0.91, 
@@ -207,7 +205,7 @@ compose_lc_frames <- function(lc_map_fp,
     # add logo
     draw_image(usgs_logo, x = plot_margin, y = plot_margin, width = 0.15, hjust = 0, vjust = 0, halign = 0, valign = 0)
   
-  ggsave(sprintf('%s/nlcd_frame_%s.png', out_folder, frame_year), height = 10, width = 10, device = 'png', dpi = 300)
+  ggsave(sprintf('%s/nlcd_frame_%s.png', out_folder, frame_year), height = 10, width = 12, device = 'png', dpi = 300)
   return(sprintf('%s/nlcd_frame_%s.png', out_folder, frame_year))
   
 }
