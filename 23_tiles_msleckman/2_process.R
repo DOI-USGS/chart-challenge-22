@@ -1,6 +1,4 @@
 source('2_process/src/read_in_reclassify.R')
-source('2_process/src/downsampling.R')
-source('2_process/src/get_pixel_change.R')
 
 p2_targets_list<- list(
   # Simplify stream geometries for easier plotting

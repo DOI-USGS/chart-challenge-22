@@ -46,14 +46,36 @@ p1_targets_list <- list(
               overwrite_file = TRUE,
               name = NULL),
     format = 'file'),
-  
+  ## Current and future FORSCEE data - Business as usual scenarios avg of RCP .5 and 8.5 (mid-high IPCC scenario)
+  ## years 2020-2100 available
+  tar_target(
+    p1_FORESCE_current_lc_tif_download,
+    download_tifs(sb_id = '605c987fd34ec5fa65eb6a74',
+                  filename = 'DRB_BAU_RCPAvg_2020-2100.zip',
+                  download_path = '1_fetch/out/BAU',
+                  ## Subset downloaded tifs to only process the  years that are relevant model
+                  year = NULL,
+                  name_unzip_folder = NULL,
+                  overwrite_file = TRUE,
+                  name = NULL),
+    format = 'file'),
+  ## ALL FORESCE data
+  tar_target(
+    p1_FORESCE_lc_tif,
+    c(p1_FORESCE_lc_tif_download, p1_FORESCE_current_lc_tif_download)
+  ),
+  tar_target(
+    ## FOORESCE years for gif from past to current
+    p1_FORESCE_years,
+    c('1900','1910','1920','1930','1940','1950','1960','1970','1980','1990','2000','2010','2020')
+  ),
   ## Subset FORESCE (FOR) historical land cover files to the years of interest
   tar_target(
     p1_FORESCE_lc_tif_download_filtered,
-    p1_FORESCE_lc_tif_download %>% str_subset(
-      ## select years by filtering a regex pattern 
-      pattern = '1900|1910|1920|1930|1940|1950|1960|1970|1980|1990')
-    ),
+    ## select years by filtering a regex pattern 
+    p1_FORESCE_lc_tif %>%
+      str_subset(pattern = paste(sprintf('_%s.tif', p1_FORESCE_years), collapse='|'))
+  ),
   
   ## Get more recent nlcd data using the FedData package and the get_nlcd() function 
   ## This process includes fetching + masking raster to aoi (drb aoi in our case) 

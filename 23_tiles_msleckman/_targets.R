@@ -27,11 +27,6 @@ dir.create("3_visualize/out/map/", showWarnings = FALSE)
 dir.create("3_visualize/out/frames/", showWarnings = FALSE)
 dir.create("3_visualize/out/gifs/", showWarnings = FALSE)
 
-## all years of interest for this visual
-all_years <- c('1900','1910','1920','1930','1940','1950',
-               '1960','1970','1980','1990','2000','2001','2011','2019'
-               )
-
 # defining the zreclassify dfs for nlcd and FORESCE since the land cover classification is different  
 reclassify_df_FOR <- read.delim('1_fetch/in/legend_color_map_FORESCE.csv', sep = ',') %>% filter(Reclassify_match != 'NA')
 reclassify_df_nlcd <- read.delim('1_fetch/in/legend_color_map_NLCD.csv', sep = ',') %>% filter(., Reclassify_match != 'NA')
@@ -40,7 +35,10 @@ reclassify_df_nlcd <- read.delim('1_fetch/in/legend_color_map_NLCD.csv', sep = '
 legend_df <- reclassify_df_FOR %>% 
   arrange(Reclassify_match) %>% 
   dplyr::select(-c(FORESCE_value, FORESCE_description, color_name)) %>%
-  distinct()
+  distinct() %>%
+  mutate(lc_label = ifelse(stringr::word(Reclassify_description, 1, 1) == 'Developed', 
+                           gsub('Areas ', '', Reclassify_description),
+                           Reclassify_description))
 
 # Returning the complete list of targets
 c(p1_targets_list, p2_targets_list, p3_targets_list)
