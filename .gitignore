@@ -31,6 +31,9 @@
 11_circular_csimeone/data_in/*.rds
 11_circular_csimeone/data_in/NWIS_data/*.csv
 11_circular_csimeone/README.html
+16_environment_lplatt/*
+!16_environment_lplatt/_targets.R
+!16_environment_lplatt/README.md
 19_shamshaw/data/*
 
 # Spatial
