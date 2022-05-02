@@ -86,7 +86,24 @@ compose_lc_frames <- function(lc_map_fp,
                               font_fam = "Dongle",
                               out_folder, title,
                               sub_text,
+                              extent_map,
+                              drb_boundary,
                               legend_df){
+  
+  ## Adding extent map
+  extent_map <- ggplot() + 
+    geom_sf(data = extent_map, fill = "white", color = alpha('grey', 0.5)) + 
+    geom_sf(data = drb_boundary, fill = NA, color = "red") +
+    theme_void()+
+    ggspatial::annotation_north_arrow(
+      location = "tl", which_north = "true",
+      height = unit(0.75, 'cm'), width = unit(0.75, 'cm'),
+      pad_x = unit(1, "cm"), pad_y = unit(1, "cm"),
+      style = ggspatial::north_arrow_orienteering(
+        fill = c("white", "white"),
+        line_col = "grey20",
+        text_family = "ArcherPro Book"
+      ))
   
   # import fonts
   font_legend <- 'Source Sans Pro'
@@ -154,7 +171,7 @@ compose_lc_frames <- function(lc_map_fp,
               height = 0.45, width = 0.55) +
     # draw legend
     draw_plot(p_legend,
-              y = 0.89, x = plot_margin, 
+              y = 0.89, x = plot_margin*3.5, 
               width = 0.5, height = 0.35,
               hjust = 0, vjust = 1,
               halign = 0, valign = 1) +
@@ -167,6 +184,10 @@ compose_lc_frames <- function(lc_map_fp,
                vjust = 1,
                fontfamily = font_fam,
                lineheight = 1) +
+    # extent map
+    draw_plot(extent_map,
+              y = 0.1, x = 0,
+              height = 0.4, width = 0.5) +
     # add some explanation
     draw_label(sub_text,
                x = plot_margin, y = 0.91, 
@@ -189,25 +210,4 @@ compose_lc_frames <- function(lc_map_fp,
   ggsave(sprintf('%s/nlcd_frame_%s.png', out_folder, frame_year), height = 10, width = 10, device = 'png', dpi = 300)
   return(sprintf('%s/nlcd_frame_%s.png', out_folder, frame_year))
   
-}
-
-plot_sankey <- function(){
-  ggplot(p2_df, aes(
-    x = x,
-    next_x = next_x, 
-    node = node,
-    next_node = next_node,
-    fill = factor(node)
-  ))  +
-    theme_sankey(base_size = 18)+
-    geom_sankey(
-      flow.alpha = 0.6,
-      node.color = "white"
-    )+
-    scale_fill_manual(
-      values = legend_df$color,
-      labels = legend_df$Reclassify_description,
-      "Land cover"
-    )+
-    labs(x='')  
 }

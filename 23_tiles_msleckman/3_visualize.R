@@ -48,6 +48,8 @@ p3_targets_list<- list(
       out_folder = '3_visualize/out/frames/',
       title = "Land cover change in the Delaware River Basin",
       sub_text = 'Reconstructed timeseries made using modeled historical\nlandscapes from the USGS FORE-SCE model.\nData: doi.org/10.5066/P93J4Z2W',
+      extent_map = p1_drb_extent,
+      drb_boundary = p1_drb_boundary,
       legend_df
       ),
     pattern = map(p3_lc_map_fp, p3_lc_chart, p3_gif_years),
