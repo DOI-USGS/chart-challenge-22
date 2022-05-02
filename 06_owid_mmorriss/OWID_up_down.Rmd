@@ -1,0 +1,261 @@
+---
+title: "OWID_up_down"
+author: "Matthew Morriss"
+date: '2022-04-15'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(owidR)
+library(here)
+library(lubridate)
+library(reshape2)
+library(ggraph)
+library(tidygraph)
+library(igraph)
+library(showtext)
+library(ggtext)
+library(cowplot)
+
+```
+
+## download data
+
+This is a markdown document to download water quality data from OWID and look to make a curvy arc plot of it - urban vs rural
+
+```{r cars}
+#determine what data to download
+
+basic_water <-  as.data.frame(owid_search("water"))
+
+dw_df <- owid(chart_id = basic_water$chart_id[56])
+
+```
+
+## Clean up OWID df
+
+These data are pretty messy. Need to do some significant cleaning to see:
+1) what years have the most data for countries
+2) remove nonsensical years
+3) look at last 10 years of data
+```{r clean data, echo=FALSE}
+cyr <- 2022
+
+cdw_df <- dw_df %>%
+  filter(year > (cyr - 10))
+
+#look at how many years have good data for drinking water in the rural areas
+cdw_df %>%
+  group_by(year) %>%
+  summarise(unique = n_distinct(`Drinking water - At least basic - Rural - Percent`))
+
+
+#look at how many years have good data for drinking water in the urban areas
+cdw_df %>%
+  group_by(year) %>%
+  summarise(unique = n_distinct(`Drinking water - At least basic - Urban - Percent`))
+
+```
+
+Based on my simple analysis above, we want to examine data in 2013 as there are ~155 data points for different countries Urban vs Rural. 
+
+```{r,results='hide', echo=FALSE}
+#filter to year 2013, remove NA rows 
+cdw_df <- cdw_df %>%
+  filter(., year == 2013) %>%
+  drop_na(`Drinking water - At least basic - Rural - Percent`, `Drinking water - At least basic - Urban - Percent`)
+
+cdw_df <- cdw_df %>%
+  select(entity,
+         year,
+         `Drinking water - At least basic - Rural - Percent`,
+         `Drinking water - At least basic - Urban - Percent`) %>%
+  reshape2::melt(id = c("entity","year"))
+
+```
+Now I have a clean dataset for ~173 entities drinking water access in urban/rural areas for 2013. Time to start looking into the up-down curve plot.
+
+Following along with the coding example below. Want to find global average difference between urban and Rural
+```{r, echo=FALSE}
+cdw_df %>%
+  group_by(entity, year) %>%
+  arrange(entity, year) %>%
+  mutate(diff = value - lag(value)) %>%
+  ungroup() %>%
+  filter(.,entity == "World")
+
+```
+The global difference between rural and urban areas (in terms of basic water access) in 2013 was 16.5%.
+
+# Plotting
+My next steps will be to separate out the Urban and rural and start to build my arc diagrams. 
+
+```{r urban, echo=FALSE}
+library(showtext)
+
+# add font
+font_fam = "Source Sans Pro"
+font_add_google(font_fam, regular.wt = 300, bold.wt = 700) 
+showtext_opts(dpi = 300)
+showtext_auto(enable = TRUE)
+
+# common theme for both plots
+theme_arc <- function(){
+  theme_void(base_size = 32) +
+  theme(
+      text = element_text(family = font_fam, color = "white"),
+        panel.background = element_rect(fill = "black", color = "black"),
+        plot.background = element_rect(fill = "black", color = "black"),
+        legend.position = "none",
+        plot.title = element_text(colour = "white", family = font_fam, face = "bold"),
+        plot.subtitle = element_text(color = "white", size=30))
+}
+
+```
+
+```{r}
+
+# Prep data for plotting
+urban_df <- cdw_df %>%
+  dplyr::filter(., grepl("Urban", variable)) %>%
+  mutate(value = round(value))
+
+# create link data for graph
+links_urban <- data.frame(source = 0,
+                         value = c(1:100)) %>%
+  left_join(urban_df, by = "value") %>%
+  mutate(country = if_else(is.na(entity),"",entity),
+         group = factor(case_when(is.na(entity) ~ 1,
+                                  entity == 'World' ~ 3,
+                                  TRUE ~ 2))) %>%
+  select(source,
+         destination = value, 
+         group)%>%
+  group_by(destination) %>%
+  mutate(width = n())
+
+# plot urban graph
+g <- links_urban %>%
+  graph_from_data_frame() %>%
+  ggraph(layout="linear") + #call the ggpraph function 
+  geom_edge_arc(aes(edge_colour = group,  #three color groups, no data, data, and value highlighted
+                    edge_width = width,   # line width set by number of countries with similar ages
+                    edge_alpha = group # transparency by group number...
+                    )
+                ) + 
+  geom_node_text(aes(label = name),
+                 repel = FALSE,
+                 size = 6,
+                 nudge_y = -1,
+                 color = rep(c("white", NA, NA, NA, NA, NA, NA, NA, NA, NA),
+                 length.out = 101))+ #add labels to the nodes, from "names" which idk where that came from in the function calls previously
+  scale_edge_color_manual(values = c("black","darkgoldenrod1", "white")) +  
+  scale_edge_alpha_manual(values = c(0, 1, 1)) + #set groups 2 and 3 to not transparent, set group 1 (entity==NA) to fully transparent
+  labs(title = "Basic access to safe drinking water",
+       subtitle = "Comparing access to safe drinking water in urban and rural areas around the world") +
+  theme_arc()
+g
+
+ggsave("Figures/Urban.png", width = 16, height = 9, units = "in", dpi = 300)
+```
+
+
+Now plot the rural access to clean drinking water in eritrea
+```{r rural, echo=FALSE}
+# prep graph data
+rural_df <- cdw_df %>%
+  dplyr::filter(., grepl("Rural", variable)) %>%
+  mutate(value = round(value))
+
+links_rural <- data.frame(source = 0,
+                         value = c(1:100)) %>%
+  left_join(rural_df, by = "value") %>%
+  mutate(country = if_else(is.na(entity),"",entity),
+         group = factor(case_when(is.na(entity) ~ 1,
+                                  entity == 'World' ~ 3,
+                                  TRUE ~ 2))) %>%
+  select(source,
+         destination = value, 
+         group)%>%
+  group_by(destination) %>%
+  mutate(width = n())
+
+# make rural graph
+g2 <- links_rural %>% 
+  graph_from_data_frame() %>%
+  ggraph(layout="linear") + #call the ggpraph function 
+  geom_edge_arc(aes(edge_colour = group,  #three color groups, no data, data, and value highlighted
+                    edge_width = width,   # line width set by number of countries with similar ages
+                    edge_alpha = group),
+                strength = -1) + # transparency by group number...
+ geom_node_text(aes(label = name),
+                 repel = FALSE,
+                 size = 0,
+                 nudge_y = -1,
+                 color = rep(c("white", NA, NA, NA, NA, NA, NA, NA, NA, NA),
+                 length.out = 101))+
+  scale_edge_color_manual(values = c("black","darkorchid", "white")) +  
+  scale_edge_alpha_manual(values = c(0, 1, 1)) + #set groups 2 and 3 to not transparent, set group 1 (entity==NA) to fully transparent
+  theme_arc()
+
+g2
+
+ggsave("Figures/Rural.png", width = 16, height = 8, units = "in", dpi = 300)
+```
+
+
+Stitch the two plots together
+```{r}
+
+plot_margin <- 0.025
+
+# black bar for bottom of plot
+box_black <- grid::rectGrob(
+  x = 0, y = 0, 
+  width = 16, height = 2,
+  gp = grid::gpar(fill = "black", alpha = 1, col = 'black')
+)
+canvas <- grid::rectGrob(
+  x = 0, y = 0, 
+  width = 16, height = 9,
+  gp = grid::gpar(fill = "black", alpha = 1, col = 'black')
+)
+
+#setup position for frame 
+cowplot::ggdraw(xlim = c(0,1),
+                ylim = c(0.1,1))+
+  # black background
+  draw_grob(canvas,
+            x = 0, y = 1,
+            height = 9, width = 16,
+            hjust = 0, vjust = 1)+
+  # draw second plot in bottom half of frame
+  cowplot::draw_plot(g2,
+                     x = 0,
+                     y = 0.125,
+                     height = 0.45)+
+  #draw first plot in top of frame
+  cowplot::draw_plot(g,
+                     x = 0,
+                     y = 0.5,
+                     height = 0.5) +
+  draw_grob(box_black,
+            x = 0, y = 0.1,
+            height = 1, width = 16,
+            hjust = 0, vjust = 1)+
+  # creator
+  draw_label("Matthew Morriss, USGS\nData: OWID Water, Sanitation, and Hygiene Data Explorer,WHO/UNICEF Joint Monitoring Program for Water Supply and Sanitation", 
+             x = 1-plot_margin, 
+             y = 0.12, 
+             fontface = "italic", 
+             color = "white",
+             size = 16, 
+             hjust = 1, vjust = 0,
+             fontfamily = font_fam,
+             lineheight = 1.1) 
+
+  
+ggsave("Figures/owid_upddown.png", width = 14, height = 16, units = "in", dpi = 300)
+```

@@ -16,75 +16,135 @@ proj_ak <- '+proj=aea +lat_1=55 +lat_2=65 +lat_0=50 +lon_0=-154 +x_0=0 +y_0=0 +e
 #Get outline of AK for basemap
 AK_shp <- spData::alaska %>% st_transform(proj_ak)
 
+# get canada to add to map side, buffer and cut to canvas
+canada <- spData::world %>% filter(name_long == 'Canada') %>% st_transform(proj_ak) %>%
+  st_crop(AK_shp%>%st_buffer(100000)) %>%
+  st_as_sf()
+
+# combine AK and canda boundaries
+outline <- rbind(AK_shp%>%select(geometry) , canada%>%select(geometry = geom)) %>% st_as_sf()
+
 #Get outline of North American rivers
-NA_rivers = read_sf("GIS/ne_10m_rivers_north_america/ne_10m_rivers_north_america.shp")
+file_rivers <- 'data/ne_10m_rivers_north_america'
+if(!file.exists(sprintf('%s.zip',file_rivers))){
+  download.file('https://www.naturalearthdata.com/http//www.naturalearthdata.com/download/10m/physical/ne_10m_rivers_north_america.zip',
+              destfile = sprintf('%s.zip',file_rivers))  
+  unzip(sprintf('%s.zip',file_rivers), exdir = 'data')
+}
+
+# Read in NA rivers
+NA_rivers = read_sf("data/ne_10m_rivers_north_america.shp") %>%
+  st_transform(proj_ak)%>%
+  st_intersection(outline)
 
 # Get SWOT-observable rivers in AK from the SWORD database
-hb78_reaches = read_sf("GIS/SWORD/NA/na_sword_reaches_hb78_v1.shp")
-hb81_reaches = read_sf("GIS/SWORD/NA/na_sword_reaches_hb81_v1.shp")
-hb82_reaches = read_sf("GIS/SWORD/NA/na_sword_reaches_hb82_v1.shp")
+# Download and unzip into 'data' from https://zenodo.org/record/5643392#.YmBFPfPMKHF
+# this will take at least 20 minutes!
+sword_data <- 'data/SWORD_shp_v2'
+if(!file.exists(sprintf('%s.zip',sword_data))){
+  download.file('https://zenodo.org/record/5643392/files/SWORD_shp_v2.zip?download=1',
+              destfile = sprintf('%s.zip',sword_data))  
+  unzip(sprintf('%s/%s.zip', sword_data, sword_data), exdir = 'data')
+}
 
-AK_SWORD_reaches = rbind(hb78_reaches, hb81_reaches, hb82_reaches)
+hb78_reaches = read_sf("data/shp/NA/na_sword_reaches_hb78_v2.shp")
+hb81_reaches = read_sf("data/shp/NA/na_sword_reaches_hb81_v2.shp")
+hb82_reaches = read_sf("data/shp/NA/na_sword_reaches_hb82_v2.shp")
 
-# Overlay with USGS gauge sites
+AK_SWORD_reaches = rbind(hb78_reaches, hb81_reaches, hb82_reaches) %>%
+  st_transform(proj_ak)  %>%
+  st_intersection(outline)
+
+# Overlay with USGS gage sites
 all_AK_sites = whatNWISdata(stateCd = "AK", 
                           parameterCd = "00060")
-AK_sites_sf = st_as_sf(all_AK_sites, coords = c("dec_long_va", "dec_lat_va"), crs = 4269)
+AK_sites_sf = st_as_sf(all_AK_sites, coords = c("dec_long_va", "dec_lat_va"), crs = 4269) %>%
+  st_transform(proj_ak)
 
 current_sites_sf = AK_sites_sf %>% filter(end_date > "2022-01-01")
 ```
 
 
 ```{r plotting, echo=FALSE, message=FALSE, warning=FALSE}
-# Plot SWORD reaches and gauge locations as a function of last date of data
+
+# Plot SWORD reaches and gage locations as a function of last date of data
+
 library(rnaturalearth)
 library(ggplot2)
 
-rivers10 <- ne_download(scale = 10, type = 'rivers_lake_centerlines', category = 'physical', returnclass = c("sf"))
+rivers10 <- ne_download(scale = 10, type = 'rivers_lake_centerlines', category = 'physical', returnclass = c("sf")) %>%
+  st_transform(proj_ak) %>%
+  st_intersection(outline) 
+plot(rivers10)
+plot(NA_rivers)
+# simplify SWOT reaches for plotting
 
-AK_map = ggplot(data = AK_sites_sf) + geom_sf(data = st_geometry(AK_shp), fill = 'azure') + xlim(c(-170, -130)) + ylim(c(55,72)) + theme_bw() + 
-  theme(legend.position="top")+
-  geom_sf(data = st_geometry(NA_rivers), col = 'grey70') + 
-  geom_sf(data = st_geometry(rivers10), col = 'grey70') +
-  geom_sf(data = st_geometry(AK_SWORD_reaches), col = "lightpink") +
-  geom_sf(aes(col = end_date))+labs(x = "Longitude", y = "Latitude", colour="Gage End")+
-  geom_sf(data = st_geometry(current_sites_sf), col = "green") +
-  annotate("text", x = -139, y = 72, label = "Large AK Rivers", col = "dimgray") + 
-  annotate("text", x = -139, y = 70.8, label = "SWOT Rivers", col = "lightpink3") + 
-  annotate("text", x = -161, y = 72, label = "Active Gage", col = "green3") +
-  theme(legend.key.width=unit(1.5,"cm"))
+AK_simp <- AK_SWORD_reaches %>%
+  rmapshaper::ms_simplify() %>%
+  summarize()
+AK_simp
 
+AK_map = ggplot(data = AK_sites_sf) + 
+  geom_sf(data = outline, color = "lightgrey", fill = NA)+
+  geom_sf(data = AK_shp, 
+          color = "lightgrey",
+          fill = NA
+          ) + 
+  theme_void() + 
+  theme(legend.position="top") +
+  geom_sf(data = NA_rivers, col ='midnightblue', stroke = 0.1, lwd = 0.2) + 
+  geom_sf(data = rivers10, col = 'midnightblue', stroke = 0.1, lwd = 0.2) +
+  geom_sf(data = AK_simp, col = "dodgerblue1", stroke = 1.2,  alpha = 0.8) +
+  geom_sf(color = "grey", alpha = 0.7) +
+  labs(x = "Longitude", y = "Latitude", colour="gage end") +
+  geom_sf(data = current_sites_sf, color = "goldenrod2", size = 1.5, alpha = 0.8) +
+  theme(legend.key.width=unit(1.5,"cm")) +
+  coord_sf()
 AK_map
+
 ```
 
 
 ```{r plotting, echo=FALSE, message=FALSE, warning=FALSE}
-#Plot time series of available discharge data in terms of available upstream area, overlay with MERIT Hydro to get upstream area. 
+# Plot time series of available discharge data in terms of available upstream area, overlay with MERIT Hydro to get upstream area. 
 library(lubridate)
 require(scales)
 library(png)
 library(grid)
+# MERIT data can be downloaded here: http://hydro.iis.u-tokyo.ac.jp/~yamadai/MERIT_Hydro/
+# merged with HydroBasins for AK https://www.hydrosheds.org/products/hydrobasins
+if(!file.exists('data/MERITHydro/AK_MERITHydro.shp')){
+  download.file('https://labs.waterdata.usgs.gov/visualizations/data/MERITHydro.zip', 'data/MERITHydro.zip')
+  unzip('data/MERITHydro.zip', exdir = 'data')
+}
 
-MERITHydro = read_sf("GIS/MERITHydro/AK_MERITHydro.shp")
+MERITHydro = read_sf("data/MERITHydro/AK_MERITHydro.shp") %>%
+  st_transform(proj_ak) %>%
+  st_intersection(AK_shp)
+
 AK_sites_4326 = st_transform(AK_sites_sf, st_crs(MERITHydro))
 MERITHydro_gaged = st_is_within_distance(MERITHydro, AK_sites_4326, dist = 500)
 
 #Find overlapping gage and MERITHydro rivers, to get the upstream area of the gaged rivers
 close_gage_df = data.frame()
-for(i in 1:length(MERITHydro_gaged)){
-  if(length(MERITHydro_gaged[[i]])>0){
-    df = data.frame(MERITHydro_index = i, Gauge_index = as.numeric(MERITHydro_gaged[[i]][1]), uparea = MERITHydro[i, "uparea"], end_date = AK_sites_4326[MERITHydro_gaged[[i]][1],"end_date"], 
-                    start_date = AK_sites_4326[MERITHydro_gaged[[i]][1],"begin_date"])
+for (i in 1:length(MERITHydro_gaged)) {
+  if (length(MERITHydro_gaged[[i]]) > 0) {
+    df = data.frame(
+      MERITHydro_index = i,
+      Gauge_index = as.numeric(MERITHydro_gaged[[i]][1]),
+      uparea = MERITHydro[i, "uparea"],
+      order = MERITHydro[i, "order"],
+      end_date = AK_sites_4326[MERITHydro_gaged[[i]][1], "end_date"],
+      start_date = AK_sites_4326[MERITHydro_gaged[[i]][1], "begin_date"]
+    )
     close_gage_df = rbind(df, close_gage_df)
   }
 }
 
 upstream_df = data.frame(year = c(1907:2022), upstream_area = NA)
 
-for(i in 1:nrow(close_gage_df)){
-  upstream_df[upstream_df$year %in% c(year(close_gage_df[i,7]):year(close_gage_df[i,5])),2] = 
-    rowSums(cbind(close_gage_df[i,3],upstream_df[upstream_df$year %in% c(year(close_gage_df[i,7]):year(close_gage_df[i,5])),2]), na.rm = T)
-  
+for(i in 1:nrow(close_gage_df)) {
+  upstream_df[upstream_df$year %in% c(year(close_gage_df[i, "start_date.begin_date"]):year(close_gage_df[i, "end_date.end_date"])), 2] = rowSums(cbind(close_gage_df[i, "uparea.uparea"], upstream_df[upstream_df$year %in% c(year(close_gage_df[i, "start_date.begin_date"]):year(close_gage_df[i, "end_date.end_date"])), 2]), na.rm = T)
 }
 
 #Repeat analysis for SWORD database
@@ -93,41 +153,219 @@ MERITHydro_SWORD= st_intersects(MERITHydro, AK_SWORD_reaches)
 close_SWORD_df = data.frame()
 for(i in 1:length(MERITHydro_SWORD)){
   if(length(MERITHydro_SWORD[[i]])>0){
-    df = data.frame(MERITHydro_index = i, SWORD_index = as.numeric(MERITHydro_SWORD[[i]][1]), uparea = MERITHydro[i, "uparea"])
+    df = data.frame(MERITHydro_index = i, SWORD_index = as.numeric(MERITHydro_SWORD[[i]][1]), uparea = MERITHydro[i, "uparea"], order = MERITHydro[i, "order"])
     close_SWORD_df = rbind(df, close_SWORD_df)
   }
 }
 
 SWOT_df = data.frame(upstream_area = c(rep(upstream_df[116,2]+sum(close_SWORD_df$uparea.uparea),3)), year = 2023:2025)
-combined_df = rbind(upstream_df, SWOT_df)
-combined_df$upstream_area = combined_df$upstream_area/1000
-
+combined_df = rbind(upstream_df %>% mutate(type = 'gage'), SWOT_df %>% mutate(type = 'SWOT'))
 combined_df = combined_df %>% filter(year > 1949)
+
+seg_df <- combined_df %>%
+  filter(year %in% c(2022, 2023))
 
 img = readPNG(source = "SWOT_spacecraft_model.png")
 g = rasterGrob(img, interpolate=TRUE)
 
-area_timeline = ggplot(combined_df, aes(x = year, y = upstream_area)) + geom_line(col = "cornflowerblue") + theme_bw() + 
-  xlab("Year") + ggtitle("Cumulative Upstream Area of \n Observed River Flow (1,000km2)") + ylab("") + annotate("text", x = 1990, y = 1000, label = "Gage discharge", col = "dimgray") + annotate("text", x = 2000, y = 50000, label = "Expected SWOT \n satellite discharge ->", col = "dimgray")+
-  annotation_custom(g, xmin = 1990, xmax = 2020) + scale_y_continuous(trans = "log10", labels =  comma)#+coord_trans(y='log10')
+area_timeline = ggplot(combined_df, aes(x = year, y = upstream_area)) + 
+  geom_line(col = "cornflowerblue", size = 1, aes(linetype = type)) + 
+  geom_segment(aes(y = min(seg_df$upstream_area), 
+                   yend = max(seg_df$upstream_area), 
+                   x = min(seg_df$year), 
+                   xend = max(seg_df$year)),
+               linetype = "dotted",
+               col = "cornflowerblue")+
+  theme_classic(base_size = 16) + 
+  theme(legend.position = 'none') +
+  xlab("Year") + 
+  
+  ggtitle(bquote(atop("River flow captured by monitoring",
+            "(cumulative upstream area" ~ km ^ 2 ~')')))+
+  ylab("") + 
+  annotate("text", x = 1990, y = 800000, label = "Monitoring from USGS gages", col = "black") + 
+  annotate("text", x = 2020, y = 100000000, label = "Expected SWOT monitoring", col = "black", hjust = 1)+
+  annotation_custom(g, xmin = 1995, xmax = 2025, ymin = 1, ymax = 13) + 
+  scale_y_continuous(trans = "log10", labels =  comma) +
+  scale_x_continuous(
+    breaks = seq(1950, 2020, by = 10)
+  )+
+  theme(axis.title = element_blank())+
+  scale_linetype_manual(values = c('solid', 'dashed'))
 
 area_timeline
 
 ```
 
+```{r stream order, echo=FALSE, message=FALSE, warning=FALSE}
+library(tidyr)
+
+gage_order_df = data.frame(
+  begin_date = close_gage_df$start_date.begin_date,
+  end_date = close_gage_df$end_date.end_date,
+  order = close_gage_df$order.order,
+  ID = "gage"
+)
+
+order_df = data.frame(
+  year = c(1907:2022),
+  order2 = NA,
+  order3 = NA,
+  order4 = NA,
+  order5 = NA,
+  order6 = NA,
+  order7 = NA
+)
+
+for (i in 1:nrow(gage_order_df)) {
+  if (gage_order_df[i, "order"] == "2") {
+    order_df[order_df$year %in% c(year(gage_order_df[i, "begin_date"]):year(gage_order_df[i, "end_date"])), "order2"] = apply(cbind(1, order_df[order_df$year %in% c(year(gage_order_df[i, "begin_date"]):year(gage_order_df[i, "end_date"])), "order2"]), 1, sum, na.rm = TRUE)
+  } else if (gage_order_df[i, "order"] == "3") {
+    order_df[order_df$year %in% c(year(gage_order_df[i, "begin_date"]):year(gage_order_df[i, "end_date"])), "order3"] = apply(cbind(1, order_df[order_df$year %in% c(year(gage_order_df[i, "begin_date"]):year(gage_order_df[i, "end_date"])), "order3"]), 1, sum, na.rm = TRUE)
+  } else if (gage_order_df[i, "order"] == "4") {
+    order_df[order_df$year %in% c(year(gage_order_df[i, "begin_date"]):year(gage_order_df[i, "end_date"])), "order4"] = apply(cbind(1, order_df[order_df$year %in% c(year(gage_order_df[i, "begin_date"]):year(gage_order_df[i, "end_date"])), "order4"]), 1, sum, na.rm = TRUE)
+  } else if (gage_order_df[i, "order"] == "5") {
+    order_df[order_df$year %in% c(year(gage_order_df[i, "begin_date"]):year(gage_order_df[i, "end_date"])), "order5"] = apply(cbind(1, order_df[order_df$year %in% c(year(gage_order_df[i, "begin_date"]):year(gage_order_df[i, "end_date"])), "order5"]), 1, sum, na.rm = TRUE)
+  } else if (gage_order_df[i, "order"] == "6") {
+    order_df[order_df$year %in% c(year(gage_order_df[i, "begin_date"]):year(gage_order_df[i, "end_date"])), "order6"] = apply(cbind(1, order_df[order_df$year %in% c(year(gage_order_df[i, "begin_date"]):year(gage_order_df[i, "end_date"])), "order6"]), 1, sum, na.rm = TRUE)
+  }else if (gage_order_df[i, "order"] == "7") {
+     order_df[order_df$year %in% c(year(gage_order_df[i, "begin_date"]):year(gage_order_df[i, "end_date"])), "order7"] = apply(cbind(1,order_df[order_df$year %in% c(year(gage_order_df[i, "begin_date"]):year(gage_order_df[i, "end_date"])), "order7"]),1,sum,na.rm = TRUE)
+  }
+}
+
+SWOT_order_df = data.frame(
+  year = c(2023:2025),
+  order2 = c(rep(as.numeric(table(close_SWORD_df$order.order)[1]),3)),
+  order3 = c(rep(as.numeric(table(close_SWORD_df$order.order)[2]),3)),
+  order4 = c(rep(as.numeric(table(close_SWORD_df$order.order)[3]),3)),
+  order5 = c(rep(as.numeric(table(close_SWORD_df$order.order)[4]),3)),
+  order6 = c(rep(as.numeric(table(close_SWORD_df$order.order)[5]),3)),
+  order7 = c(rep(as.numeric(table(close_SWORD_df$order.order)[6]),3))
+)
+combined_order_df = rbind(order_df %>% mutate(type = 'gage'), SWOT_order_df %>%
+                            mutate(type = 'SWOT')) %>% 
+  filter(year > 1949)
+
+# aggregate streamorder to 2 groups
+order_long = combined_order_df %>% 
+  pivot_longer(cols = c(2:7), names_to = "order", values_to = "count") %>%
+  mutate(streamorde =  as.numeric(str_sub(order, -1)),
+         size = ifelse(streamorde < 4, 'small', 'large')) %>% 
+  group_by(type, year, size) %>%
+  summarize(count = sum(count, na.rm = TRUE))
+order_long
+
+seg_df <- order_long %>%
+  filter(year %in% c(2022, 2023))
+seg_df
+
+order_long$order_number = gsub("order","",as.character(order_long$order))
+
+order_timeline = ggplot(order_long,  
+                        aes(x = year, y = count, color = size)) + 
+  geom_line(size = 1, aes(linetype = type)) + 
+  theme_classic(base_size = 16) + 
+  xlab(NULL) + 
+  #ggtitle("Monitoring of large river reaches")+
+  geom_segment(aes(y = min(seg_df$count), 
+                   yend = max(seg_df$count), 
+                   x = min(seg_df$year), 
+                   xend = max(seg_df$year)),
+               linetype = "dotted")+
+  ylab("Number of monitored river reaches") + 
+    annotate("text", x = 1990, y = 5, label = "USGS gaged rivers", col = "black") + 
+  annotate("text", x = 2020, y = 750, label = "Expected SWOT monitoring", col = "black", hjust = 1)+
+  annotation_custom(g, xmin = 1995, xmax = 2020, ymin = 1.2, ymax = 3.2) + 
+  scale_y_continuous(trans = "log10", labels =  comma) +
+  scale_x_continuous(
+    breaks = seq(1950, 2020, by = 10)
+  )+
+  guides(color=guide_legend("Stream order"))+
+  theme(legend.position="bottom",
+        panel.background = element_rect(color = NA))
+
+order_timeline
+
+```
+
 ```{r}
 #Combine both plots into one, add title
-library(ggpubr)
+library(cowplot)
+library(showtext)
 
-t = textGrob(paste0("Many large rivers in Alaska are still either unmonitored \n or are no longer being monitored. A future tool that could \n help us estimate river discharge is satellite imagery!"), gp=gpar(fontsize=14, fontface="bold", lineheight=0.8))
+# add font
+font_fam = "Source Sans Pro"
+font_add_google(font_fam, regular.wt = 300, bold.wt = 700) 
+showtext_opts(dpi = 300)
+showtext_auto(enable = TRUE)
+plot_margin <- 0.025
 
-#Export as png
-figure = ggarrange(AK_map, area_timeline)
-annotate_figure(figure,
-                top = t)+
-  bgcolor("white")
+canvas <- rectGrob(
+  x = 0, y = 0, 
+  width = 16, height = 9,
+  gp = gpar(fill = "white", alpha = 1, col = 'white')
+)
 
-ggsave("chart.png",dpi = 300)
+box_white <- rectGrob(
+  x = 0, y = 0, 
+  width = 0.2, height = 0.2,
+  gp = gpar(fill = "white", alpha = 1, col = 'white')
+)
+
+# combine plot elements
+ggdraw() +
+  draw_grob(canvas,
+            x = 0, y = 1,
+            height = 9, width = 16,
+            hjust = 0, vjust = 1)+
+  draw_plot(AK_map+theme(legend.position = 'none',
+                         axis.title = element_blank(),
+                         axis.text = element_blank(),
+                         axis.ticks = element_blank(),
+                         panel.grid = element_blank()),
+            x = 0.02, y = -0.1, 
+            height = 1.1) +
+  draw_plot(order_timeline +
+              theme(plot.background = element_rect(fill = "white", color = NA),
+                    panel.background = element_blank(),
+                    text = element_text(family = font_fam)),
+            x = plot_margin, y = 0.25,
+            width = 0.35, height = 0.6) +
+  draw_label("Opportunities using the Surface Water Ocean Topography (SWOT) \n satellite to estimate river flow in unmonitored locations", 
+             x = 0+plot_margin, y = 1-plot_margin,
+             fontface = "bold", size = 30,
+             fontfamily = font_fam,
+             hjust = 0, vjust = 1)+
+  draw_grob(box_white,
+            x = 0.9, y = 0.9,
+            height = 1, width = 1,
+            hjust = 0, vjust = 1)+
+  draw_label("SWOT observed rivers", 
+             fontface = "bold", 
+             x = 1-plot_margin, y = 0.975,
+             color = "dodgerblue1",
+             fontfamily = font_fam,
+             hjust = 1, vjust = 1) +
+  draw_label("Active gage sites",
+             fontface = "bold", 
+             x = 1-plot_margin, y = 0.95,
+             color = "goldenrod1",
+             hjust = 1, vjust = 1) +
+  draw_label("Inactive gage sites",
+             fontface = "bold", 
+             x = 1-plot_margin, y = 0.925,
+             color = "grey",
+             hjust = 1, vjust = 1) +
+  draw_label("Merritt Harlan, USGS                  \nData: SWOT (Altenau et al. 2021) & MERIT Hydro (Yamazaki et al. 2019)", 
+               x = 1-plot_margin, y = plot_margin, 
+               fontface = "italic", 
+               size = 14, 
+               hjust = 1, vjust = 0,
+               fontfamily = font_fam,
+               lineheight = 1.1) 
+
+
+ggsave("SWOT_chart_clear.png", width = 16, height = 9, dpi = 300)
 
 
 ```

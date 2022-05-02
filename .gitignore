@@ -24,6 +24,8 @@
 05_slope_mmorriss/Data/
 05_slope_mmorriss/figures/*.eps
 05_slope_mmorriss/figures/*.svg
+06_owid_mmorriss/Data/*.csv
+06_owid_mmorriss/Figures/*.png
 07_physical_distributions_stopp/data_in/*
 08_mountains_khopkins/in
 09_statistics_soliver/in_dat/*.rds
@@ -35,6 +37,9 @@
 !16_environment_lplatt/_targets.R
 !16_environment_lplatt/README.md
 19_shamshaw/data/*
+20_newTool_mharlan/data/*
+21_down_upwards_tthompson/out/*.png
+21_down_upwards_tthompson/src/*.csv
 
 # Spatial
 *.cpg
