@@ -11,7 +11,7 @@ animate_frames_gif <- function(frames, out_file, reduce = TRUE, frame_delay_cs, 
     image_read() %>%
     image_join() %>%
     image_animate(
-      delay = c(rep(frame_delay_cs,length(frames))),
+      delay = c(frame_delay_cs*4, rep(frame_delay_cs, (length(frames)-1))),
       optimize = TRUE
     ) %>%
     image_write(out_file)

@@ -6,9 +6,9 @@ plot_raster_map <- function(year,
                             out_folder = '3_visualize/out/map/'){
   
   ggplot()+
-   # geom_sf(data = extent_map,
-   #         fill = NA,
-   #         color = "lightgrey") +
+    # geom_sf(data = extent_map,
+    #         fill = NA,
+    #         color = "lightgrey") +
     geom_raster(data = raster_df, 
                 aes(x=x, y=y, fill = factor(lc))) +
     geom_sf(data = reach_shp , 
@@ -34,7 +34,7 @@ plot_lc_chart <- function(counts,
                           legend_df,
                           years, 
                           chart_year){
-
+  
   # Plot area through time
   plot_count_df <- counts %>% 
     transform(year = as.numeric(year)) %>%
@@ -47,37 +47,37 @@ plot_lc_chart <- function(counts,
                                         ordered = TRUE, 
                                         levels = levels(counts$lc_order))) %>%
     arrange(Reclassify_match)
-
- plot_count_df %>%
-  ggplot(aes(as.character(year), 
-             percent, 
-             group = lc_order, 
-             fill = lc_order)
-  )+
-  ## stacked bar plot
-  geom_bar(stat = 'identity')+
-   geom_text(aes(label = year, y = 0),
-             angle = 90,
-             color = "white", 
-             hjust = -0.1,
-             size = 6)+
-  scale_fill_manual(
-    values = legend_df$color_hex,
-    labels = legend_df$Reclassify_description,
-    "Land cover"
-  ) +
-  theme_classic(base_size = 18) +
-   scale_y_continuous(
-     breaks = c(0, 1),
-     labels = scales::label_percent(accuracy = 1),
-     expand = c(0,0)
-   ) +
-   scale_x_discrete(
-     breaks = years,
-     limits = years
-   ) +
-   #theme(legend.position = 'none') +
-   labs(x = NULL, y = NULL)
+  
+  plot_count_df %>%
+    ggplot(aes(as.character(year), 
+               percent, 
+               group = lc_order, 
+               fill = lc_order)
+    )+
+    ## stacked bar plot
+    geom_bar(stat = 'identity')+
+    geom_text(aes(label = year, y = 0),
+              angle = 90,
+              color = "white", 
+              hjust = -0.1,
+              size = 6)+
+    scale_fill_manual(
+      values = legend_df$color_hex,
+      labels = legend_df$Reclassify_description,
+      "Land cover"
+    ) +
+    theme_classic(base_size = 18) +
+    scale_y_continuous(
+      breaks = c(0, 1),
+      labels = scales::label_percent(accuracy = 1),
+      expand = c(0,0)
+    ) +
+    scale_x_discrete(
+      breaks = years,
+      limits = years
+    ) +
+    #theme(legend.position = 'none') +
+    labs(x = NULL, y = NULL)
   
 }
 compose_lc_frames <- function(lc_map_fp,
@@ -85,6 +85,7 @@ compose_lc_frames <- function(lc_map_fp,
                               frame_year,
                               font_fam = "Dongle",
                               out_folder, title,
+                              sub_text,
                               legend_df){
   
   # import fonts
@@ -93,18 +94,26 @@ compose_lc_frames <- function(lc_map_fp,
   font_add_google(font_fam, regular.wt = 300, bold.wt = 700) 
   showtext_opts(dpi = 300)
   showtext_auto(enable = TRUE)
-
-  # legend
+  
+  # legend - work here to style more efficiently
+  # causes a warning about having two "fill" scales. ignore it
+  # here scale breaks are reordering the legend key, and where delcared in the 
+  # plot_lc_chart it controls stack order in the bar chart 
   p_legend <- get_legend(lc_chart +
+                           theme(legend.spacing.x=unit(5,'pt'),
+                                 legend.margin = unit(0, "pt"),
+                                 legend.box.background = element_blank()) +
                            # reorder keys 
                            scale_fill_manual(
                              values = legend_df$color_hex,
-                             labels = legend_df$Reclassify_description,
+                             labels = legend_df$lc_label,
                              "Land cover"
                            )+
                            guides(fill=guide_legend(
                              title = '',
-                             label.theme = element_text(family = font_legend, size = 18))))
+                             label.theme = element_text(family = font_legend, size = 16),
+                             keyheight = unit("30", "pt"),
+                             ncol =2)))
   
   # logo
   usgs_logo <- magick::image_read('../logo/usgs_logo_white.png') %>%
@@ -131,21 +140,21 @@ compose_lc_frames <- function(lc_map_fp,
               hjust = 0, vjust = 1) +
     # draw map
     draw_image(lc_map,
-              y = plot_margin, x = 0.5+plot_margin,
-              height = 0.95, width = 0.5) +
+               y = plot_margin, x = 0.5+plot_margin,
+               height = 0.95, width = 0.5) +
     # draw area chart
     draw_plot(lc_chart + 
                 theme(legend.position = "none",
-                      text = element_text(family = font_legend, size = 18),
-                      axis.text.y = element_text(family = font_legend, size = 18, color = 'black'),
+                      text = element_text(family = font_legend, size = 16),
+                      axis.text.y = element_text(family = font_legend, size = 16, color = 'black'),
                       axis.text.x = element_blank(),
                       axis.ticks.x = element_blank(),
                       axis.line.x = element_blank()),
-              y = 0.1, x = plot_margin*2,
-              height = 0.45, width = 0.5) +
+              y = 0.1, x = plot_margin/2,
+              height = 0.45, width = 0.55) +
     # draw legend
     draw_plot(p_legend,
-              y = 0.875, x = plot_margin*2, 
+              y = 0.89, x = plot_margin, 
               width = 0.5, height = 0.35,
               hjust = 0, vjust = 1,
               halign = 0, valign = 1) +
@@ -153,24 +162,24 @@ compose_lc_frames <- function(lc_map_fp,
     draw_label(title,
                x = plot_margin, y = 1-plot_margin, 
                fontface = "bold", 
-               size = 45, 
+               size = 48, 
                hjust = 0, 
                vjust = 1,
                fontfamily = font_fam,
                lineheight = 1) +
     # add some explanation
-    draw_label('100 Year timeseries based on backcasted data\nfrom X for years #-# and\nNLCD data from fedData for 2001, 2011, and 2019.',
-               x = plot_margin*2, y = 0.9, 
+    draw_label(sub_text,
+               x = plot_margin, y = 0.91, 
                size = 18, 
                hjust = 0, 
                vjust = 1,
                fontfamily = font_legend,
-               lineheight = 1.1) +
+               lineheight = 1.05) +
     # add author
-    draw_label("Margaux Sleckman, USGS\nData: USGS National Land Cover Database", 
+    draw_label("Margaux Sleckman, USGS",#\nData: USGS FORE-SCE model and National Land Cover Database", 
                x = 1-plot_margin, y = plot_margin, 
                fontface = "italic", 
-               size = 14, 
+               size = 16, 
                hjust = 1, vjust = 0,
                fontfamily = font_legend,
                lineheight = 1.1) +

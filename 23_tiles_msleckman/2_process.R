@@ -40,7 +40,7 @@ p2_targets_list<- list(
   ## Combine all paths to tif files
   tar_target(
     p2_reclassified_raster_list,
-    c(p2_write_reclassified_rasters_FOR, p2_write_reclassified_rasters_NLCD)
+    c(p2_write_reclassified_rasters_FOR)
   ),
   ## convert raster to df for plotting with ggplot2
   tar_target(
