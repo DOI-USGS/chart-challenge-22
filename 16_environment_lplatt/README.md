@@ -6,7 +6,7 @@ This subdirectory creates a chart showing how the timing of peak surface tempera
 
 # Recreating the visual
 
-This subdirectory uses a pipeline with the (`targets` library)[https://github.com/ropensci/targets] for R. It takes approximately 50 seconds to run the entire pipeline.
+This subdirectory uses a pipeline with the [`targets` library](https://github.com/ropensci/targets) for R. It takes approximately 50 seconds to run the entire pipeline.
 
 To run the pipeline, install `targets` and run `targets::tar_make()` in the console from the subdirectory (`'16_environment_lplatt'`). You may find that you get errors at first if you do not have all of the necessary packages, e.g. `Error : could not find packages scico in library paths.` Simply install the packages that are needed and try `targets::tar_make()` again. Repeat as needed. You will need the following packages installed: `tidyverse`, `sf`, `usmaps`, `scico`, `sbtools`
 
