@@ -74,8 +74,8 @@ p2_targets_list<- list(
                   summarize(total_cells = sum(count))) %>%
       mutate(percent = count/total_cells) %>%
       # order lc by mean % area to stack bars
-      mutate(lc_order = forcats::fct_reorder(factor(value), percent, .fun = mean)) %>%
-      mutate(bar_order = factor(lc_order, ordered = TRUE, levels = c('5','4','1','7','8','3','2','6')))
+      mutate(lc_order = factor(factor(value), ordered = TRUE, levels = c('5','1','7','8','4','3','2','6'))) %>%
+      mutate(bar_order = factor(lc_order, ordered = TRUE, levels = c('5','1','7','8','4','3','2','6')))
   )
 )
 

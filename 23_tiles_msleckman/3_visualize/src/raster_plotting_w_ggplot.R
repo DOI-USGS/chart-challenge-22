@@ -41,7 +41,7 @@ plot_lc_chart <- function(counts,
   legend_df <- legend_df %>%
     transform(Reclassify_match = factor(Reclassify_match, 
                                         ordered = TRUE, 
-                                        levels = levels(counts$lc_order))) %>%
+                                        levels = levels(counts$bar_order))) %>%
     arrange(Reclassify_match)
   
   plot_count_df %>%
