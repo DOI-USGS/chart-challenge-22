@@ -205,7 +205,7 @@ compose_lc_frames <- function(lc_map_fp,
     # add logo
     draw_image(usgs_logo, x = plot_margin, y = plot_margin, width = 0.15, hjust = 0, vjust = 0, halign = 0, valign = 0)
   
-  ggsave(sprintf('%s/nlcd_frame_%s.png', out_folder, frame_year), height = 10, width = 12, device = 'png', dpi = 300)
+  ggsave(sprintf('%s/nlcd_frame_%s.png', out_folder, frame_year), height = 10, width = 11, device = 'png', dpi = 300)
   return(sprintf('%s/nlcd_frame_%s.png', out_folder, frame_year))
   
 }

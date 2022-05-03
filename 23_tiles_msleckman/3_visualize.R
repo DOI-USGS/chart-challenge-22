@@ -66,7 +66,7 @@ p3_targets_list<- list(
     p3_land_cover_gif,
     animate_frames_gif(frames = p3_extra_frame,
                        out_file = paste0('3_visualize/out/gifs/drb_land_cover.gif'),
-                       reduce = FALSE, frame_delay_cs = 99),
+                       reduce = FALSE, frame_delay_cs = 100),
     format = 'file'
   )
 )
