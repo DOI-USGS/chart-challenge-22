@@ -20,6 +20,7 @@ source("3_visualize.R")
 ## Creating sub-folders, especially for placing outputs imgs or tifs in an organized way
 dir.create("1_fetch/out/", showWarnings = FALSE)
 dir.create('1_fetch/out/nlcd/', showWarnings = FALSE)
+dir.create('1_fetch/out/BAU/', showWarnings = FALSE)
 dir.create("2_process/out/", showWarnings = FALSE)
 dir.create('2_process/out/reclassified/', showWarnings = FALSE)
 dir.create("3_visualize/out/", showWarnings = FALSE)
