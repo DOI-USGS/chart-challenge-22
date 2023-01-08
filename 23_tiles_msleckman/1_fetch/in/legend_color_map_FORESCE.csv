@@ -1,0 +1,22 @@
+FORESCE_value,FORESCE_description,Reclassify_match,Reclassify_description,color_name,color_hex
+0,NA,NA,NA,NA,NA
+1,Hay / alfalfa,2,Agriculture,Yellow,#dae670
+2,Corn,2,Agriculture,Yellow,#dae670
+3,Soybeans,2,Agriculture,Yellow,#dae670
+4,Fallow/Idle,2,Agriculture,Yellow,#dae670
+5,Wheat,2,Agriculture,Yellow,#dae670
+6,Fruits / Vegetables,2,Agriculture,Yellow,#dae670
+7,Tobacco,2,Agriculture,Yellow,#dae670
+8,Other Crops,2,Agriculture,Yellow,#dae670
+9,Open Water,1,Water,DarkBlue,#0d316b
+10,Developed Low Intensity,3,Developed Areas - Low Intensity,LightRed,#de6868
+11,Developed Med-High Intensity,4,Developed Areas - Med-High Intensity,DarkRed,#6e1010
+12,Barren,5,Barren,Beige,#e3e6c3
+13,Deciduous Forest,6,Forest,DarkGreen,#085210
+14,Evergreen Forest,6,Forest,DarkGreen,#085210
+15,Mixed Forest,6,Forest,DarkGreen,#085210
+16,Shrubland,7,Grassland,LightGreen,#62c46c
+17,Grassland / Pasture,7,Grassland,LightGreen,#62c46c
+18,Woody Wetlands,8,Wetlands,LightBlue,#3293a8
+19,Herbaceous Wetlands,8,Wetlands,LightBlue,#3293a8
+20,"Perennial grasses - Representing switchgrass, miscanthus, prairie grasses, or other heavily managed grass crops used for cellulosic biofuel feedstock ",2,Agriculture,Yellow,#dae670
