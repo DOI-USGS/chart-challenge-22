@@ -4,7 +4,7 @@
     "organization": "U.S. Geological Survey",
     "description": "#30DayChartChallenge 2022, USGS edition",
     "version": "main",
-    "status": "Development",
+    "status": "Production",
     "permissions": {
       "usageType": "openSource",
       "licenses": [
@@ -19,10 +19,11 @@
     "disclaimerURL": "https://github.com/USGS-VIZLAB/chart-challenge-22/blob/main/DISCLAIMER.md",
     "repositoryURL": "https://github.com/USGS-VIZLAB/chart-challenge-22.git",
     "vcs": "git",
-    "laborHours": -1,
+    "laborHours": 100,
     "tags": [
       "R",
-      "USGS"
+      "USGS",
+      "Vizlab"
     ],
     "languages": [
       "R",
@@ -30,11 +31,11 @@
       "HTML"
     ],
     "contact": {
-      "name": "ceenell",
-      "email": "FILL ME IN"
+      "name": "Cee Nell",
+      "email": "cnell@usgs.gov"
     },
     "date": {
-      "metadataLastUpdated": "2023-04-07"
+      "metadataLastUpdated": "2023-05-04"
     }
   },
   {
